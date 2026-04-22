@@ -970,24 +970,52 @@ function openModN(item){
   foods=item&&item.foods?JSON.parse(JSON.stringify(item.foods)):[];
   buildDS('nDS',selDay);renderFds();G('modN').style.display='flex';
 }
-function renderFds(){
-  var cont=G('nFds');cont.innerHTML='';
+function updateFdTotals(){
   var totals={kcal:0,prot:0,carbs:0,fat:0};
   foods.forEach(function(f){totals.kcal+=parseFloat(f.kcal)||0;totals.prot+=parseFloat(f.prot)||0;totals.carbs+=parseFloat(f.carbs)||0;totals.fat+=parseFloat(f.fat)||0;});
-  // Totals bar
-  if(foods.length>0){
-    var tDiv=mk('div','');tDiv.style.cssText='background:var(--dark3);border:1px solid var(--dark4);padding:8px 12px;margin-bottom:10px;display:flex;gap:14px;flex-wrap:wrap';
-    [{l:'Kcal',v:r(totals.kcal),c:'var(--gold)'},{l:'Prot',v:r2(totals.prot)+'g',c:'#e74c3c'},{l:'Carbs',v:r2(totals.carbs)+'g',c:'#f39c12'},{l:'Grasas',v:r2(totals.fat)+'g',c:'var(--purple)'}].forEach(function(m){
-      var d=mk('div');d.innerHTML='<span style="font-size:8px;color:'+m.c+';text-transform:uppercase;letter-spacing:1px">'+m.l+'</span><br><span style="font-size:14px;font-family:var(--serif);color:var(--white)">'+m.v+'</span>';
-      tDiv.appendChild(d);
-    });
-    cont.appendChild(tDiv);
+  var tDiv=G('fdTotalsBar');
+  if(!tDiv)return;
+  tDiv.style.display=foods.length>0?'flex':'none';
+  [{id:'fdT_kcal',v:r(totals.kcal)+' kcal'},{id:'fdT_prot',v:r2(totals.prot)+'g prot'},{id:'fdT_carbs',v:r2(totals.carbs)+'g carbs'},{id:'fdT_fat',v:r2(totals.fat)+'g grasas'}].forEach(function(m){var el=G(m.id);if(el)el.textContent=m.v;});
+}
+function updateFdMacroFields(fi){
+  // Update macro inputs in place without rebuilding DOM
+  var f=foods[fi];
+  var kcalEl=G('fd_kcal_'+fi);var protEl=G('fd_prot_'+fi);var carbsEl=G('fd_carbs_'+fi);var fatEl=G('fd_fat_'+fi);
+  if(kcalEl&&document.activeElement!==kcalEl)kcalEl.value=r2(f.kcal)||'';
+  if(protEl&&document.activeElement!==protEl)protEl.value=r2(f.prot)||'';
+  if(carbsEl&&document.activeElement!==carbsEl)carbsEl.value=r2(f.carbs)||'';
+  if(fatEl&&document.activeElement!==fatEl)fatEl.value=r2(f.fat)||'';
+  updateFdTotals();
+}
+function calcFoodMacros(fi){
+  var f=foods[fi];var g=parseFloat(f.grams)||0;if(!g)return;
+  var p100=f.kcalPer100||0,pr100=f.protPer100||0,ca100=f.carbsPer100||0,fa100=f.fatPer100||0;
+  if(f.libraryId&&D.foodLib[f.libraryId]){var lib=D.foodLib[f.libraryId];p100=lib.kcalPer100;pr100=lib.protPer100;ca100=lib.carbsPer100;fa100=lib.fatPer100;}
+  foods[fi].kcal=String(r2(p100*g/100));foods[fi].prot=String(r2(pr100*g/100));foods[fi].carbs=String(r2(ca100*g/100));foods[fi].fat=String(r2(fa100*g/100));
+}
+function renderFds(){
+  var cont=G('nFds');
+  // Check if already rendered (only re-render structure if food count changed)
+  var existing=cont.querySelectorAll('.fblk');
+  if(existing.length===foods.length&&existing.length>0){
+    // Just update totals and macro values
+    foods.forEach(function(f,fi){updateFdMacroFields(fi);});
+    updateFdTotals();
+    return;
   }
+  cont.innerHTML='';
+  // Totals bar
+  var tDiv=mk('div','');tDiv.id='fdTotalsBar';tDiv.style.cssText='background:var(--dark3);border:1px solid var(--dark4);padding:8px 12px;margin-bottom:10px;display:'+(foods.length>0?'flex':'none')+';gap:14px;flex-wrap:wrap';
+  [{id:'fdT_kcal',l:'Kcal',c:'var(--gold)'},{id:'fdT_prot',l:'Prot',c:'#e74c3c'},{id:'fdT_carbs',l:'Carbs',c:'#f39c12'},{id:'fdT_fat',l:'Grasas',c:'var(--purple)'}].forEach(function(m){
+    var d=mk('div');d.innerHTML='<span style="font-size:8px;color:'+m.c+';text-transform:uppercase;letter-spacing:1px">'+m.l+'</span><br><span id="'+m.id+'" style="font-size:14px;font-family:var(--serif);color:var(--white)">—</span>';
+    tDiv.appendChild(d);
+  });
+  cont.appendChild(tDiv);
   foods.forEach(function(f,fi){
     var mb=mk('div','fblk');
     var tr=mk('div','brow');var lb=mk('div','blbl','Alimento '+(fi+1));
     var actRow=mk('div');actRow.style.cssText='display:flex;gap:4px';
-    // save to library button (only for non-library foods)
     var bSave=mk('button','btnlib','📥');bSave.title='Guardar en biblioteca de alimentos';
     bSave.onclick=(function(i){return function(){
       var fo=foods[i];if(!fo.name)return alert('Añade un nombre primero');
@@ -996,38 +1024,45 @@ function renderFds(){
       if(!g){return alert('Añade los gramos para calcular valores por 100g');}
       var fid=uid();
       var item={id:fid,name:fo.name,kcalPer100:r2((parseFloat(fo.kcal)||0)/g*100),protPer100:r2((parseFloat(fo.prot)||0)/g*100),carbsPer100:r2((parseFloat(fo.carbs)||0)/g*100),fatPer100:r2((parseFloat(fo.fat)||0)/g*100)};
-      saveFS('foodLib',fid,item);foods[i].libraryId=fid;alert('✓ "'+fo.name+'" guardado en biblioteca');
+      saveFS('foodLib',fid,item);foods[i].libraryId=fid;alert('Guardado en biblioteca: '+fo.name);
     };})(fi);
     var bLib=mk('button','btnlib','📚');bLib.title='Seleccionar de biblioteca';
-    bLib.onclick=(function(i){return function(){openFoodSel(function(libItem){foods[i].name=libItem.name;foods[i].libraryId=libItem.id;foods[i].kcalPer100=libItem.kcalPer100;foods[i].protPer100=libItem.protPer100;foods[i].carbsPer100=libItem.carbsPer100;foods[i].fatPer100=libItem.fatPer100;foods[i].grams=foods[i].grams||'100';calcFoodMacros(i);renderFds();});};})(fi);
+    bLib.onclick=(function(i){return function(){openFoodSel(function(libItem){
+      foods[i].name=libItem.name;foods[i].libraryId=libItem.id;
+      foods[i].kcalPer100=libItem.kcalPer100;foods[i].protPer100=libItem.protPer100;
+      foods[i].carbsPer100=libItem.carbsPer100;foods[i].fatPer100=libItem.fatPer100;
+      foods[i].grams=foods[i].grams||'100';calcFoodMacros(i);
+      // Update name field in place
+      var nEl=G('fd_name_'+i);if(nEl)nEl.value=libItem.name;
+      var grEl=G('fd_grams_'+i);if(grEl&&!grEl.value)grEl.value='100';
+      updateFdMacroFields(i);
+    });};})(fi);
     var rm=mk('button','btnrm','✕');rm.onclick=(function(i){return function(){foods.splice(i,1);renderFds();};})(fi);
     actRow.appendChild(bSave);actRow.appendChild(bLib);actRow.appendChild(rm);tr.appendChild(lb);tr.appendChild(actRow);
-    var ni=document.createElement('input');ni.type='text';ni.className='fi';ni.placeholder='Nombre del alimento';ni.value=f.name||'';ni.style.cssText='margin-bottom:7px;width:100%';
+    var ni=document.createElement('input');ni.type='text';ni.className='fi';ni.placeholder='Nombre del alimento';ni.value=f.name||'';ni.id='fd_name_'+fi;ni.style.cssText='margin-bottom:7px;width:100%';
     ni.oninput=(function(i){return function(){foods[i].name=this.value;foods[i].libraryId=null;};})(fi);
     var grRow=mk('div','row2');grRow.style.marginBottom='7px';
     var grW=mk('div'),grL=mk('label','fl','Gramos / ml'),grI=document.createElement('input');
-    grI.type='number';grI.className='fi';grI.placeholder='100';grI.value=f.grams||'';grI.inputMode='decimal';
-    grI.oninput=(function(i){return function(){foods[i].grams=this.value;if(foods[i].libraryId||foods[i].kcalPer100)calcFoodMacros(i);renderFds();};})(fi);
+    grI.type='number';grI.className='fi';grI.placeholder='100';grI.value=f.grams||'';grI.id='fd_grams_'+fi;grI.inputMode='decimal';
+    grI.oninput=(function(i){return function(){
+      foods[i].grams=this.value;
+      if(foods[i].libraryId||foods[i].kcalPer100){calcFoodMacros(i);updateFdMacroFields(i);}
+    };})(fi);
     grW.appendChild(grL);grW.appendChild(grI);
     var kcW=mk('div'),kcL=mk('label','fl','Kcal'),kcI=document.createElement('input');
-    kcI.type='number';kcI.className='fi';kcI.placeholder='165';kcI.value=r2(f.kcal)||'';kcI.inputMode='decimal';
-    kcI.oninput=(function(i){return function(){foods[i].kcal=this.value;};})(fi);
+    kcI.type='number';kcI.className='fi';kcI.placeholder='165';kcI.value=r2(f.kcal)||'';kcI.id='fd_kcal_'+fi;kcI.inputMode='decimal';
+    kcI.oninput=(function(i){return function(){foods[i].kcal=this.value;updateFdTotals();};})(fi);
     kcW.appendChild(kcL);kcW.appendChild(kcI);grRow.appendChild(grW);grRow.appendChild(kcW);
     var macG=mk('div','row3');
     [{k:'prot',l:'Prot (g)',p:'31'},{k:'carbs',l:'Carbs (g)',p:'0'},{k:'fat',l:'Grasas (g)',p:'3.6'}].forEach(function(mf){
       var w=mk('div');var l=mk('label','fl',mf.l);var inp=document.createElement('input');
-      inp.type='number';inp.className='fi';inp.placeholder=mf.p;inp.value=r2(f[mf.k])||'';inp.inputMode='decimal';
-      inp.oninput=(function(i,key){return function(){foods[i][key]=this.value;};})(fi,mf.k);
+      inp.type='number';inp.className='fi';inp.placeholder=mf.p;inp.value=r2(f[mf.k])||'';inp.id='fd_'+mf.k+'_'+fi;inp.inputMode='decimal';
+      inp.oninput=(function(i,key){return function(){foods[i][key]=this.value;updateFdTotals();};})(fi,mf.k);
       w.appendChild(l);w.appendChild(inp);macG.appendChild(w);
     });
     mb.appendChild(tr);mb.appendChild(ni);mb.appendChild(grRow);mb.appendChild(macG);cont.appendChild(mb);
   });
-}
-function calcFoodMacros(fi){
-  var f=foods[fi];var g=parseFloat(f.grams)||0;if(!g)return;
-  var p100=f.kcalPer100||0,pr100=f.protPer100||0,ca100=f.carbsPer100||0,fa100=f.fatPer100||0;
-  if(f.libraryId&&D.foodLib[f.libraryId]){var lib=D.foodLib[f.libraryId];p100=lib.kcalPer100;pr100=lib.protPer100;ca100=lib.carbsPer100;fa100=lib.fatPer100;}
-  foods[fi].kcal=String(r2(p100*g/100));foods[fi].prot=String(r2(pr100*g/100));foods[fi].carbs=String(r2(ca100*g/100));foods[fi].fat=String(r2(fa100*g/100));
+  updateFdTotals();
 }
 G('btnFd').onclick=function(){foods.push({name:'',grams:'',prot:'',carbs:'',fat:'',kcal:'',libraryId:null});renderFds();};
 G('btnFdPlato').onclick=function(){openDishSel();};
@@ -1609,90 +1644,89 @@ function closeM(id){G(id).style.display='none';}
 
 
 // ══ PHOTO SCAN ═══════════════════════════════════════════════
-// ── API KEY MANAGEMENT ────────────────────────────────────────
-function getApiKey(){return localStorage.getItem('s033_apikey')||'';}
-function saveApiKey(k){localStorage.setItem('s033_apikey',k.trim());}
-
-// Settings button for API key
-(function(){
-  var navR=document.querySelector('.nav-r');
-  var btn=mk('button','btn-out',String.fromCodePoint(0x1F511)+' API');
-  btn.title='Configurar API Key para escaneo de fotos';
-  btn.onclick=function(){
-    var k=getApiKey();
-    var nuevo=window.prompt('API Key de Anthropic.\nObtén una en console.anthropic.com\n(Dejar vacío para eliminar la actual)',k||'');
-    if(nuevo===null)return;
-    if(nuevo.trim()===''){localStorage.removeItem('s033_apikey');alert('API Key eliminada.');}
-    else if(!nuevo.trim().startsWith('sk-')){alert('La key debe empezar por sk-ant-...');}
-    else{saveApiKey(nuevo);alert('API Key guardada en este dispositivo');}
-  };
-  navR.insertBefore(btn,navR.firstChild);
-})();
-
-G('btnFlPhoto').onclick=function(){
-  if(!getApiKey()){
-    var nuevo=window.prompt('Para escanear etiquetas necesitas una API Key de Anthropic.\nObtén una gratis en console.anthropic.com\n\nPega tu API Key aquí (empieza por sk-ant-):');
-    if(!nuevo||!nuevo.trim().startsWith('sk-')){alert('API Key no válida. Rellena los datos manualmente.');return;}
-    saveApiKey(nuevo);
-  }
-  G('flPhoto').click();
-};
-
+// ── PHOTO SCAN (OCR.space - gratuito, sin API key) ──────────
+G('btnFlPhoto').onclick=function(){G('flPhoto').click();};
 G('flPhoto').onchange=function(){
   var file=this.files[0];if(!file)return;
-  var apiKey=getApiKey();
   var st=G('flScanStatus');
-  if(!apiKey){st.textContent='Sin API Key. Pulsa el boton API en la barra superior.';st.style.color='var(--red)';return;}
-  st.textContent='Analizando etiqueta...';st.style.color='var(--gold)';
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var b64=e.target.result.split(',')[1];
-    var mediaType=file.type||'image/jpeg';
-    fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:300,
-        messages:[{role:'user',content:[
-          {type:'image',source:{type:'base64',media_type:mediaType,data:b64}},
-          {type:'text',text:'Analiza esta etiqueta nutricional. Extrae valores por 100g (si es por porcion, convierte: divide por gramos de porcion y multiplica por 100). Responde UNICAMENTE con JSON sin texto extra ni backticks: {"name":"nombre","kcal":0,"prot":0,"carbs":0,"fat":0}'}
-        ]}]
-      })
-    }).then(function(r){
-      if(!r.ok){return r.json().then(function(err){throw new Error((err.error&&err.error.message)||String(r.status));});}
-      return r.json();
-    }).then(function(data){
-      var txt='';
-      if(data.content&&data.content[0]&&data.content[0].text)txt=data.content[0].text;
-      try{
-        var clean=txt.replace(/```json|```/g,'').trim();
-        var parsed=JSON.parse(clean);
-        if(parsed.name&&!G('flNm').value)G('flNm').value=parsed.name;
-        if(parsed.kcal!==undefined)G('flKc').value=parsed.kcal;
-        if(parsed.prot!==undefined)G('flPr').value=parsed.prot;
-        if(parsed.carbs!==undefined)G('flCa').value=parsed.carbs;
-        if(parsed.fat!==undefined)G('flFa').value=parsed.fat;
-        st.textContent='Valores detectados correctamente';st.style.color='var(--green)';
-      }catch(err){st.textContent='No se pudo interpretar. Rellena manualmente.';st.style.color='var(--red)';}
-    }).catch(function(err){
-      var msg=err&&err.message?String(err.message):'';
-      if(msg.indexOf('401')>=0||msg.indexOf('auth')>=0||msg.indexOf('invalid')>=0){
-        localStorage.removeItem('s033_apikey');
-        st.textContent='API Key invalida. Pulsa el boton API para corregirla.';
-      } else {
-        st.textContent='Error: '+msg+'. Rellena manualmente.';
-      }
-      st.style.color='var(--red)';
-    });
-  };
-  reader.readAsDataURL(file);
+  st.textContent='Escaneando etiqueta...';st.style.color='var(--gold)';
+  var formData=new FormData();
+  formData.append('file',file);
+  formData.append('apikey','helloworld');
+  formData.append('language','spa');
+  formData.append('isTable','true');
+  formData.append('OCREngine','2');
+  fetch('https://api.ocr.space/parse/image',{method:'POST',body:formData})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var txt='';
+    if(data.ParsedResults&&data.ParsedResults[0])txt=data.ParsedResults[0].ParsedText||'';
+    if(!txt){st.textContent='No se pudo leer la etiqueta. Rellena manualmente.';st.style.color='var(--red)';return;}
+    // Parse nutritional values from OCR text
+    var parsed=parseNutriLabel(txt);
+    if(parsed.name&&!G('flNm').value)G('flNm').value=parsed.name;
+    if(parsed.kcal!==null)G('flKc').value=parsed.kcal;
+    if(parsed.prot!==null)G('flPr').value=parsed.prot;
+    if(parsed.carbs!==null)G('flCa').value=parsed.carbs;
+    if(parsed.fat!==null)G('flFa').value=parsed.fat;
+    var found=[parsed.kcal,parsed.prot,parsed.carbs,parsed.fat].filter(function(v){return v!==null;}).length;
+    if(found>=2){st.textContent='Valores detectados ('+found+'/4). Revisa y pulsa Guardar.';st.style.color='var(--green)';}
+    else{st.textContent='Pocos valores detectados. Revisa la foto o rellena manualmente.';st.style.color='var(--gold)';}
+  })
+  .catch(function(e){
+    st.textContent='Error de red. Comprueba conexion o rellena manualmente.';st.style.color='var(--red)';
+  });
 };
+
+function parseNutriLabel(txt){
+  // Normalize: remove accents, lowercase, replace commas with dots
+  var t=txt.replace(/,/g,'.').toLowerCase();
+  function getVal(patterns){
+    for(var p=0;p<patterns.length;p++){
+      var m=t.match(patterns[p]);
+      if(m){var v=parseFloat(m[1]);if(!isNaN(v))return v;}
+    }
+    return null;
+  }
+  // Try to extract product name from first non-empty line
+  var lines=txt.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>2;});
+  var name='';
+  for(var i=0;i<Math.min(lines.length,4);i++){
+    if(!/\d/.test(lines[i])&&lines[i].length>3){name=lines[i];break;}
+  }
+  var kcal=getVal([
+    /valor.*?energético.*?[:\s]+(\d+\.?\d*)/,
+    /energ[íi]a.*?[:\s]+(\d+\.?\d*)/,
+    /calor[íi]as.*?[:\s]+(\d+\.?\d*)/,
+    /kcal.*?[:\s]+(\d+\.?\d*)/,
+    /(\d+\.?\d*)\s*kcal/,
+    /kj.*?[:\s]+(\d+\.?\d*).*?kcal\s*(\d+\.?\d*)/,
+    /(\d+)\s*kj/
+  ]);
+  // If only kJ found, convert to kcal
+  if(kcal!==null&&kcal>500){kcal=Math.round(kcal/4.184);}
+  var prot=getVal([
+    /prote[íi]nas?\s*[:\s]+(\d+\.?\d*)/,
+    /prote[íi]n.*?[:\s]+(\d+\.?\d*)/,
+    /protein.*?[:\s]+(\d+\.?\d*)/
+  ]);
+  var carbs=getVal([
+    /hidratos\s*de\s*carbono\s*[:\s]+(\d+\.?\d*)/,
+    /carbohidratos\s*[:\s]+(\d+\.?\d*)/,
+    /h\.\s*de\s*carbono\s*[:\s]+(\d+\.?\d*)/,
+    /carbohydrate.*?[:\s]+(\d+\.?\d*)/,
+    /glucides.*?[:\s]+(\d+\.?\d*)/
+  ]);
+  var fat=getVal([
+    /grasas\s*totales?\s*[:\s]+(\d+\.?\d*)/,
+    /grasas\s*[:\s]+(\d+\.?\d*)/,
+    /l[íi]pidos\s*[:\s]+(\d+\.?\d*)/,
+    /mat\.?\s*gr.*?[:\s]+(\d+\.?\d*)/,
+    /fat.*?[:\s]+(\d+\.?\d*)/,
+    /lipid.*?[:\s]+(\d+\.?\d*)/
+  ]);
+  return {name:name,kcal:kcal,prot:prot,carbs:carbs,fat:fat};
+}
 
 // ══ SUPPLEMENTS ════════════════════════════════════════════════
 var supEditId=null;
