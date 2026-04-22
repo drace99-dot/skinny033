@@ -1609,26 +1609,65 @@ function closeM(id){G(id).style.display='none';}
 
 
 // ══ PHOTO SCAN ═══════════════════════════════════════════════
-G('btnFlPhoto').onclick=function(){G('flPhoto').click();};
+// ── API KEY MANAGEMENT ────────────────────────────────────────
+function getApiKey(){return localStorage.getItem('s033_apikey')||'';}
+function saveApiKey(k){localStorage.setItem('s033_apikey',k.trim());}
+
+// Settings button for API key
+(function(){
+  var navR=document.querySelector('.nav-r');
+  var btn=mk('button','btn-out',String.fromCodePoint(0x1F511)+' API');
+  btn.title='Configurar API Key para escaneo de fotos';
+  btn.onclick=function(){
+    var k=getApiKey();
+    var nuevo=window.prompt('API Key de Anthropic.\nObtén una en console.anthropic.com\n(Dejar vacío para eliminar la actual)',k||'');
+    if(nuevo===null)return;
+    if(nuevo.trim()===''){localStorage.removeItem('s033_apikey');alert('API Key eliminada.');}
+    else if(!nuevo.trim().startsWith('sk-')){alert('La key debe empezar por sk-ant-...');}
+    else{saveApiKey(nuevo);alert('API Key guardada en este dispositivo');}
+  };
+  navR.insertBefore(btn,navR.firstChild);
+})();
+
+G('btnFlPhoto').onclick=function(){
+  if(!getApiKey()){
+    var nuevo=window.prompt('Para escanear etiquetas necesitas una API Key de Anthropic.\nObtén una gratis en console.anthropic.com\n\nPega tu API Key aquí (empieza por sk-ant-):');
+    if(!nuevo||!nuevo.trim().startsWith('sk-')){alert('API Key no válida. Rellena los datos manualmente.');return;}
+    saveApiKey(nuevo);
+  }
+  G('flPhoto').click();
+};
+
 G('flPhoto').onchange=function(){
   var file=this.files[0];if(!file)return;
-  var st=G('flScanStatus');st.textContent='Analizando imagen...';st.style.color='var(--gold)';
+  var apiKey=getApiKey();
+  var st=G('flScanStatus');
+  if(!apiKey){st.textContent='Sin API Key. Pulsa el boton API en la barra superior.';st.style.color='var(--red)';return;}
+  st.textContent='Analizando etiqueta...';st.style.color='var(--gold)';
   var reader=new FileReader();
   reader.onload=function(e){
     var b64=e.target.result.split(',')[1];
     var mediaType=file.type||'image/jpeg';
     fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-haiku-4-5-20251001',
         max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:mediaType,data:b64}},
-          {type:'text',text:'Analiza esta etiqueta nutricional. Extrae los valores por 100g (si indica por porción, convierte a 100g). Responde ÚNICAMENTE con JSON válido sin texto adicional: {"name":"nombre del producto","kcal":0,"prot":0,"carbs":0,"fat":0}. Solo valores numéricos sin unidades.'}
+          {type:'text',text:'Analiza esta etiqueta nutricional. Extrae valores por 100g (si es por porcion, convierte: divide por gramos de porcion y multiplica por 100). Responde UNICAMENTE con JSON sin texto extra ni backticks: {"name":"nombre","kcal":0,"prot":0,"carbs":0,"fat":0}'}
         ]}]
       })
-    }).then(function(r){return r.json();}).then(function(data){
+    }).then(function(r){
+      if(!r.ok){return r.json().then(function(err){throw new Error((err.error&&err.error.message)||String(r.status));});}
+      return r.json();
+    }).then(function(data){
       var txt='';
       if(data.content&&data.content[0]&&data.content[0].text)txt=data.content[0].text;
       try{
@@ -1639,9 +1678,18 @@ G('flPhoto').onchange=function(){
         if(parsed.prot!==undefined)G('flPr').value=parsed.prot;
         if(parsed.carbs!==undefined)G('flCa').value=parsed.carbs;
         if(parsed.fat!==undefined)G('flFa').value=parsed.fat;
-        st.textContent='✓ Valores detectados automáticamente';st.style.color='var(--green)';
-      }catch(err){st.textContent='No se pudo leer la etiqueta. Rellena manualmente.';st.style.color='var(--red)';}
-    }).catch(function(){st.textContent='Error de conexión. Rellena manualmente.';st.style.color='var(--red)';});
+        st.textContent='Valores detectados correctamente';st.style.color='var(--green)';
+      }catch(err){st.textContent='No se pudo interpretar. Rellena manualmente.';st.style.color='var(--red)';}
+    }).catch(function(err){
+      var msg=err&&err.message?String(err.message):'';
+      if(msg.indexOf('401')>=0||msg.indexOf('auth')>=0||msg.indexOf('invalid')>=0){
+        localStorage.removeItem('s033_apikey');
+        st.textContent='API Key invalida. Pulsa el boton API para corregirla.';
+      } else {
+        st.textContent='Error: '+msg+'. Rellena manualmente.';
+      }
+      st.style.color='var(--red)';
+    });
   };
   reader.readAsDataURL(file);
 };
