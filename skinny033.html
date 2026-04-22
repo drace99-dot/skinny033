@@ -640,8 +640,10 @@ function ss(s){var dot=G('sdot');if(!dot)return;dot.className='sdot'+(s==='sync'
 
 // ══ FIREBASE ═══════════════════════════════════════════
 function saveFS(col,key,data){
-  if(useFS&&db){ss('sync');db.collection(col).doc(key).set(data).then(function(){ss('ok');}).catch(function(){ss('off');});}
-  else{storeLocal(col,key,data);}
+  if(col==="bodyLogs"){var idx=-1;for(var i=0;i<D.bodyLogs.length;i++){if(D.bodyLogs[i].id===key){idx=i;break;}}if(idx>=0)D.bodyLogs[idx]=data;else D.bodyLogs.push(data);}
+  else{if(!D[col])D[col]={};D[col][key]=data;}
+  if(useFS&&db){ss("sync");db.collection(col).doc(key).set(data).then(function(){ss("ok");}).catch(function(){ss("off");});}
+  else{lsSave();ss("local");}
 }
 function delFS(col,key){
   if(useFS&&db){ss('sync');db.collection(col).doc(key).delete().then(function(){ss('ok');}).catch(function(){ss('off');});}
@@ -756,8 +758,14 @@ function makeCard(item,key){
 function toggleCompleted(col,key,itemId){
   var items=(D[col][key]&&D[col][key].items)||[];
   var ni=items.map(function(x){return x.id===itemId?Object.assign({},x,{completed:!x.completed}):x;});
+  // Update local state immediately so re-render reflects new state
+  if(!D[col][key])D[col][key]={};
+  D[col][key].items=ni;
+  // Persist async
   saveFS(col,key,{items:ni});
-  if(mainTab==='prof')renderProf();
+  // Re-render both views
+  renderCal();
+  renderProf();
 }
 
 // ══ VIEW MODALS ═════════════════════════════════════════
