@@ -662,6 +662,7 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 <script>
 window.addEventListener('load',function(){
 
@@ -1649,20 +1650,20 @@ G('btnFlPhoto').onclick=function(){G('flPhoto').click();};
 G('flPhoto').onchange=function(){
   var file=this.files[0];if(!file)return;
   var st=G('flScanStatus');
-  st.textContent='Escaneando etiqueta...';st.style.color='var(--gold)';
-  var formData=new FormData();
-  formData.append('file',file);
-  formData.append('apikey','helloworld');
-  formData.append('language','spa');
-  formData.append('isTable','true');
-  formData.append('OCREngine','2');
-  fetch('https://api.ocr.space/parse/image',{method:'POST',body:formData})
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var txt='';
-    if(data.ParsedResults&&data.ParsedResults[0])txt=data.ParsedResults[0].ParsedText||'';
-    if(!txt){st.textContent='No se pudo leer la etiqueta. Rellena manualmente.';st.style.color='var(--red)';return;}
-    // Parse nutritional values from OCR text
+  if(typeof Tesseract==='undefined'){
+    st.textContent='Cargando motor OCR, espera unos segundos e intenta de nuevo...';st.style.color='var(--gold)';return;
+  }
+  st.innerHTML='<span style="color:var(--gold)">&#9654; Leyendo etiqueta... 0%</span>';
+  Tesseract.recognize(file,['spa','eng'],{
+    logger:function(m){
+      if(m.status==='recognizing text'){
+        var pct=Math.round((m.progress||0)*100);
+        var el=G('flScanStatus');if(el)el.innerHTML='<span style="color:var(--gold)">&#9654; Leyendo etiqueta... '+pct+'%</span>';
+      }
+    }
+  }).then(function(result){
+    var txt=result.data.text||'';
+    if(!txt.trim()){st.textContent='No se detectó texto. Prueba con mejor iluminación.';st.style.color='var(--red)';return;}
     var parsed=parseNutriLabel(txt);
     if(parsed.name&&!G('flNm').value)G('flNm').value=parsed.name;
     if(parsed.kcal!==null)G('flKc').value=parsed.kcal;
@@ -1671,10 +1672,9 @@ G('flPhoto').onchange=function(){
     if(parsed.fat!==null)G('flFa').value=parsed.fat;
     var found=[parsed.kcal,parsed.prot,parsed.carbs,parsed.fat].filter(function(v){return v!==null;}).length;
     if(found>=2){st.textContent='Valores detectados ('+found+'/4). Revisa y pulsa Guardar.';st.style.color='var(--green)';}
-    else{st.textContent='Pocos valores detectados. Revisa la foto o rellena manualmente.';st.style.color='var(--gold)';}
-  })
-  .catch(function(e){
-    st.textContent='Error de red. Comprueba conexion o rellena manualmente.';st.style.color='var(--red)';
+    else{st.textContent='Pocos valores detectados ('+found+'/4). Revisa o rellena manualmente.';st.style.color='var(--gold)';}
+  }).catch(function(e){
+    st.textContent='Error al procesar imagen. Rellena manualmente.';st.style.color='var(--red)';
   });
 };
 
