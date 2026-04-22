@@ -430,6 +430,11 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
     <div class="mhdr"><div class="mttl" id="flTtl">Nuevo Alimento</div><button class="mclose" id="flX">&#x2715;</button></div>
     <div class="mbody">
       <div class="fg"><label class="fl">Nombre del Alimento</label><input type="text" class="fi" id="flNm" placeholder="Ej: Pechuga de Pollo"></div>
+      <div style="margin-bottom:12px">
+        <input type="file" id="flPhoto" accept="image/*" capture="environment" style="display:none">
+        <button class="btnadd-main" id="btnFlPhoto" style="border-color:var(--gold-dim);color:var(--gold-dim);margin-bottom:0">📷 Escanear Etiqueta Nutricional con Foto</button>
+        <div id="flScanStatus" style="font-size:9px;color:var(--white4);text-align:center;margin-top:6px;min-height:14px"></div>
+      </div>
       <div class="sep"></div>
       <p style="font-size:9px;color:var(--white4);letter-spacing:1px;margin-bottom:12px">Macros por cada 100g / 100ml</p>
       <div class="row2">
@@ -534,6 +539,60 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
   </div>
 </div>
 
+
+<!-- SUPPLEMENT LOG MODAL -->
+<div class="mol" id="modSup" style="display:none">
+  <div class="modal">
+    <div class="mhdr"><div class="mttl" id="supTtl">Registrar Suplemento</div><button class="mclose" id="supX">&#x2715;</button></div>
+    <div class="mbody">
+      <div class="fg"><label class="fl">Suplemento</label>
+        <select class="fi-sel" id="supName">
+          <option value="Creatina">Creatina</option>
+          <option value="Cafeína">Cafeína</option>
+          <option value="Proteína Whey">Proteína Whey</option>
+          <option value="BCAA">BCAA</option>
+          <option value="Pre-entreno">Pre-entreno</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div id="supOtroWrap" style="display:none" class="fg"><label class="fl">Nombre personalizado</label><input type="text" class="fi" id="supOtroNm" placeholder="Nombre del suplemento"></div>
+      <div class="row2">
+        <div class="fg"><label class="fl">Cantidad</label><input type="number" class="fi" id="supAmt" placeholder="5" inputmode="decimal"></div>
+        <div class="fg"><label class="fl">Unidad</label>
+          <select class="fi-sel" id="supUnit">
+            <option value="g">g</option>
+            <option value="mg">mg</option>
+            <option value="ml">ml</option>
+            <option value="caps">cápsulas</option>
+            <option value="sobres">sobres</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Fecha</label><input type="date" class="fi" id="supDate"></div>
+      <div class="fg"><label class="fl">Notas (opcional)</label><input type="text" class="fi" id="supNotes" placeholder="Ej: Con el desayuno, pre-entreno..."></div>
+    </div>
+    <div class="mftr"><button class="bcanc" id="supCnc">Cancelar</button><button class="bsave b" id="supSv">Guardar</button></div>
+  </div>
+</div>
+
+<!-- SUPPLEMENT GOAL MODAL -->
+<div class="mol" id="modSupGoal" style="display:none">
+  <div class="modal">
+    <div class="mhdr"><div class="mttl">Objetivos de Suplementos</div><button class="mclose" id="supGoalX">&#x2715;</button></div>
+    <div class="mbody">
+      <p style="font-size:10px;color:var(--white4);margin-bottom:14px">Define la cantidad diaria objetivo de cada suplemento.</p>
+      <div class="row2">
+        <div class="fg"><label class="fl">Creatina (g/día)</label><input type="number" class="fi" id="sgCr" placeholder="5" inputmode="decimal"></div>
+        <div class="fg"><label class="fl">Cafeína (mg/día)</label><input type="number" class="fi" id="sgCaf" placeholder="200" inputmode="decimal"></div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label class="fl">Proteína Whey (g/día)</label><input type="number" class="fi" id="sgWh" placeholder="30" inputmode="decimal"></div>
+        <div class="fg"><label class="fl">BCAA (g/día)</label><input type="number" class="fi" id="sgBc" placeholder="10" inputmode="decimal"></div>
+      </div>
+    </div>
+    <div class="mftr"><button class="bcanc" id="supGoalCnc">Cancelar</button><button class="bsave b" id="supGoalSv">Guardar</button></div>
+  </div>
+</div>
 <!-- FOOD SELECTOR -->
 <div class="col" id="modFSel" style="display:none">
   <div class="cbox" style="max-width:400px">
@@ -619,7 +678,7 @@ var fSelCb=null,dSelCb=null,dfSelCb=null,dcfgDish=null,dcfgGrams={};
 var charts={w:null,f:null,ex:null};
 var libFoodSearch='',libTrainSearch='';
 
-var D={workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:''},bodyLogs:[]};
+var D={workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};
 var unsubs=[];
 var DAYS=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 
@@ -671,10 +730,10 @@ function lsSave(){try{localStorage.setItem('s033v3',JSON.stringify(D));}catch(e)
 function subData(){
   unsubs.forEach(function(u){u();});unsubs=[];
   if(!useFS||!db){var ls=null;try{ls=JSON.parse(localStorage.getItem('s033v3')||'null');}catch(e){}
-    if(ls){D.workouts=ls.workouts||{};D.nutrition=ls.nutrition||{};D.foodLib=ls.foodLib||{};D.dishLib=ls.dishLib||{};D.exLib=ls.exLib||{};D.wkTpl=ls.wkTpl||{};D.profile=ls.profile||D.profile;D.bodyLogs=ls.bodyLogs||[];}
+    if(ls){D.workouts=ls.workouts||{};D.nutrition=ls.nutrition||{};D.foodLib=ls.foodLib||{};D.dishLib=ls.dishLib||{};D.exLib=ls.exLib||{};D.wkTpl=ls.wkTpl||{};D.supLogs=ls.supLogs||{};D.profile=ls.profile||D.profile;D.bodyLogs=ls.bodyLogs||[];}
     ss('local');renderCal();renderLib();renderProf();return;
   }
-  ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl'].forEach(function(col){
+  ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl','supLogs'].forEach(function(col){
     var u=db.collection(col).onSnapshot(function(snap){D[col]={};snap.forEach(function(doc){D[col][doc.id]=doc.data();});refreshUI(col);ss('ok');},function(){ss('off');});
     unsubs.push(u);
   });
@@ -688,7 +747,7 @@ function subData(){
 // ══ AUTH ═══════════════════════════════════════════════
 G('loading').style.display='none';G('login').style.display='flex';
 function doLogin(){
-  if(G('lu').value.trim()==='Skinny033'&&G('lp').value==='123'){G('login').style.display='none';G('app').style.display='flex';subData();}
+  if(G('lu').value.trim()==='1'&&G('lp').value==='1'){G('login').style.display='none';G('app').style.display='flex';subData();}
   else{G('lerr').textContent='Credenciales incorrectas';setTimeout(function(){G('lerr').textContent='';},2500);}
 }
 G('btnLogin').onclick=doLogin;G('lp').onkeydown=function(e){if(e.key==='Enter')doLogin();};G('lu').onkeydown=function(e){if(e.key==='Enter')doLogin();};
@@ -1077,45 +1136,63 @@ function renderLibFoods(cont){
   if(libFoodSub==='alimentos')renderLibAlimentos(cont);else renderLibPlatos(cont);
 }
 
+// ── SEARCH FILTER HELPER (no DOM rebuild = no focus loss) ──
+function applyLibFilter(listId, emptyId, q){
+  var rows=document.querySelectorAll('#'+listId+' [data-name]');
+  var ql=q.toLowerCase(),anyVisible=false;
+  rows.forEach(function(row){var n=(row.getAttribute('data-name')||'').toLowerCase();var show=!ql||n.indexOf(ql)>=0;row.style.display=show?'':'none';if(show)anyVisible=true;});
+  var em=G(emptyId);if(em)em.style.display=anyVisible||!rows.length?'none':'';
+}
+
 function renderLibAlimentos(cont){
   var tb=mk('div','lib-toolbar');tb.appendChild(mk('div','lib-title','Biblioteca de Alimentos'));
   var btn=mk('button','bsave g','+ Nuevo');btn.onclick=function(){openFoodLibModal(null);};tb.appendChild(btn);cont.appendChild(tb);
-  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar alimento...';sr.value=libFoodSearch;
-  sr.oninput=function(){libFoodSearch=this.value;renderLibAlimentos(cont.parentElement||cont);};
+  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar alimento...';sr.id='srAlimentos';
+  sr.oninput=function(){libFoodSearch=this.value;applyLibFilter('listAlimentos','emptyAlimentos',this.value);};
   srRow.appendChild(sr);cont.appendChild(srRow);
-  var items=Object.values(D.foodLib);if(libFoodSearch)items=items.filter(function(x){return x.name&&x.name.toLowerCase().indexOf(libFoodSearch.toLowerCase())>=0;});
-  if(!items.length){cont.appendChild(mk('div','empty-state',libFoodSearch?'Sin resultados':'Añade tu primer alimento'));return;}
+  var listDiv=mk('div');listDiv.id='listAlimentos';
+  var items=Object.values(D.foodLib);
+  if(!items.length){var em=mk('div','empty-state','Añade tu primer alimento');em.id='emptyAlimentos';cont.appendChild(em);cont.appendChild(listDiv);return;}
   items.sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
   items.forEach(function(item){
-    var row=mk('div','lib-item');var info=mk('div','lib-item-info');
+    var row=mk('div','lib-item');row.setAttribute('data-name',item.name||'');
+    var info=mk('div','lib-item-info');
     info.appendChild(mk('div','lib-item-name',item.name));
     info.appendChild(mk('div','lib-item-meta','Por 100g: '+r(item.kcalPer100)+' kcal | P:'+r2(item.protPer100)+'g | C:'+r2(item.carbsPer100)+'g | G:'+r2(item.fatPer100)+'g'));
     var acts=mk('div','lib-item-acts');
     var be=mk('button','lib-btn','✎');be.onclick=function(){openFoodLibModal(item);};
     var bd=mk('button','lib-btn del','✕');bd.onclick=function(){confirm2('Eliminar','¿Eliminar "'+item.name+'"?','danger',function(){delFS('foodLib',item.id);});};
-    acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);cont.appendChild(row);
+    acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);listDiv.appendChild(row);
   });
+  var em2=mk('div','empty-state','Sin resultados');em2.id='emptyAlimentos';em2.style.display='none';
+  cont.appendChild(listDiv);cont.appendChild(em2);
+  if(libFoodSearch){sr.value=libFoodSearch;applyLibFilter('listAlimentos','emptyAlimentos',libFoodSearch);}
 }
 
 function renderLibPlatos(cont){
   var tb=mk('div','lib-toolbar');tb.appendChild(mk('div','lib-title','Biblioteca de Platos'));
   var btn=mk('button','bsave g','+ Nuevo Plato');btn.onclick=function(){openDishModal(null);};tb.appendChild(btn);cont.appendChild(tb);
-  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar plato...';sr.value=libFoodSearch;
-  sr.oninput=function(){libFoodSearch=this.value;var p=cont.parentElement||cont;p.innerHTML='';renderLibFoods(p);};
+  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar plato...';sr.id='srPlatos';
+  sr.oninput=function(){libFoodSearch=this.value;applyLibFilter('listPlatos','emptyPlatos',this.value);};
   srRow.appendChild(sr);cont.appendChild(srRow);
-  var items=Object.values(D.dishLib);if(libFoodSearch)items=items.filter(function(x){return x.name&&x.name.toLowerCase().indexOf(libFoodSearch.toLowerCase())>=0;});
-  if(!items.length){cont.appendChild(mk('div','empty-state',libFoodSearch?'Sin resultados':'Crea tu primer plato'));return;}
+  var listDiv=mk('div');listDiv.id='listPlatos';
+  var items=Object.values(D.dishLib);
+  if(!items.length){var em=mk('div','empty-state','Crea tu primer plato');em.id='emptyPlatos';cont.appendChild(em);cont.appendChild(listDiv);return;}
   items.sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
   items.forEach(function(dish){
-    var row=mk('div','lib-item');var info=mk('div','lib-item-info');
+    var row=mk('div','lib-item');row.setAttribute('data-name',dish.name||'');
+    var info=mk('div','lib-item-info');
     info.appendChild(mk('div','lib-item-name',dish.name));
     var fc=dish.foods?dish.foods.length:0;var metaTxt=fc+' ingrediente'+(fc!==1?'s':'');if(dish.notes)metaTxt+=' · '+dish.notes.slice(0,40);
     info.appendChild(mk('div','lib-item-meta',metaTxt));
     var acts=mk('div','lib-item-acts');
     var be=mk('button','lib-btn','✎');be.onclick=function(){openDishModal(dish);};
     var bd=mk('button','lib-btn del','✕');bd.onclick=function(){confirm2('Eliminar','¿Eliminar el plato "'+dish.name+'"?','danger',function(){delFS('dishLib',dish.id);});};
-    acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);cont.appendChild(row);
+    acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);listDiv.appendChild(row);
   });
+  var em2=mk('div','empty-state','Sin resultados');em2.id='emptyPlatos';em2.style.display='none';
+  cont.appendChild(listDiv);cont.appendChild(em2);
+  if(libFoodSearch){sr.value=libFoodSearch;applyLibFilter('listPlatos','emptyPlatos',libFoodSearch);}
 }
 
 function renderLibTraining(cont){
@@ -1131,12 +1208,15 @@ function renderLibTraining(cont){
 function renderLibPlantillas(cont){
   var tb=mk('div','lib-toolbar');tb.appendChild(mk('div','lib-title','Plantillas de Entreno'));
   var btn=mk('button','bsave','+ Nueva Plantilla');btn.onclick=function(){openWtModal(null);};tb.appendChild(btn);cont.appendChild(tb);
-  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar plantilla...';sr.value=libTrainSearch;
-  sr.oninput=function(){libTrainSearch=this.value;renderLib();};srRow.appendChild(sr);cont.appendChild(srRow);
-  var items=Object.values(D.wkTpl);if(libTrainSearch)items=items.filter(function(x){return x.name&&x.name.toLowerCase().indexOf(libTrainSearch.toLowerCase())>=0;});
-  if(!items.length){cont.appendChild(mk('div','empty-state',libTrainSearch?'Sin resultados':'No hay plantillas guardadas'));return;}
+  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar plantilla...';sr.id='srPlantillas';
+  sr.oninput=function(){libTrainSearch=this.value;applyLibFilter('listPlantillas','emptyPlantillas',this.value);};
+  srRow.appendChild(sr);cont.appendChild(srRow);
+  var listDiv=mk('div');listDiv.id='listPlantillas';
+  var items=Object.values(D.wkTpl);
+  if(!items.length){var em=mk('div','empty-state','No hay plantillas guardadas');em.id='emptyPlantillas';cont.appendChild(em);cont.appendChild(listDiv);return;}
   items.forEach(function(item){
-    var row=mk('div','lib-item');var info=mk('div','lib-item-info');
+    var row=mk('div','lib-item');row.setAttribute('data-name',item.name||'');
+    var info=mk('div','lib-item-info');
     info.appendChild(mk('div','lib-item-name',item.name));
     var ex=item.exercises?item.exercises.length:0,ser=item.exercises?item.exercises.reduce(function(a,e){return a+(e.series?e.series.length:0);},0):0;
     info.appendChild(mk('div','lib-item-meta',ex+' ejercicio'+(ex!==1?'s':'')+' · '+ser+' series'));
@@ -1144,28 +1224,37 @@ function renderLibPlantillas(cont){
     var ba=mk('button','lib-btn apply','▶ Aplicar');ba.onclick=function(){openApplyTemplate(item);};
     var be=mk('button','lib-btn','✎');be.onclick=function(){openWtModal(item);};
     var bd=mk('button','lib-btn del','✕');bd.onclick=function(){confirm2('Eliminar','¿Eliminar "'+item.name+'"?','danger',function(){delFS('wkTpl',item.id);});};
-    acts.appendChild(ba);acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);cont.appendChild(row);
+    acts.appendChild(ba);acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);listDiv.appendChild(row);
   });
+  var em2=mk('div','empty-state','Sin resultados');em2.id='emptyPlantillas';em2.style.display='none';
+  cont.appendChild(listDiv);cont.appendChild(em2);
+  if(libTrainSearch){sr.value=libTrainSearch;applyLibFilter('listPlantillas','emptyPlantillas',libTrainSearch);}
 }
 
 function renderLibEjercicios(cont){
   var tb=mk('div','lib-toolbar');tb.appendChild(mk('div','lib-title','Biblioteca de Ejercicios'));
   var btn=mk('button','bsave','+ Nuevo Ejercicio');btn.onclick=function(){openExModal(null);};tb.appendChild(btn);cont.appendChild(tb);
-  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar ejercicio...';sr.value=libTrainSearch;
-  sr.oninput=function(){libTrainSearch=this.value;renderLib();};srRow.appendChild(sr);cont.appendChild(srRow);
-  var items=Object.values(D.exLib);if(libTrainSearch)items=items.filter(function(x){return x.name&&x.name.toLowerCase().indexOf(libTrainSearch.toLowerCase())>=0;});
-  if(!items.length){cont.appendChild(mk('div','empty-state',libTrainSearch?'Sin resultados':'No hay ejercicios en la biblioteca'));return;}
+  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar ejercicio...';sr.id='srEjercicios';
+  sr.oninput=function(){libTrainSearch=this.value;applyLibFilter('listEjercicios','emptyEjercicios',this.value);};
+  srRow.appendChild(sr);cont.appendChild(srRow);
+  var listDiv=mk('div');listDiv.id='listEjercicios';
+  var items=Object.values(D.exLib);
+  if(!items.length){var em=mk('div','empty-state','No hay ejercicios en la biblioteca');em.id='emptyEjercicios';cont.appendChild(em);cont.appendChild(listDiv);return;}
   items.sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
   items.forEach(function(item){
-    var row=mk('div','lib-item');var info=mk('div','lib-item-info');
+    var row=mk('div','lib-item');row.setAttribute('data-name',item.name||'');
+    var info=mk('div','lib-item-info');
     info.appendChild(mk('div','lib-item-name',item.name));
     var meta=(item.muscleGroup||'Sin grupo')+(item.notes?' · '+item.notes.slice(0,40):'');
     info.appendChild(mk('div','lib-item-meta',meta));
     var acts=mk('div','lib-item-acts');
     var be=mk('button','lib-btn','✎');be.onclick=function(){openExModal(item);};
     var bd=mk('button','lib-btn del','✕');bd.onclick=function(){confirm2('Eliminar','¿Eliminar "'+item.name+'"?','danger',function(){delFS('exLib',item.id);});};
-    acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);cont.appendChild(row);
+    acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);listDiv.appendChild(row);
   });
+  var em2=mk('div','empty-state','Sin resultados');em2.id='emptyEjercicios';em2.style.display='none';
+  cont.appendChild(listDiv);cont.appendChild(em2);
+  if(libTrainSearch){sr.value=libTrainSearch;applyLibFilter('listEjercicios','emptyEjercicios',libTrainSearch);}
 }
 
 // ══ FOOD LIBRARY MODAL ══════════════════════════════════
@@ -1404,6 +1493,49 @@ function renderProfHoy(cont){
     wRow.appendChild(info);wRow.appendChild(btn);wCard.appendChild(wRow);
   });}
   cont.appendChild(wCard);
+
+  // SUPPLEMENTS TODAY
+  var sCard=mk('div','prof-card');
+  var sHdr=mk('div','');sHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--dark4)';
+  var sTit=mk('div','');sTit.style.cssText='font-family:var(--serif);font-size:16px;color:var(--blue);letter-spacing:2px';sTit.textContent='Suplementos de Hoy';
+  var sActRow=mk('div');sActRow.style.cssText='display:flex;gap:6px';
+  var sBtnGoal=mk('button','bsave b','⚙ Objetivos');sBtnGoal.onclick=function(){openSupGoalModal();};sBtnGoal.style.cssText='padding:6px 10px;font-size:7px';
+  var sBtnAdd=mk('button','bsave b','+ Añadir');sBtnAdd.onclick=function(){openSupModal(null);};sBtnAdd.style.cssText='padding:6px 10px;font-size:7px';
+  sActRow.appendChild(sBtnGoal);sActRow.appendChild(sBtnAdd);
+  sHdr.appendChild(sTit);sHdr.appendChild(sActRow);sCard.appendChild(sHdr);
+  var todaySupList=getTodaySupLogs();
+  var supGoals=D.profile.supGoals||{};
+  var supTotals={};todaySupList.forEach(function(l){supTotals[l.name]=(supTotals[l.name]||0)+l.amount;});
+  if(!todaySupList.length){sCard.appendChild(mk('div','empty-state','Sin suplementos registrados hoy'));}
+  else{todaySupList.forEach(function(log){
+    var sRow=mk('div','today-item');sRow.style.borderLeftColor='var(--blue)';
+    var info=mk('div','today-item-info');
+    var nm=mk('div','today-item-name',log.name);
+    var mt=mk('div','today-item-meta',log.amount+' '+log.unit+(log.notes?' · '+log.notes:''));
+    info.appendChild(nm);info.appendChild(mt);
+    var bedit=mk('button','lib-btn','✎');bedit.onclick=(function(l){return function(){openSupModal(l);};})(log);
+    var bdel=mk('button','lib-btn del','✕');bdel.onclick=(function(l){return function(){confirm2('Eliminar','¿Eliminar registro?','danger',function(){delFS('supLogs',l.id);renderProf();});};})(log);
+    var actRow=mk('div');actRow.style.cssText='display:flex;gap:4px;flex-shrink:0';actRow.appendChild(bedit);actRow.appendChild(bdel);
+    sRow.appendChild(info);sRow.appendChild(actRow);sCard.appendChild(sRow);
+  });}
+  // Sup progress bars
+  var supNames={'Creatina':supGoals.creatina||0,'Cafeína':supGoals.cafeina||0,'Proteína Whey':supGoals.whey||0,'BCAA':supGoals.bcaa||0};
+  var anyGoal=Object.values(supNames).some(function(v){return v>0;});
+  if(anyGoal){
+    var sgDiv=mk('div','');sgDiv.style.cssText='margin-top:12px;padding-top:12px;border-top:1px solid var(--dark4)';
+    sgDiv.appendChild(mk('div','','')).style='';
+    var sgLbl=mk('div','');sgLbl.style.cssText='font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#2980b9;margin-bottom:8px';sgLbl.textContent='PROGRESO DIARIO';
+    sgDiv.appendChild(sgLbl);
+    Object.keys(supNames).forEach(function(nm){
+      var goal=supNames[nm];if(!goal)return;
+      var consumed=supTotals[nm]||0;var pct=Math.min(consumed/goal*100,100);var over=consumed>goal;
+      var row=mk('div','macro-bar-row');
+      row.innerHTML='<div class="macro-bar-hdr"><span style="color:var(--white)">'+nm+'</span><span>'+consumed+' / '+goal+'</span></div><div class="bar-track"><div class="bar-fill'+(over?' over':'')+'" style="width:'+pct+'%;background:var(--blue)"></div></div>';
+      sgDiv.appendChild(row);
+    });
+    sCard.appendChild(sgDiv);
+  }
+  cont.appendChild(sCard);
 }
 
 function renderProfProgreso(cont){
@@ -1474,6 +1606,92 @@ function confirm2(title,msg,type,cb){confirmCb=cb;G('cTit').textContent=title;G(
 G('cYes').onclick=function(){if(confirmCb)confirmCb();G('conf').style.display='none';confirmCb=null;};G('cNo').onclick=function(){G('conf').style.display='none';confirmCb=null;};
 
 function closeM(id){G(id).style.display='none';}
+
+
+// ══ PHOTO SCAN ═══════════════════════════════════════════════
+G('btnFlPhoto').onclick=function(){G('flPhoto').click();};
+G('flPhoto').onchange=function(){
+  var file=this.files[0];if(!file)return;
+  var st=G('flScanStatus');st.textContent='Analizando imagen...';st.style.color='var(--gold)';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var b64=e.target.result.split(',')[1];
+    var mediaType=file.type||'image/jpeg';
+    fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:mediaType,data:b64}},
+          {type:'text',text:'Analiza esta etiqueta nutricional. Extrae los valores por 100g (si indica por porción, convierte a 100g). Responde ÚNICAMENTE con JSON válido sin texto adicional: {"name":"nombre del producto","kcal":0,"prot":0,"carbs":0,"fat":0}. Solo valores numéricos sin unidades.'}
+        ]}]
+      })
+    }).then(function(r){return r.json();}).then(function(data){
+      var txt='';
+      if(data.content&&data.content[0]&&data.content[0].text)txt=data.content[0].text;
+      try{
+        var clean=txt.replace(/```json|```/g,'').trim();
+        var parsed=JSON.parse(clean);
+        if(parsed.name&&!G('flNm').value)G('flNm').value=parsed.name;
+        if(parsed.kcal!==undefined)G('flKc').value=parsed.kcal;
+        if(parsed.prot!==undefined)G('flPr').value=parsed.prot;
+        if(parsed.carbs!==undefined)G('flCa').value=parsed.carbs;
+        if(parsed.fat!==undefined)G('flFa').value=parsed.fat;
+        st.textContent='✓ Valores detectados automáticamente';st.style.color='var(--green)';
+      }catch(err){st.textContent='No se pudo leer la etiqueta. Rellena manualmente.';st.style.color='var(--red)';}
+    }).catch(function(){st.textContent='Error de conexión. Rellena manualmente.';st.style.color='var(--red)';});
+  };
+  reader.readAsDataURL(file);
+};
+
+// ══ SUPPLEMENTS ════════════════════════════════════════════════
+var supEditId=null;
+G('supName').onchange=function(){G('supOtroWrap').style.display=this.value==='Otro'?'':'none';};
+G('supX').onclick=function(){closeM('modSup');};G('supCnc').onclick=function(){closeM('modSup');};
+G('supGoalX').onclick=function(){closeM('modSupGoal');};G('supGoalCnc').onclick=function(){closeM('modSupGoal');};
+
+function openSupModal(log){
+  supEditId=log?log.id:null;
+  G('supTtl').textContent=log?'Editar Suplemento':'Registrar Suplemento';
+  G('supName').value=log?log.name:'Creatina';
+  G('supOtroNm').value=log?(log.customName||''):'';
+  G('supOtroWrap').style.display=(log&&log.name==='Otro')?'':'none';
+  G('supAmt').value=log?log.amount:'';
+  G('supUnit').value=log?(log.unit||'g'):'g';
+  G('supDate').value=log?log.date:todayDateStr();
+  G('supNotes').value=log?(log.notes||''):'';
+  G('modSup').style.display='flex';
+}
+function saveSupLog(){
+  var name=G('supName').value;if(!name)return;
+  var amt=parseFloat(G('supAmt').value);if(!amt)return alert('Añade la cantidad');
+  var customName=name==='Otro'?G('supOtroNm').value:name;
+  var id=supEditId||uid();
+  saveFS('supLogs',id,{id:id,name:customName,amount:amt,unit:G('supUnit').value,date:G('supDate').value,notes:G('supNotes').value});
+  closeM('modSup');if(mainTab==='prof')renderProf();
+}
+G('supSv').onclick=saveSupLog;
+
+function openSupGoalModal(){
+  var g=D.profile.supGoals||{};
+  G('sgCr').value=g.creatina||'';G('sgCaf').value=g.cafeina||'';G('sgWh').value=g.whey||'';G('sgBc').value=g.bcaa||'';
+  G('modSupGoal').style.display='flex';
+}
+G('supGoalSv').onclick=function(){
+  if(!D.profile.supGoals)D.profile.supGoals={};
+  D.profile.supGoals.creatina=parseFloat(G('sgCr').value)||0;
+  D.profile.supGoals.cafeina=parseFloat(G('sgCaf').value)||0;
+  D.profile.supGoals.whey=parseFloat(G('sgWh').value)||0;
+  D.profile.supGoals.bcaa=parseFloat(G('sgBc').value)||0;
+  saveProfile();closeM('modSupGoal');renderProf();
+};
+
+function getTodaySupLogs(){
+  var today=todayDateStr();
+  return (D.supLogs?Object.values(D.supLogs):[]).filter(function(l){return l.date===today;});
+}
 
 renderCal();
 });
