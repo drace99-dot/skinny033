@@ -298,30 +298,30 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 .dm-meal-name{font-size:12px;font-weight:500;color:var(--white);margin-bottom:5px}
 .dm-meal-meta{font-size:10px;color:var(--white3);margin-bottom:7px}
 .dm-meal-acts{display:flex;gap:5px;flex-wrap:wrap}
-/* DRAG & DROP CALENDAR */
-.drag-ghost{position:fixed;pointer-events:none;opacity:.8;z-index:9999;transform:rotate(2deg) scale(1.02);box-shadow:0 8px 24px rgba(0,0,0,.6);transition:none}
-.drag-source{opacity:.25;border:1px dashed var(--gold-dim)!important}
-.dcol.drag-over{background:rgba(201,168,76,.07);outline:2px solid var(--gold);outline-offset:-2px}
-.card-drag-handle{cursor:grab;font-size:10px;color:var(--dark5);padding:0 4px 3px 0;float:left;line-height:1;user-select:none;touch-action:none;transition:color .15s}
-.card-drag-handle:hover{color:var(--gold-dim)}
-.nut-drag-handle{cursor:grab;font-size:10px;color:var(--dark5);padding:0 4px 3px 0;float:left;line-height:1;user-select:none;touch-action:none;transition:color .15s}
-.nut-drag-handle:hover{color:var(--green)}
-.habit-drag{cursor:grab;font-size:9px;color:inherit;opacity:.4;user-select:none;touch-action:none;padding:0 2px;transition:opacity .15s}
-.habit-drag:hover{opacity:.8}
-/* DESPENSA */
-.desp-item{background:var(--dark2);border:1px solid var(--dark4);padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px;border-left:3px solid var(--gold)}
-.desp-item.low{border-left-color:var(--red)}
-.desp-item.ok{border-left-color:var(--green)}
-.desp-name{flex:1;font-size:12px;font-weight:500;color:var(--white)}
-.desp-qty-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.desp-qty-inp{width:70px;background:var(--dark3);border:1px solid var(--dark4);color:var(--white);padding:6px 8px;font-family:var(--sans);font-size:12px;text-align:center;outline:none;border-radius:0;-webkit-appearance:none}
+
+/* ── DRAG & DROP ─────────────────────────────────── */
+.drag-overlay{position:fixed;inset:0;z-index:8000;cursor:grabbing}
+.drag-ghost{position:fixed;pointer-events:none;z-index:9000;opacity:.82;transform:rotate(1.5deg) scale(1.03);box-shadow:0 10px 30px rgba(0,0,0,.7);transition:none;border:2px solid var(--gold)!important}
+.drag-ghost.ng{border-color:var(--green)!important}
+.drag-source{opacity:.3!important;border-style:dashed!important}
+.dcol.drag-over{outline:2px solid var(--gold);outline-offset:-3px;background:rgba(201,168,76,.08)}
+.cdrag-btn{background:none;border:none;cursor:grab;padding:2px 5px 2px 0;font-size:12px;color:var(--dark5);line-height:1;flex-shrink:0;transition:color .15s;font-family:monospace;user-select:none;-webkit-user-select:none}
+.cdrag-btn:hover{color:var(--gold-dim)}
+.cdrag-btn.g{color:var(--dark5)}.cdrag-btn.g:hover{color:var(--green)}
+/* ── DESPENSA ────────────────────────────────────── */
+.desp-item{background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold-dim);padding:11px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px}
+.desp-item.ok{border-left-color:var(--green)}.desp-item.low{border-left-color:var(--red)}
+.desp-name{flex:1;min-width:0}
+.desp-name-txt{font-size:12px;font-weight:500;color:var(--white);margin-bottom:3px}
+.desp-name-meta{font-size:9px;color:var(--white4)}
+.desp-qty-wrap{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.desp-qty-inp{width:72px;background:var(--dark3);border:1px solid var(--dark4);color:var(--white);padding:7px 8px;font-size:12px;font-family:var(--sans);text-align:center;outline:none;border-radius:0;-webkit-appearance:none;transition:border-color .2s}
 .desp-qty-inp:focus{border-color:var(--gold-dim)}
-.desp-unit{font-size:9px;color:var(--white4);letter-spacing:1px}
-.desp-section-title{font-family:var(--serif);font-size:14px;font-weight:400;color:var(--white3);letter-spacing:2px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--dark4)}
-.shop-item{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--dark3);border:1px solid var(--red);border-left:3px solid var(--red);margin-bottom:6px}
-.shop-name{font-size:11px;color:var(--white)}
-.shop-qty{font-size:11px;color:var(--red);font-weight:500}
-.desp-empty{text-align:center;padding:30px;color:var(--dark5);font-size:10px;letter-spacing:3px;text-transform:uppercase}
+.desp-unit{font-size:9px;color:var(--white4);letter-spacing:1px;width:14px}
+.desp-sec-title{font-family:var(--serif);font-size:15px;font-weight:400;letter-spacing:2px;color:var(--white3);margin:18px 0 10px;padding-bottom:7px;border-bottom:1px solid var(--dark4)}
+.shop-row{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--dark3);border:1px solid rgba(192,57,43,.3);border-left:3px solid var(--red);margin-bottom:6px}
+.shop-nm{font-size:11px;color:var(--white)}
+.shop-qty{font-size:11px;font-weight:600;color:var(--red)}
 
 
 /* WORKOUT MODE */
@@ -1162,6 +1162,118 @@ function toggleHabit(habitId,dateStr){
   renderCal();if(mainTab==='prof')renderProf();
 }
 
+
+// ══ DRAG-AND-DROP CALENDAR ════════════════════════════════════════════════════
+// Uses a transparent overlay div so pointer capture is rock-solid across
+// mobile Safari, Chrome Android, and desktop browsers.
+var _dragActive=false;
+
+function calDragStart(handle, cardEl, colorClass, onDrop){
+  // Returns nothing; sets up pointer listeners on the handle button.
+  var overlay=null,ghost=null,srcKey=null;
+  var ox=0,oy=0,startX=0,startY=0,moved=false;
+
+  function colAt(x,y){
+    // Temporarily hide ghost so elementFromPoint works
+    if(ghost)ghost.style.display='none';
+    var el=document.elementFromPoint(x,y);
+    if(ghost)ghost.style.display='';
+    return el?el.closest('[data-calkey]'):null;
+  }
+
+  function highlightCol(x,y){
+    document.querySelectorAll('[data-calkey]').forEach(function(c){c.classList.remove('drag-over');});
+    var tc=colAt(x,y);if(tc)tc.classList.add('drag-over');
+  }
+
+  function startDrag(x,y){
+    _dragActive=true;moved=true;
+    // Snapshot the key NOW (before renderCal might fire)
+    srcKey=cardEl.closest('[data-calkey]')?cardEl.closest('[data-calkey]').getAttribute('data-calkey'):null;
+    // Ghost
+    var r2=cardEl.getBoundingClientRect();
+    ghost=cardEl.cloneNode(true);
+    ghost.className=ghost.className+' drag-ghost'+(colorClass?' '+colorClass:'');
+    ghost.style.cssText='position:fixed;width:'+r2.width+'px;left:'+(x-r2.width/2)+'px;top:'+(y-r2.height/2)+'px;pointer-events:none;z-index:9000;';
+    document.body.appendChild(ghost);
+    cardEl.classList.add('drag-source');
+    // Transparent overlay captures all pointer events
+    overlay=document.createElement('div');
+    overlay.className='drag-overlay';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('pointermove',onMove);
+    overlay.addEventListener('pointerup',onUp);
+    overlay.addEventListener('pointercancel',cleanup);
+    overlay.setPointerCapture && overlay.setPointerCapture(overlay._pid||1);
+  }
+
+  function onMove(e){
+    var x=e.clientX,y=e.clientY;
+    if(!moved&&Math.abs(x-startX)+Math.abs(y-startY)>8){startDrag(x,y);}
+    if(moved){
+      if(ghost){ghost.style.left=(x-ghost.offsetWidth/2)+'px';ghost.style.top=(y-ghost.offsetHeight/2)+'px';}
+      highlightCol(x,y);
+    }
+  }
+
+  function onUp(e){
+    var tc=colAt(e.clientX,e.clientY);
+    var dropped=moved&&tc&&tc.getAttribute('data-calkey')!==srcKey;
+    cleanup();
+    if(dropped){
+      var nk=tc.getAttribute('data-calkey');
+      var nd=parseInt(tc.getAttribute('data-dayidx'));
+      onDrop(srcKey,nk,nd);
+    }
+  }
+
+  function cleanup(){
+    _dragActive=false;moved=false;
+    if(ghost){ghost.remove();ghost=null;}
+    if(overlay){overlay.remove();overlay=null;}
+    if(cardEl){cardEl.classList.remove('drag-source');}
+    document.querySelectorAll('[data-calkey]').forEach(function(c){c.classList.remove('drag-over');});
+  }
+
+  handle.addEventListener('pointerdown',function(e){
+    if(e.button&&e.button!==0)return;
+    startX=e.clientX;startY=e.clientY;moved=false;
+    // Set capture on handle for initial micro-movement detection
+    try{handle.setPointerCapture(e.pointerId);}catch(er){}
+    handle.addEventListener('pointermove',onMoveHandle);
+    handle.addEventListener('pointerup',onUpHandle);
+  });
+
+  function onMoveHandle(e){
+    if(Math.abs(e.clientX-startX)+Math.abs(e.clientY-startY)>8){
+      // Transfer to overlay
+      handle.removeEventListener('pointermove',onMoveHandle);
+      handle.removeEventListener('pointerup',onUpHandle);
+      try{handle.releasePointerCapture(e.pointerId);}catch(er){}
+      startDrag(e.clientX,e.clientY);
+      try{overlay.setPointerCapture(e.pointerId);overlay._pid=e.pointerId;}catch(er){}
+    }
+  }
+
+  function onUpHandle(e){
+    handle.removeEventListener('pointermove',onMoveHandle);
+    handle.removeEventListener('pointerup',onUpHandle);
+    // Just a tap on handle - no drag started
+  }
+}
+
+// ══ PANTRY HELPERS ════════════════════════════════════════════════════════════
+function adjustPantry(foodsList,sign){
+  if(!D.pantry)D.pantry={};
+  (foodsList||[]).forEach(function(f){
+    if(!f.libraryId)return;
+    var fid=f.libraryId,g=parseFloat(f.grams)||0;
+    if(!D.pantry[fid])D.pantry[fid]={id:fid,qty:0};
+    D.pantry[fid].qty=Math.max(0,(parseFloat(D.pantry[fid].qty)||0)+sign*g);
+    saveFS('pantry',fid,D.pantry[fid]);
+  });
+}
+
 function renderCal(){
   var days=getWeekDays(weekOff);
   function f(x){return x.toLocaleDateString('es-ES',{day:'numeric',month:'short'});}
@@ -1199,33 +1311,33 @@ function makeWorkoutCard(item,key){
   var done=!!item.completed;
   var card=mk('div','card'+(done?' done':''));
   card.style.cursor='pointer';
-  card.onclick=function(e){if(calDragActive||e.target.tagName==='BUTTON'||e.target.closest('button'))return;showVW(item,key);};
-  // Drag handle
-  var dh=mk('span','card-drag-handle','⠿⠿');
-  card.appendChild(dh);
-  initCardDrag(dh,card,function(){return key;},function(){return item.id;},function(srcKey,newKey,newDayIdx){
-    var srcItems=(D.workouts[srcKey]&&D.workouts[srcKey].items)||[];
-    var moved=srcItems.find(function(x){return x.id===item.id;});
-    if(!moved)return;
-    var newSrc=srcItems.filter(function(x){return x.id!==item.id;});
-    if(!D.workouts[newKey])D.workouts[newKey]={items:[]};
-    var dstItems=(D.workouts[newKey].items||[]).slice();
-    dstItems.push(moved);
-    D.workouts[newKey]={items:dstItems};
-    if(newSrc.length===0)delFS('workouts',srcKey);else{D.workouts[srcKey]={items:newSrc};saveFS('workouts',srcKey,{items:newSrc});}
-    saveFS('workouts',newKey,{items:dstItems});
-    renderCal();
-  });
+  card.onclick=function(e){if(e.target.tagName==='BUTTON'||e.target.closest('button'))return;showVW(item,key);};
   var tp=mk('div','ctype','Entrenamiento');
   var tt=mk('div','ctit',item.name||'Sin nombre');
   var ex=(item.exercises||[]).length,ser=(item.exercises||[]).reduce(function(a,e){return a+(e.series||[]).length;},0);
   var mt=mk('div','cmeta',ex+' ejercicio'+(ex!==1?'s':'')+' · '+ser+' series'+(done?' · ✓':''));
   var ac=mk('div','cact');
+  // Drag handle button
+  var bdg=mk('button','cbtn cdrag-btn','⠿');bdg.title='Arrastrar a otro día';bdg.style.cssText='flex:0 0 auto;width:22px;font-size:13px';
+  calDragStart(bdg,card,'',function(srcKey,newKey,newDayIdx){
+    if(!srcKey)return;
+    var srcItems=(D.workouts[srcKey]&&D.workouts[srcKey].items)||[];
+    var moved=null;var newSrc=[];
+    srcItems.forEach(function(x){if(x.id===item.id)moved=x;else newSrc.push(x);});
+    if(!moved)return;
+    if(!D.workouts[newKey])D.workouts[newKey]={items:[]};
+    var dstItems=(D.workouts[newKey].items||[]).slice();
+    dstItems.push(moved);
+    if(newSrc.length===0)delFS('workouts',srcKey);
+    else{if(!D.workouts[srcKey])D.workouts[srcKey]={};D.workouts[srcKey].items=newSrc;saveFS('workouts',srcKey,{items:newSrc});}
+    D.workouts[newKey].items=dstItems;saveFS('workouts',newKey,{items:dstItems});
+    renderCal();
+  });
   var be=mk('button','cbtn','✎');be.onclick=(function(id,k){return function(e){e.stopPropagation();editItem(id,k,'workouts');};})(item.id,key);
   var bdn=mk('button','cbtn '+(done?'undone-btn':'done-btn'),done?'↺':'✓');
   bdn.onclick=(function(id,k){return function(e){e.stopPropagation();toggleCompleted('workouts',k,id);};})(item.id,key);
   var bd=mk('button','cbtn del','✕');bd.onclick=(function(id,k){return function(e){e.stopPropagation();deleteItemDirect('workouts',id,k);};})(item.id,key);
-  ac.appendChild(be);ac.appendChild(bdn);ac.appendChild(bd);
+  ac.appendChild(bdg);ac.appendChild(be);ac.appendChild(bdn);ac.appendChild(bd);
   card.appendChild(tp);card.appendChild(tt);card.appendChild(mt);card.appendChild(ac);return card;
 }
 
@@ -1234,21 +1346,7 @@ function makeNutritionSummaryCard(items,key,dayIdx){
   items.forEach(function(m){(m.foods||[]).forEach(function(f){totals.kcal+=parseFloat(f.kcal)||0;totals.prot+=parseFloat(f.prot)||0;totals.carbs+=parseFloat(f.carbs)||0;totals.fat+=parseFloat(f.fat)||0;});});
   var allDone=items.every(function(m){return !!m.completed;});
   var card=mk('div','nut-summary-card'+(allDone?' done':''));
-  card.onclick=function(e){if(calDragActive||e.target.tagName==='BUTTON'||e.target.closest('button'))return;openDayMeals(key,dayIdx);};
-  // Drag handle
-  var dh=mk('span','nut-drag-handle','⠿⠿');
-  card.appendChild(dh);
-  initCardDrag(dh,card,function(){return key;},function(){return null;},function(srcKey,newKey,newDayIdx){
-    var srcItems=(D.nutrition[srcKey]&&D.nutrition[srcKey].items)||[];
-    if(!srcItems.length)return;
-    if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
-    var dstItems=(D.nutrition[newKey].items||[]).slice();
-    srcItems.forEach(function(m){dstItems.push(m);});
-    D.nutrition[newKey]={items:dstItems};
-    delFS('nutrition',srcKey);
-    saveFS('nutrition',newKey,{items:dstItems});
-    renderCal();
-  });
+  card.onclick=function(e){if(e.target.tagName==='BUTTON'||e.target.closest('button'))return;openDayMeals(key,dayIdx);};
   var header=mk('div','');header.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:4px';
   var tp=mk('div','ctype','Nutrición');tp.style.color='var(--green)';
   var cnt=mk('div','');cnt.style.cssText='font-size:9px;color:var(--white3)';cnt.textContent=items.length+' comida'+(items!==1?'s':'');
@@ -1258,7 +1356,21 @@ function makeNutritionSummaryCard(items,key,dayIdx){
   [{l:'P',v:r(totals.prot)+'g'},{l:'C',v:r(totals.carbs)+'g'},{l:'G',v:r(totals.fat)+'g'}].forEach(function(m){
     var mc=mk('div','nsc-macro');mc.innerHTML='<span>'+m.l+'</span> '+m.v;macRow.appendChild(mc);
   });
-  card.appendChild(header);card.appendChild(kcalDiv);card.appendChild(macRow);return card;
+  // Drag handle - tiny button appended at bottom of card
+  var ndg=mk('button','cdrag-btn g','⠿');ndg.title='Arrastrar a otro día';ndg.style.cssText='display:block;width:100%;text-align:center;padding:1px 0;margin-top:4px;font-size:11px;background:none;border:none;cursor:grab;color:var(--dark5);user-select:none;-webkit-user-select:none';
+  calDragStart(ndg,card,'ng',function(srcKey,newKey,newDayIdx){
+    if(!srcKey)return;
+    var srcItems=(D.nutrition[srcKey]&&D.nutrition[srcKey].items)||[];
+    if(!srcItems.length)return;
+    if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
+    var dstItems=(D.nutrition[newKey].items||[]).slice();
+    srcItems.forEach(function(m){dstItems.push(m);});
+    D.nutrition[newKey].items=dstItems;
+    delFS('nutrition',srcKey);
+    saveFS('nutrition',newKey,{items:dstItems});
+    renderCal();
+  });
+  card.appendChild(header);card.appendChild(kcalDiv);card.appendChild(macRow);card.appendChild(ndg);return card;
 }
 
 function makeHabitChip(hab,dateStr){
@@ -1266,25 +1378,22 @@ function makeHabitChip(hab,dateStr){
   var chip=mk('div','habit-chip'+(done?' done':''));
   chip.style.cssText='border-color:'+hab.color+';color:'+hab.color+';background:'+(done?'rgba(0,0,0,.25)':'transparent');
   chip.title=done?'Hecho ✓ — Click para desmarcar':'Click para marcar como hecho';
-  chip.onclick=function(e){if(calDragActive||e.target.tagName==='BUTTON'||e.target.closest('button'))return;toggleHabit(hab.id,dateStr);};
+  chip.onclick=function(e){if(e.target.tagName==='BUTTON'||e.target.closest('button'))return;toggleHabit(hab.id,dateStr);};
   var left=mk('div','habit-chip-left');
   var em=mk('span','',hab.emoji||'✅');em.style.fontSize='11px';
   var nm=mk('span','',(done?'✓ ':'')+hab.name);nm.style.cssText='font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px';
   left.appendChild(em);left.appendChild(nm);
   var acts=mk('div','habit-chip-actions');
-  var bDrag=mk('span','habit-drag','⠿');bDrag.title='Mover a otro día';
   var bEdit=mk('button','habit-chip-btn','✎');bEdit.style.fontSize='9px';bEdit.title='Editar hábito';
   bEdit.onclick=(function(h){return function(e){e.stopPropagation();openHabitModal(h);};})(hab);
   var bDel=mk('button','habit-chip-btn','✕');bDel.style.fontSize='9px';bDel.title='Eliminar hábito';
   bDel.onclick=(function(hid){return function(e){e.stopPropagation();confirm2('Eliminar hábito','¿Eliminar este hábito de todos los días?','danger',function(){delete D.habitDefs[hid];delFS('habitDefs',hid);renderCal();});};})(hab.id);
-  acts.appendChild(bDrag);acts.appendChild(bEdit);acts.appendChild(bDel);
-  // Habit drag: move log from source date to target date
-  initCardDrag(bDrag,chip,function(){return dateStr;},function(){return hab.id;},function(srcDate,newKey,newDayIdx){
+  var hdg=mk('span','habit-drag-handle','⠿');hdg.style.cssText='font-size:9px;opacity:.5;cursor:grab;user-select:none;-webkit-user-select:none;padding:0 3px;color:inherit';hdg.title='Mover a otro día';
+  calDragStart(hdg,chip,'',function(srcDate,newKey,newDayIdx){
     var days=getWeekDays(weekOff);
     var tgtDate=days[newDayIdx]?days[newDayIdx].toISOString().slice(0,10):null;
     if(!tgtDate||tgtDate===srcDate)return;
     var srcDone=isHabitDone(hab.id,srcDate);
-    // Move: mark done on target, clear on source
     var kSrc=getHabitLogKey(hab.id,srcDate);
     var kTgt=getHabitLogKey(hab.id,tgtDate);
     if(!D.habitLogs)D.habitLogs={};
@@ -1292,92 +1401,9 @@ function makeHabitChip(hab,dateStr){
     D.habitLogs[kTgt]={id:kTgt,habitId:hab.id,date:tgtDate,done:true};saveFS('habitLogs',kTgt,D.habitLogs[kTgt]);
     renderCal();
   });
+  acts.appendChild(hdg);acts.appendChild(bEdit);acts.appendChild(bDel);
+  chip.onclick=function(e){if(_dragActive||e.target.tagName==='BUTTON'||e.target.closest('button'))return;toggleHabit(hab.id,dateStr);};
   chip.appendChild(left);chip.appendChild(acts);return chip;
-}
-
-// ══ PANTRY HELPERS ════════════════════════════════════════
-function adjustPantry(foodsList, sign){
-  if(!D.pantry)D.pantry={};
-  foodsList.forEach(function(f){
-    if(!f.libraryId)return;
-    var fid=f.libraryId;
-    var grams=parseFloat(f.grams)||0;
-    if(!D.pantry[fid])D.pantry[fid]={id:fid,qty:0};
-    D.pantry[fid].qty=Math.max(0,(parseFloat(D.pantry[fid].qty)||0)+sign*grams);
-    saveFS('pantry',fid,D.pantry[fid]);
-  });
-}
-
-// ══ CALENDAR DRAG & DROP ══════════════════════════════════
-var calDragActive=false;
-
-function initCardDrag(handle, card, getSourceKey, getItemId, onDropFn){
-  var ghost=null,startX=0,startY=0,dragging=false,capturedId=null;
-
-  function getTargetCol(x,y){
-    if(ghost)ghost.style.display='none';
-    var el=document.elementFromPoint(x,y);
-    if(ghost)ghost.style.display='';
-    if(!el)return null;
-    return el.closest?el.closest('[data-calkey]'):null;
-  }
-
-  function beginDrag(x,y){
-    dragging=true;calDragActive=true;
-    ghost=card.cloneNode(true);
-    ghost.className=(ghost.className||'')+' drag-ghost';
-    ghost.style.cssText='position:fixed;pointer-events:none;opacity:.82;z-index:9999;transform:rotate(2deg) scale(1.02);box-shadow:0 8px 24px rgba(0,0,0,.6);width:'+card.offsetWidth+'px;left:'+(x-card.offsetWidth/2)+'px;top:'+(y-20)+'px';
-    document.body.appendChild(ghost);
-    card.classList.add('drag-source');
-  }
-
-  function moveDrag(x,y){
-    if(!ghost)return;
-    ghost.style.left=(x-card.offsetWidth/2)+'px';
-    ghost.style.top=(y-20)+'px';
-    document.querySelectorAll('[data-calkey]').forEach(function(c){c.classList.remove('drag-over');});
-    var tc=getTargetCol(x,y);if(tc)tc.classList.add('drag-over');
-  }
-
-  function endDrag(x,y){
-    if(ghost){ghost.remove();ghost=null;}
-    card.classList.remove('drag-source');
-    document.querySelectorAll('[data-calkey]').forEach(function(c){c.classList.remove('drag-over');});
-    if(dragging){
-      var tc=getTargetCol(x,y);
-      if(tc){
-        var newKey=tc.getAttribute('data-calkey');
-        var newDayIdx=parseInt(tc.getAttribute('data-dayidx'));
-        var srcKey=getSourceKey();
-        if(newKey!==srcKey)onDropFn(srcKey,newKey,newDayIdx);
-      }
-    }
-    dragging=false;calDragActive=false;
-  }
-
-  handle.addEventListener('pointerdown',function(e){
-    if(e.button!==undefined&&e.button!==0)return;
-    e.preventDefault();e.stopPropagation();
-    startX=e.clientX;startY=e.clientY;dragging=false;
-    handle.setPointerCapture(e.pointerId);capturedId=e.pointerId;
-  });
-  handle.addEventListener('pointermove',function(e){
-    if(capturedId===null)return;
-    var dx=e.clientX-startX,dy=e.clientY-startY;
-    if(!dragging&&Math.sqrt(dx*dx+dy*dy)>6)beginDrag(e.clientX,e.clientY);
-    if(dragging)moveDrag(e.clientX,e.clientY);
-  });
-  handle.addEventListener('pointerup',function(e){
-    if(capturedId===null)return;
-    capturedId=null;
-    endDrag(e.clientX,e.clientY);
-  });
-  handle.addEventListener('pointercancel',function(e){
-    if(ghost){ghost.remove();ghost=null;}
-    card.classList.remove('drag-source');
-    document.querySelectorAll('[data-calkey]').forEach(function(c){c.classList.remove('drag-over');});
-    dragging=false;calDragActive=false;capturedId=null;
-  });
 }
 
 function openDayMeals(key,dayIdx){
@@ -1423,7 +1449,6 @@ function deleteItemDirect(col,id,key){
   var items=(D[col][key]&&D[col][key].items)||[];
   var item=items.find(function(x){return x.id===id;});
   confirm2('Eliminar','¿Eliminar "'+(item?item.name:'este elemento')+'"?','danger',function(){
-    // Restore pantry stock if deleting nutrition
     if(col==='nutrition'&&item&&item.foods)adjustPantry(item.foods,1);
     var ni=items.filter(function(x){return x.id!==id;});
     if(ni.length===0)delFS(col,key);else saveFS(col,key,{items:ni});
@@ -1742,15 +1767,16 @@ function saveNutrition(){
   var day=getDS('nDS'),key=gk(weekOff,day),items=(D.nutrition[key]&&D.nutrition[key].items||[]).slice();
   var ni={id:editId||uid(),name:name,notes:G('nNotes').value,foods:JSON.parse(JSON.stringify(foods)),date:todayDateStr(),completed:false};
   if(editId){
-    // Restore pantry for old foods before overwriting
-    var oldKey=editKey||key;var oldItems=(D.nutrition[oldKey]&&D.nutrition[oldKey].items)||[];
-    var oldItem=oldItems.find(function(x){return x.id===editId;});
-    if(oldItem&&oldItem.foods)adjustPantry(oldItem.foods,1);
+    // Restore pantry for the OLD version before overwriting
+    var _oldKey=editKey||key;
+    var _oldItems=(D.nutrition[_oldKey]&&D.nutrition[_oldKey].items)||[];
+    var _oldItem=null;for(var _i=0;_i<_oldItems.length;_i++){if(_oldItems[_i].id===editId){_oldItem=_oldItems[_i];break;}}
+    if(_oldItem&&_oldItem.foods)adjustPantry(_oldItem.foods,1);
     if(editKey&&editKey!==key){var old=(D.nutrition[editKey]&&D.nutrition[editKey].items||[]).filter(function(x){return x.id!==editId;});if(old.length===0)delFS('nutrition',editKey);else saveFS('nutrition',editKey,{items:old});items.push(ni);}
     else{var idx=-1;for(var i=0;i<items.length;i++){if(items[i].id===editId){idx=i;break;}}if(idx>=0)items[idx]=Object.assign({},items[idx],ni);else items.push(ni);}
   }else{items.push(ni);}
-  // Deduct pantry for new foods
-  if(ni.foods)adjustPantry(ni.foods,-1);
+  // Deduct pantry for the NEW foods
+  adjustPantry(ni.foods,-1);
   saveFS('nutrition',key,{items:items});closeM('modN');
 }
 G('nSv').onclick=saveNutrition;G('nCnc').onclick=function(){closeM('modN');};G('nX').onclick=function(){closeM('modN');};
@@ -1941,31 +1967,29 @@ function renderLibPlatos(cont){
   if(libFoodSearch){sr.value=libFoodSearch;applyLibFilter('listPlatos','emptyPlatos',libFoodSearch);}
 }
 
-// ══ DESPENSA ═════════════════════════════════════════════
+// ══ DESPENSA ══════════════════════════════════════════════════════════════════
 function renderLibDespensa(cont){
   var tb=mk('div','lib-toolbar');
   tb.appendChild(mk('div','lib-title','Despensa'));
-  var bReset=mk('button','bsave r','Vaciar todo');
-  bReset.style.cssText='font-size:7px;padding:7px 12px';
-  bReset.onclick=function(){
+  var bVac=mk('button','bsave r','Vaciar todo');
+  bVac.style.cssText='font-size:7px;padding:7px 12px';
+  bVac.onclick=function(){
     confirm2('Vaciar despensa','¿Poner todas las cantidades a 0?','danger',function(){
-      if(!D.pantry)return;
-      Object.keys(D.pantry).forEach(function(fid){
+      Object.keys(D.pantry||{}).forEach(function(fid){
         D.pantry[fid].qty=0;saveFS('pantry',fid,D.pantry[fid]);
-      });
-      renderLib();
+      });renderLib();
     });
   };
-  tb.appendChild(bReset);cont.appendChild(tb);
+  tb.appendChild(bVac);cont.appendChild(tb);
 
   var foods=Object.values(D.foodLib||{});
   if(!foods.length){
-    var em=mk('div','desp-empty','Añade alimentos en la pestaña Alimentos para gestionar la despensa');
+    var em=mk('div','empty-state','Añade alimentos en la pestaña Alimentos para gestionar la despensa');
     cont.appendChild(em);return;
   }
   foods.sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
 
-  // Compute needed for current week from calendar
+  // Compute weekly demand from calendar
   var needed={};
   getWeekDays(weekOff).forEach(function(d,i){
     var key=gk(weekOff,i);
@@ -1978,63 +2002,63 @@ function renderLibDespensa(cont){
     });
   });
 
-  // Stock section
-  var stockTitle=mk('div','desp-section-title','Stock actual');cont.appendChild(stockTitle);
+  // ── Stock ──────────────────────────────────────────────────────────────────
+  cont.appendChild(mk('div','desp-sec-title','Stock actual (esta semana: '+getWeekDays(weekOff)[0].toLocaleDateString('es-ES',{day:'numeric',month:'short'})+' — '+getWeekDays(weekOff)[6].toLocaleDateString('es-ES',{day:'numeric',month:'short'})+')'));
 
   foods.forEach(function(food){
     var pEntry=D.pantry&&D.pantry[food.id];
     var qty=pEntry?parseFloat(pEntry.qty)||0:0;
-    var needQty=needed[food.id]||0;
-    var cls='desp-item'+(qty<=0?' low':qty>=needQty?' ok':'');
+    var need=needed[food.id]||0;
+    var cls='desp-item'+(qty<=0?' low':qty>=need&&need>0?' ok':'');
     var row=mk('div',cls);
     var nm=mk('div','desp-name');
-    nm.innerHTML='<div>'+food.name+'</div><div style="font-size:9px;color:var(--white4);margin-top:2px">'+(food.foodType||'')+(needQty?' · Planificado esta semana: <b style="color:var(--gold)">'+Math.round(needQty)+'g</b>':'')+'</div>';
+    nm.appendChild(mk('div','desp-name-txt',food.name));
+    var metaTxt=(food.foodType?food.foodType:'');
+    if(need>0)metaTxt+=(metaTxt?' · ':'')+'Plan semana: '+Math.round(need)+'g';
+    nm.appendChild(mk('div','desp-name-meta',metaTxt||'—'));
     var qWrap=mk('div','desp-qty-wrap');
-    var qInp=document.createElement('input');qInp.type='number';qInp.className='desp-qty-inp';qInp.value=Math.round(qty);qInp.min='0';qInp.inputMode='decimal';qInp.placeholder='0';
-    qInp.title='Cantidad en despensa (g)';
-    (function(fid,inp){
-      var timer=null;
+    var qInp=document.createElement('input');
+    qInp.type='number';qInp.className='desp-qty-inp';qInp.value=Math.round(qty);
+    qInp.min='0';qInp.inputMode='decimal';qInp.placeholder='0';
+    qInp.title='Cantidad en despensa (gramos)';
+    (function(fid,inp,rowEl,need2){
+      var tmr=null;
       inp.oninput=function(){
-        clearTimeout(timer);
-        timer=setTimeout(function(){
-          var v=parseFloat(inp.value)||0;
+        clearTimeout(tmr);
+        tmr=setTimeout(function(){
+          var v=Math.max(0,parseFloat(inp.value)||0);
           if(!D.pantry)D.pantry={};
           if(!D.pantry[fid])D.pantry[fid]={id:fid,qty:0};
-          D.pantry[fid].qty=Math.max(0,v);
+          D.pantry[fid].qty=v;
           saveFS('pantry',fid,D.pantry[fid]);
-          // Update row class
-          var nr=needed[fid]||0;
-          var newCls='desp-item'+(v<=0?' low':v>=nr?' ok':'');
-          row.className=newCls;
-        },600);
+          rowEl.className='desp-item'+(v<=0?' low':v>=need2&&need2>0?' ok':'');
+        },500);
       };
-    })(food.id,qInp);
-    var qUnit=mk('span','desp-unit','g');
-    qWrap.appendChild(qInp);qWrap.appendChild(qUnit);
+    })(food.id,qInp,row,need);
+    qWrap.appendChild(qInp);qWrap.appendChild(mk('span','desp-unit','g'));
     row.appendChild(nm);row.appendChild(qWrap);cont.appendChild(row);
   });
 
-  // Shopping list section
-  var shopTitle=mk('div','desp-section-title','Lista de la compra (esta semana)');cont.appendChild(shopTitle);
-
+  // ── Lista de la compra ─────────────────────────────────────────────────────
+  cont.appendChild(mk('div','desp-sec-title','Lista de la compra'));
   var shopItems=[];
   Object.keys(needed).forEach(function(fid){
     var food=D.foodLib&&D.foodLib[fid];if(!food)return;
-    var pEntry=D.pantry&&D.pantry[fid];
-    var stock=pEntry?parseFloat(pEntry.qty)||0:0;
-    var need=needed[fid]||0;
-    var missing=need-stock;
-    if(missing>0)shopItems.push({name:food.name,missing:missing});
+    var stock=(D.pantry&&D.pantry[fid])?parseFloat(D.pantry[fid].qty)||0:0;
+    var miss=needed[fid]-stock;
+    if(miss>1)shopItems.push({name:food.name,miss:miss});
   });
-
   if(!shopItems.length){
-    var noShop=mk('div','');noShop.style.cssText='padding:16px;text-align:center;font-size:10px;color:var(--green);letter-spacing:2px;text-transform:uppercase';noShop.textContent='✓ Tienes todo para esta semana';cont.appendChild(noShop);
-  } else {
-    shopItems.sort(function(a,b){return b.missing-a.missing;});
+    var ok=mk('div','');
+    ok.style.cssText='padding:16px;text-align:center;color:var(--green);font-size:10px;letter-spacing:2px;text-transform:uppercase';
+    ok.textContent='✓ Todo cubierto para esta semana';
+    cont.appendChild(ok);
+  }else{
+    shopItems.sort(function(a,b){return b.miss-a.miss;});
     shopItems.forEach(function(si){
-      var row=mk('div','shop-item');
-      row.appendChild(mk('span','shop-name',si.name));
-      row.appendChild(mk('span','shop-qty','Faltan '+Math.round(si.missing)+'g'));
+      var row=mk('div','shop-row');
+      row.appendChild(mk('span','shop-nm',si.name));
+      row.appendChild(mk('span','shop-qty','Faltan '+Math.round(si.miss)+'g'));
       cont.appendChild(row);
     });
   }
