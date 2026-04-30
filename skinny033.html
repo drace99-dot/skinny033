@@ -298,13 +298,32 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 .dm-meal-name{font-size:12px;font-weight:500;color:var(--white);margin-bottom:5px}
 .dm-meal-meta{font-size:10px;color:var(--white3);margin-bottom:7px}
 .dm-meal-acts{display:flex;gap:5px;flex-wrap:wrap}
+/* ── CAL VIEW MODES ───────────────────────────────── */
+.cal-viewbar{background:var(--dark);border-bottom:1px solid var(--dark4);padding:5px 14px;display:flex;gap:5px;flex-shrink:0;align-items:center}
+.cvb{padding:5px 13px;background:transparent;border:1px solid var(--dark4);color:var(--white4);font-size:7px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:var(--sans);transition:.2s;white-space:nowrap}
+.cvb:hover{border-color:var(--gold-dim);color:var(--white3)}
+.cvb.active{background:var(--gold);border-color:var(--gold);color:var(--black)}
+.cvb-today{margin-left:auto;border-color:var(--green);color:var(--green)}
+.cvb-today:hover{background:var(--green);color:var(--white)}
+/* ── MONTH VIEW ───────────────────────────────────── */
+.month-grid{display:flex;flex-direction:column;gap:0}
+.month-week-row{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:4px;margin-bottom:4px}
+.month-day-names{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:4px;padding:4px 0;flex-shrink:0}
+.month-day-name{text-align:center;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--white4);padding:4px}
+.dcol-empty{min-height:40px}
+/* ── DAY VIEW ─────────────────────────────────────── */
+.day-view-grid{display:grid;grid-template-columns:1fr;gap:7px;max-width:600px;margin:0 auto}
+/* ── DATE PICKER IN MODAL ─────────────────────────── */
+.fi-date{width:100%;background:var(--dark2);border:1px solid var(--dark4);color:var(--white);padding:11px 12px;font-family:var(--sans);font-size:13px;outline:none;border-radius:0;-webkit-appearance:none;transition:border-color .2s;cursor:pointer}
+.fi-date:focus{border-color:var(--gold-dim)}
+.fi-date::-webkit-calendar-picker-indicator{filter:invert(.7) sepia(1) saturate(2) hue-rotate(5deg)}
 
 /* ── DRAG & DROP ─────────────────────────────────── */
-.drag-overlay{position:fixed;inset:0;z-index:8000;cursor:grabbing}
-.drag-ghost{position:fixed;pointer-events:none;z-index:9000;opacity:.82;transform:rotate(1.5deg) scale(1.03);box-shadow:0 10px 30px rgba(0,0,0,.7);transition:none;border:2px solid var(--gold)!important}
-.drag-ghost.ng{border-color:var(--green)!important}
-.drag-source{opacity:.3!important;border-style:dashed!important}
-.dcol.drag-over{outline:2px solid var(--gold);outline-offset:-3px;background:rgba(201,168,76,.08)}
+.drag-ghost{position:fixed;pointer-events:none;z-index:9999;transition:none!important}
+.drag-source{opacity:.25!important;pointer-events:none!important}
+.dcol.drag-over{outline:2px solid var(--gold);outline-offset:-2px;background:rgba(201,168,76,.06)}
+.cdrag-btn{touch-action:none;-webkit-user-select:none;user-select:none}
+.habit-drag-handle{touch-action:none;-webkit-user-select:none;user-select:none}
 .cdrag-btn{background:none;border:none;cursor:grab;padding:2px 5px 2px 0;font-size:12px;color:var(--dark5);line-height:1;flex-shrink:0;transition:color .15s;font-family:monospace;user-select:none;-webkit-user-select:none}
 .cdrag-btn:hover{color:var(--gold-dim)}
 .cdrag-btn.g{color:var(--dark5)}.cdrag-btn.g:hover{color:var(--green)}
@@ -418,7 +437,13 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
         <button class="btn-add" id="btnAddH" style="border-color:var(--blue);color:var(--blue)">+ Hábito</button>
       </div>
     </div>
-    <div class="cscroll"><div class="cgrid" id="cgrid"></div></div>
+    <div class="cal-viewbar" id="calViewBar">
+      <button class="cvb" id="cvbDay">Hoy</button>
+      <button class="cvb active" id="cvbWeek">Semana</button>
+      <button class="cvb" id="cvbMonth">Mes</button>
+      <button class="cvb cvb-today" id="cvbGoToday">↩ Actual</button>
+    </div>
+    <div class="cscroll" id="calScroll"><div id="cgrid"></div></div>
   </div>
 
   <!-- BIBLIOTECA -->
@@ -467,7 +492,7 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
         </select>
       </div>
       <div class="fg" id="wNmWrap"><label class="fl">Nombre del Entrenamiento</label><input type="text" class="fi" id="wNm" placeholder="Ej: Empuje · Pecho & Hombros"></div>
-      <div class="fg"><label class="fl">Días (selecciona uno o varios)</label><div class="dsel-multi" id="wDS"></div></div>
+      <div class="fg"><label class="fl">Fecha del Entrenamiento</label><input type="date" class="fi-date" id="wDatePick"></div>
       <button class="btnadd-main" id="btnLoadTpl" style="border-color:var(--gold-dim);color:var(--gold-dim);margin-bottom:10px">Cargar Plantilla</button>
       <div id="wExs"></div>
       <div style="display:flex;gap:6px;margin-bottom:10px">
@@ -504,7 +529,7 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
     <div class="mhdr"><div class="mttl" id="nTtl">Nueva Comida</div><button class="mclose" id="nX">&#x2715;</button></div>
     <div class="mbody">
       <div class="fg"><label class="fl">Nombre del Plato / Comida</label><input type="text" class="fi" id="nNm" placeholder="Ej: Desayuno · Tortilla de Patata"></div>
-      <div class="fg"><label class="fl">Día</label><div class="dsel" id="nDS"></div></div>
+      <div class="fg"><label class="fl">Fecha</label><input type="date" class="fi-date" id="nDatePick"></div>
       <div class="fg"><label class="fl">Notas (opcional)</label><textarea class="fi-ta" id="nNotes" placeholder="Ej: Post-entrenamiento, preparación, alergias..."></textarea></div>
       <div id="nFds"></div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -838,7 +863,7 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
   </div>
 </div>
 
-<!-- FOOD SELECTOR -->modFSel" style="display:none">
+<!-- FOOD SELECTOR --><div class="col" id="modFSel" style="display:none">
   <div class="cbox" style="max-width:400px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div style="font-family:var(--serif);font-size:16px;color:var(--gold)">Seleccionar Alimento</div>
@@ -920,11 +945,37 @@ if(useFS){try{firebase.initializeApp({apiKey:"AIzaSyBzKvv-gYbmEOojgno9KPirhKTXlJ
 // ══ STATE ══════════════════════════════════════════════
 var mainTab='cal',calTab='training',libTab='foods',libFoodSub='alimentos',libTrainSub='plantillas',profTab='datos';
 var weekOff=0,atWeekOff=0,editId=null,editKey=null,selDay=0,confirmCb=null;
+var calView='week',calMonthOff=0;
+
+// Convert date string to {weekOff, dayIdx} for the key system
+function dateToWD(dateStr){
+  var d=new Date(dateStr+'T00:00:00');
+  var dayIdx=(d.getDay()+6)%7;
+  var now=new Date();
+  var thisMon=new Date(now);thisMon.setDate(now.getDate()-((now.getDay()+6)%7));thisMon.setHours(0,0,0,0);
+  var wMon=new Date(d);wMon.setDate(d.getDate()-dayIdx);wMon.setHours(0,0,0,0);
+  var wOff=Math.round((wMon-thisMon)/(7*24*3600*1000));
+  return {weekOff:wOff,dayIdx:dayIdx};
+}
+// Get the date string for a given weekOff+dayIdx column
+function wdToDateStr(wOff,dayIdx){
+  var days=getWeekDays(wOff);return days[dayIdx]?days[dayIdx].toISOString().slice(0,10):todayDateStr();
+}
+// Get all days of a given month offset
+function getMonthDays(mOff){
+  var now=new Date();
+  var y=now.getFullYear(),m=now.getMonth()+mOff;
+  // Normalize
+  while(m<0){m+=12;y--;}while(m>11){m-=12;y++;}
+  var days=[];var last=new Date(y,m+1,0).getDate();
+  for(var i=1;i<=last;i++)days.push(new Date(y,m,i));
+  return days;
+}
 var exercises=[],foods=[],wtExercises=[],dishFoods=[],dlEditId=null,elEditId=null;
 var flEditId=null,wtEditId=null,blEditId=null;
 var viewItem=null,viewKey=null,applyTplItem=null;
 var fSelCb=null,dSelCb=null,dfSelCb=null,dcfgDish=null,dcfgGrams={};
-var charts={w:null,f:null,ex:null};
+var charts={w:null,f:null,ex:null,steps:null,sleep:null};
 var libFoodSearch='',libTrainSearch='';
 
 var D={workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};
@@ -1120,9 +1171,27 @@ function setMainTab(t){
 G('secLib').style.display='none';G('secProf').style.display='none';G('secCal').style.display='flex';
 
 // ══ CALENDAR ════════════════════════════════════════════
-G('wPrev').onclick=function(){weekOff--;renderCal();};G('wNext').onclick=function(){weekOff++;renderCal();};
-G('btnAddW').onclick=function(){selDay=0;editId=null;editKey=null;openModW(null);};
-G('btnAddN').onclick=function(){selDay=0;editId=null;editKey=null;openModN(null);};
+G('wPrev').onclick=function(){
+  if(calView==='month'){calMonthOff--;renderCal();}
+  else if(calView==='day'){weekOff--;renderCal();}
+  else{weekOff--;renderCal();}
+};
+G('wNext').onclick=function(){
+  if(calView==='month'){calMonthOff++;renderCal();}
+  else if(calView==='day'){weekOff++;renderCal();}
+  else{weekOff++;renderCal();}
+};
+['cvbDay','cvbWeek','cvbMonth'].forEach(function(id){
+  G(id).onclick=function(){
+    calView=id==='cvbDay'?'day':id==='cvbMonth'?'month':'week';
+    ['cvbDay','cvbWeek','cvbMonth'].forEach(function(x){G(x).classList.remove('active');});
+    G(id).classList.add('active');
+    renderCal();
+  };
+});
+G('cvbGoToday').onclick=function(){weekOff=0;calMonthOff=0;renderCal();};
+G('btnAddW').onclick=function(){selDay=todayDayIdx();editId=null;editKey=null;openModW(null);};
+G('btnAddN').onclick=function(){selDay=todayDayIdx();editId=null;editKey=null;openModN(null);};
 G('btnAddH').onclick=function(){openHabitModal(null);};
 
 // ══ HABITS ══════════════════════════════════════════════
@@ -1168,98 +1237,117 @@ function toggleHabit(habitId,dateStr){
 // mobile Safari, Chrome Android, and desktop browsers.
 var _dragActive=false;
 
-function calDragStart(handle, cardEl, colorClass, onDrop){
-  // Returns nothing; sets up pointer listeners on the handle button.
-  var overlay=null,ghost=null,srcKey=null;
-  var ox=0,oy=0,startX=0,startY=0,moved=false;
+function calDragStart(handle,cardEl,colorClass,onDrop){
+  // State per-instance
+  var ghost=null,srcKey=null,srcDateStr=null;
+  var dragging=false,ptrDown=false,ptrId=null;
+  var startX=0,startY=0,offX=0,offY=0;
 
+  // Find the calendar column element at screen coords,
+  // ignoring the ghost so it doesn't block hit-testing.
   function colAt(x,y){
-    // Temporarily hide ghost so elementFromPoint works
-    if(ghost)ghost.style.display='none';
+    var prev='';
+    if(ghost){prev=ghost.style.pointerEvents;ghost.style.pointerEvents='none';}
     var el=document.elementFromPoint(x,y);
-    if(ghost)ghost.style.display='';
-    return el?el.closest('[data-calkey]'):null;
+    if(ghost)ghost.style.pointerEvents=prev;
+    if(!el)return null;
+    // Walk up: accept .dcol that has data-calkey
+    var cur=el;
+    while(cur&&cur!==document.body){
+      if(cur.classList&&cur.classList.contains('dcol')&&cur.getAttribute('data-calkey'))return cur;
+      cur=cur.parentElement;
+    }
+    return null;
   }
 
-  function highlightCol(x,y){
-    document.querySelectorAll('[data-calkey]').forEach(function(c){c.classList.remove('drag-over');});
+  function highlight(x,y){
+    document.querySelectorAll('.dcol.drag-over').forEach(function(el){el.classList.remove('drag-over');});
     var tc=colAt(x,y);if(tc)tc.classList.add('drag-over');
   }
 
   function startDrag(x,y){
-    _dragActive=true;moved=true;
-    // Snapshot the key NOW (before renderCal might fire)
-    srcKey=cardEl.closest('[data-calkey]')?cardEl.closest('[data-calkey]').getAttribute('data-calkey'):null;
-    // Ghost
-    var r2=cardEl.getBoundingClientRect();
+    dragging=true;_dragActive=true;
+    // Snapshot the source key from the card's column BEFORE anything changes
+    var col=cardEl.closest('[data-calkey]');
+    srcKey=col?col.getAttribute('data-calkey'):null;
+    srcDateStr=col?col.getAttribute('data-datestr'):null;
+    // Build ghost: clone card, position under pointer with exact offset
+    var rect=cardEl.getBoundingClientRect();
+    offX=x-rect.left; offY=y-rect.top;
     ghost=cardEl.cloneNode(true);
-    ghost.className=ghost.className+' drag-ghost'+(colorClass?' '+colorClass:'');
-    ghost.style.cssText='position:fixed;width:'+r2.width+'px;left:'+(x-r2.width/2)+'px;top:'+(y-r2.height/2)+'px;pointer-events:none;z-index:9000;';
+    ghost.removeAttribute('id');
+    ghost.style.cssText=[
+      'position:fixed',
+      'width:'+rect.width+'px',
+      'left:'+(x-offX)+'px',
+      'top:'+(y-offY)+'px',
+      'pointer-events:none',
+      'z-index:9999',
+      'opacity:.85',
+      'transform:rotate(1.5deg) scale(1.03)',
+      'box-shadow:0 12px 32px rgba(0,0,0,.8)',
+      'border:2px solid '+(colorClass==='ng'?'var(--green)':'var(--gold)')+'!important',
+      'transition:none'
+    ].join(';');
     document.body.appendChild(ghost);
     cardEl.classList.add('drag-source');
-    // Transparent overlay captures all pointer events
-    overlay=document.createElement('div');
-    overlay.className='drag-overlay';
-    document.body.appendChild(overlay);
-    overlay.addEventListener('pointermove',onMove);
-    overlay.addEventListener('pointerup',onUp);
-    overlay.addEventListener('pointercancel',cleanup);
-    overlay.setPointerCapture && overlay.setPointerCapture(overlay._pid||1);
   }
 
-  function onMove(e){
-    var x=e.clientX,y=e.clientY;
-    if(!moved&&Math.abs(x-startX)+Math.abs(y-startY)>8){startDrag(x,y);}
-    if(moved){
-      if(ghost){ghost.style.left=(x-ghost.offsetWidth/2)+'px';ghost.style.top=(y-ghost.offsetHeight/2)+'px';}
-      highlightCol(x,y);
-    }
+  function moveDrag(x,y){
+    ghost.style.left=(x-offX)+'px';
+    ghost.style.top=(y-offY)+'px';
+    highlight(x,y);
   }
 
-  function onUp(e){
-    var tc=colAt(e.clientX,e.clientY);
-    var dropped=moved&&tc&&tc.getAttribute('data-calkey')!==srcKey;
+  function endDrag(x,y){
+    var tc=colAt(x,y);
+    var nk=tc?tc.getAttribute('data-calkey'):null;
+    var nd=tc?parseInt(tc.getAttribute('data-dayidx')):-1;
+    var nds=tc?tc.getAttribute('data-datestr'):null;
+    var dropped=!!(nk&&nk!==srcKey);
     cleanup();
-    if(dropped){
-      var nk=tc.getAttribute('data-calkey');
-      var nd=parseInt(tc.getAttribute('data-dayidx'));
-      onDrop(srcKey,nk,nd);
-    }
+    if(dropped)onDrop(srcKey,nk,nd,srcDateStr,nds);
   }
 
   function cleanup(){
-    _dragActive=false;moved=false;
-    if(ghost){ghost.remove();ghost=null;}
-    if(overlay){overlay.remove();overlay=null;}
-    if(cardEl){cardEl.classList.remove('drag-source');}
-    document.querySelectorAll('[data-calkey]').forEach(function(c){c.classList.remove('drag-over');});
+    _dragActive=false;dragging=false;ptrDown=false;ptrId=null;
+    if(ghost){try{ghost.remove();}catch(er){}ghost=null;}
+    try{cardEl.classList.remove('drag-source');}catch(er){}
+    document.querySelectorAll('.dcol.drag-over').forEach(function(el){el.classList.remove('drag-over');});
   }
 
+  // ── Pointer events ────────────────────────────────────────
   handle.addEventListener('pointerdown',function(e){
     if(e.button&&e.button!==0)return;
-    startX=e.clientX;startY=e.clientY;moved=false;
-    // Set capture on handle for initial micro-movement detection
+    e.preventDefault();  // stop text selection / scroll hijack
+    ptrDown=true;ptrId=e.pointerId;dragging=false;
+    startX=e.clientX;startY=e.clientY;
     try{handle.setPointerCapture(e.pointerId);}catch(er){}
-    handle.addEventListener('pointermove',onMoveHandle);
-    handle.addEventListener('pointerup',onUpHandle);
+  },{passive:false});
+
+  handle.addEventListener('pointermove',function(e){
+    if(!ptrDown||e.pointerId!==ptrId)return;
+    var dx=Math.abs(e.clientX-startX),dy=Math.abs(e.clientY-startY);
+    if(!dragging&&(dx+dy)>10){
+      startDrag(e.clientX,e.clientY);
+    }
+    if(dragging){
+      moveDrag(e.clientX,e.clientY);
+    }
   });
 
-  function onMoveHandle(e){
-    if(Math.abs(e.clientX-startX)+Math.abs(e.clientY-startY)>8){
-      // Transfer to overlay
-      handle.removeEventListener('pointermove',onMoveHandle);
-      handle.removeEventListener('pointerup',onUpHandle);
-      try{handle.releasePointerCapture(e.pointerId);}catch(er){}
-      startDrag(e.clientX,e.clientY);
-      try{overlay.setPointerCapture(e.pointerId);overlay._pid=e.pointerId;}catch(er){}
+  handle.addEventListener('pointerup',function(e){
+    if(e.pointerId!==ptrId){return;}
+    if(dragging){
+      endDrag(e.clientX,e.clientY);
+    }else{
+      cleanup();
     }
-  }
+  });
 
-  function onUpHandle(e){
-    handle.removeEventListener('pointermove',onMoveHandle);
-    handle.removeEventListener('pointerup',onUpHandle);
-    // Just a tap on handle - no drag started
-  }
+  handle.addEventListener('pointercancel',function(e){
+    if(e.pointerId===ptrId)cleanup();
+  });
 }
 
 // ══ PANTRY HELPERS ════════════════════════════════════════════════════════════
@@ -1275,62 +1363,123 @@ function adjustPantry(foodsList,sign){
 }
 
 function renderCal(){
+  if(calView==='day')renderCalDay();
+  else if(calView==='month')renderCalMonth();
+  else renderCalWeek();
+}
+
+function _buildDayCol(d,wOff,dayIdx){
+  var dayIdx7=(d.getDay()+6)%7;
+  var key=gk(wOff,dayIdx7);
+  var dateStr=d.toISOString().slice(0,10);
+  var wItems=(D.workouts[key]&&D.workouts[key].items)||[];
+  var nItems=(D.nutrition[key]&&D.nutrition[key].items)||[];
+  var habits=Object.values(D.habitDefs||{});
+  var col=mk('div','dcol');col.setAttribute('data-calkey',key);col.setAttribute('data-dayidx',String(dayIdx7));col.setAttribute('data-datestr',dateStr);
+  var head=mk('div','dhead'+(isToday(d)?' today':''));
+  head.innerHTML='<div class="dname">'+DAYS[dayIdx7]+'</div><div class="ddate">'+d.getDate()+'</div>';
+  col.appendChild(head);
+  wItems.forEach(function(item){col.appendChild(makeWorkoutCard(item,key));});
+  if(nItems.length>0){col.appendChild(makeNutritionSummaryCard(nItems,key,dayIdx7));}
+  habits.forEach(function(hab){col.appendChild(makeHabitChip(hab,dateStr));});
+  var addRow=mk('div');addRow.style.cssText='display:flex;gap:3px;margin-top:2px';
+  var abW=mk('button','dadd','+ Entreno');abW.style.cssText='flex:1;font-size:7px';
+  abW.onclick=(function(ds,wO){return function(){editId=null;editKey=null;_openModWDate(ds);};})(dateStr,wOff);
+  var abN=mk('button','dadd','+ Comida');abN.style.cssText='flex:1;font-size:7px;border-color:rgba(39,174,96,.3);color:var(--green)';
+  abN.onclick=(function(ds){return function(){editId=null;editKey=null;_openModNDate(ds);};})(dateStr);
+  addRow.appendChild(abW);addRow.appendChild(abN);
+  col.appendChild(addRow);
+  return col;
+}
+
+function renderCalWeek(){
   var days=getWeekDays(weekOff);
   function f(x){return x.toLocaleDateString('es-ES',{day:'numeric',month:'short'});}
   G('wLbl').textContent=f(days[0])+' — '+f(days[6]);
   G('wInd').textContent=weekOff===0?'SEMANA ACTUAL':weekOff===1?'SEMANA PRÓXIMA':weekOff===-1?'SEMANA PASADA':(weekOff>0?'+':'')+weekOff+' SEM';
-  var grid=G('cgrid');grid.innerHTML='';
-  var habits=Object.values(D.habitDefs||{});
-  days.forEach(function(d,i){
-    var key=gk(weekOff,i);
-    var wItems=(D.workouts[key]&&D.workouts[key].items)||[];
-    var nItems=(D.nutrition[key]&&D.nutrition[key].items)||[];
-    var dateStr=d.toISOString().slice(0,10);
-    var col=mk('div','dcol');col.setAttribute('data-calkey',key);col.setAttribute('data-dayidx',String(i));
-    var head=mk('div','dhead'+(isToday(d)?' today':''));
-    head.innerHTML='<div class="dname">'+DAYS[i]+'</div><div class="ddate">'+d.getDate()+'</div>';
-    col.appendChild(head);
-    // Workouts
-    wItems.forEach(function(item){col.appendChild(makeWorkoutCard(item,key));});
-    // Nutrition summary
-    if(nItems.length>0){col.appendChild(makeNutritionSummaryCard(nItems,key,i));}
-    // Habits
-    habits.forEach(function(hab){col.appendChild(makeHabitChip(hab,dateStr));});
-    // Add buttons
-    var addRow=mk('div');addRow.style.cssText='display:flex;gap:3px;margin-top:2px';
-    var abW=mk('button','dadd','+ Entreno');abW.style.cssText='flex:1;font-size:7px';
-    abW.onclick=(function(idx){return function(){selDay=idx;editId=null;editKey=null;openModW(null);};})(i);
-    var abN=mk('button','dadd','+ Comida');abN.style.cssText='flex:1;font-size:7px;border-color:rgba(39,174,96,.3);color:var(--green)';
-    abN.onclick=(function(idx){return function(){selDay=idx;editId=null;editKey=null;openModN(null);};})(i);
-    addRow.appendChild(abW);addRow.appendChild(abN);
-    col.appendChild(addRow);grid.appendChild(col);
-  });
+  var scroll=G('calScroll');scroll.style.overflowX='auto';
+  var grid=G('cgrid');grid.className='cgrid';grid.innerHTML='';
+  days.forEach(function(d,i){grid.appendChild(_buildDayCol(d,weekOff,i));});
+}
+
+function renderCalDay(){
+  var now=new Date();
+  G('wLbl').textContent=now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  G('wInd').textContent='VISTA DE HOY';
+  var scroll=G('calScroll');scroll.style.overflowX='hidden';
+  var grid=G('cgrid');grid.className='day-view-grid';grid.innerHTML='';
+  var dayIdx=(now.getDay()+6)%7;
+  grid.appendChild(_buildDayCol(now,0,dayIdx));
+}
+
+function renderCalMonth(){
+  var now=new Date();
+  var y=now.getFullYear(),m=now.getMonth()+calMonthOff;
+  while(m<0){m+=12;y--;}while(m>11){m-=12;y++;}
+  var monthName=new Date(y,m,1).toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+  G('wLbl').textContent=monthName.charAt(0).toUpperCase()+monthName.slice(1);
+  G('wInd').textContent='VISTA MENSUAL';
+  var scroll=G('calScroll');scroll.style.overflowX='auto';
+  var grid=G('cgrid');grid.className='';grid.innerHTML='';
+  grid.style.cssText='';
+
+  // Day name headers
+  var nameRow=mk('div','month-day-names');
+  DAYS.forEach(function(d){nameRow.appendChild(mk('div','month-day-name',d));});
+  grid.appendChild(nameRow);
+
+  // Build weeks
+  var days=getMonthDays(calMonthOff);
+  var firstDayIdx=(days[0].getDay()+6)%7; // 0=Mon
+  var allCells=[];
+  for(var p=0;p<firstDayIdx;p++)allCells.push(null);
+  days.forEach(function(d){allCells.push(d);});
+  while(allCells.length%7!==0)allCells.push(null);
+
+  for(var w=0;w<allCells.length;w+=7){
+    var weekRow=mk('div','month-week-row');
+    for(var d2=0;d2<7;d2++){
+      var day=allCells[w+d2];
+      if(!day){
+        var empty=mk('div','dcol dcol-empty');weekRow.appendChild(empty);
+      }else{
+        var wOff2=dateToWD(day.toISOString().slice(0,10)).weekOff;
+        weekRow.appendChild(_buildDayCol(day,wOff2,d2));
+      }
+    }
+    grid.appendChild(weekRow);
+  }
 }
 
 function makeWorkoutCard(item,key){
   var done=!!item.completed;
   var card=mk('div','card'+(done?' done':''));
   card.style.cursor='pointer';
-  card.onclick=function(e){if(e.target.tagName==='BUTTON'||e.target.closest('button'))return;showVW(item,key);};
+  card.onclick=function(e){if(_dragActive||e.target.tagName==='BUTTON'||e.target.closest('button'))return;showVW(item,key);};
   var tp=mk('div','ctype','Entrenamiento');
   var tt=mk('div','ctit',item.name||'Sin nombre');
   var ex=(item.exercises||[]).length,ser=(item.exercises||[]).reduce(function(a,e){return a+(e.series||[]).length;},0);
   var mt=mk('div','cmeta',ex+' ejercicio'+(ex!==1?'s':'')+' · '+ser+' series'+(done?' · ✓':''));
   var ac=mk('div','cact');
   // Drag handle button
-  var bdg=mk('button','cbtn cdrag-btn','⠿');bdg.title='Arrastrar a otro día';bdg.style.cssText='flex:0 0 auto;width:22px;font-size:13px';
-  calDragStart(bdg,card,'',function(srcKey,newKey,newDayIdx){
-    if(!srcKey)return;
+  var bdg=mk('button','cbtn cdrag-btn','⠿');bdg.title='Arrastrar a otro día';bdg.style.cssText='flex:0 0 auto;width:22px;font-size:13px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab';
+  calDragStart(bdg,card,'',function(srcKey,newKey,newDayIdx,srcDateStr,newDateStr){
+    if(!srcKey||!newKey)return;
+    // Remove from source
     var srcItems=(D.workouts[srcKey]&&D.workouts[srcKey].items)||[];
-    var moved=null;var newSrc=[];
+    var moved=null,newSrc=[];
     srcItems.forEach(function(x){if(x.id===item.id)moved=x;else newSrc.push(x);});
     if(!moved)return;
+    // Update date on the moved item
+    if(newDateStr)moved=Object.assign({},moved,{date:newDateStr});
+    // Save source (remove if empty)
+    if(newSrc.length===0){delete D.workouts[srcKey];delFS('workouts',srcKey);}
+    else{D.workouts[srcKey]={items:newSrc};saveFS('workouts',srcKey,{items:newSrc});}
+    // Save destination
     if(!D.workouts[newKey])D.workouts[newKey]={items:[]};
     var dstItems=(D.workouts[newKey].items||[]).slice();
     dstItems.push(moved);
-    if(newSrc.length===0)delFS('workouts',srcKey);
-    else{if(!D.workouts[srcKey])D.workouts[srcKey]={};D.workouts[srcKey].items=newSrc;saveFS('workouts',srcKey,{items:newSrc});}
-    D.workouts[newKey].items=dstItems;saveFS('workouts',newKey,{items:dstItems});
+    D.workouts[newKey]={items:dstItems};saveFS('workouts',newKey,{items:dstItems});
     renderCal();
   });
   var be=mk('button','cbtn','✎');be.onclick=(function(id,k){return function(e){e.stopPropagation();editItem(id,k,'workouts');};})(item.id,key);
@@ -1346,7 +1495,7 @@ function makeNutritionSummaryCard(items,key,dayIdx){
   items.forEach(function(m){(m.foods||[]).forEach(function(f){totals.kcal+=parseFloat(f.kcal)||0;totals.prot+=parseFloat(f.prot)||0;totals.carbs+=parseFloat(f.carbs)||0;totals.fat+=parseFloat(f.fat)||0;});});
   var allDone=items.every(function(m){return !!m.completed;});
   var card=mk('div','nut-summary-card'+(allDone?' done':''));
-  card.onclick=function(e){if(e.target.tagName==='BUTTON'||e.target.closest('button'))return;openDayMeals(key,dayIdx);};
+  card.onclick=function(e){if(_dragActive||e.target.tagName==='BUTTON'||e.target.closest('button'))return;openDayMeals(key,dayIdx);};
   var header=mk('div','');header.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:4px';
   var tp=mk('div','ctype','Nutrición');tp.style.color='var(--green)';
   var cnt=mk('div','');cnt.style.cssText='font-size:9px;color:var(--white3)';cnt.textContent=items.length+' comida'+(items!==1?'s':'');
@@ -1357,17 +1506,20 @@ function makeNutritionSummaryCard(items,key,dayIdx){
     var mc=mk('div','nsc-macro');mc.innerHTML='<span>'+m.l+'</span> '+m.v;macRow.appendChild(mc);
   });
   // Drag handle - tiny button appended at bottom of card
-  var ndg=mk('button','cdrag-btn g','⠿');ndg.title='Arrastrar a otro día';ndg.style.cssText='display:block;width:100%;text-align:center;padding:1px 0;margin-top:4px;font-size:11px;background:none;border:none;cursor:grab;color:var(--dark5);user-select:none;-webkit-user-select:none';
-  calDragStart(ndg,card,'ng',function(srcKey,newKey,newDayIdx){
-    if(!srcKey)return;
+  var ndg=mk('button','cdrag-btn g','⠿');ndg.title='Arrastrar a otro día';ndg.style.cssText='display:block;width:100%;text-align:center;padding:2px 0;margin-top:5px;font-size:12px;background:none;border:none;cursor:grab;color:var(--dark5);touch-action:none;-webkit-user-select:none;user-select:none';
+  calDragStart(ndg,card,'ng',function(srcKey,newKey,newDayIdx,srcDateStr,newDateStr){
+    if(!srcKey||!newKey)return;
     var srcItems=(D.nutrition[srcKey]&&D.nutrition[srcKey].items)||[];
     if(!srcItems.length)return;
+    // Update date on all meals
+    var movedItems=srcItems.map(function(m){return newDateStr?Object.assign({},m,{date:newDateStr}):m;});
+    // Remove source
+    delete D.nutrition[srcKey];delFS('nutrition',srcKey);
+    // Save destination (merge with any existing meals)
     if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
     var dstItems=(D.nutrition[newKey].items||[]).slice();
-    srcItems.forEach(function(m){dstItems.push(m);});
-    D.nutrition[newKey].items=dstItems;
-    delFS('nutrition',srcKey);
-    saveFS('nutrition',newKey,{items:dstItems});
+    movedItems.forEach(function(m){dstItems.push(m);});
+    D.nutrition[newKey]={items:dstItems};saveFS('nutrition',newKey,{items:dstItems});
     renderCal();
   });
   card.appendChild(header);card.appendChild(kcalDiv);card.appendChild(macRow);card.appendChild(ndg);return card;
@@ -1388,10 +1540,11 @@ function makeHabitChip(hab,dateStr){
   bEdit.onclick=(function(h){return function(e){e.stopPropagation();openHabitModal(h);};})(hab);
   var bDel=mk('button','habit-chip-btn','✕');bDel.style.fontSize='9px';bDel.title='Eliminar hábito';
   bDel.onclick=(function(hid){return function(e){e.stopPropagation();confirm2('Eliminar hábito','¿Eliminar este hábito de todos los días?','danger',function(){delete D.habitDefs[hid];delFS('habitDefs',hid);renderCal();});};})(hab.id);
-  var hdg=mk('span','habit-drag-handle','⠿');hdg.style.cssText='font-size:9px;opacity:.5;cursor:grab;user-select:none;-webkit-user-select:none;padding:0 3px;color:inherit';hdg.title='Mover a otro día';
-  calDragStart(hdg,chip,'',function(srcDate,newKey,newDayIdx){
-    var days=getWeekDays(weekOff);
-    var tgtDate=days[newDayIdx]?days[newDayIdx].toISOString().slice(0,10):null;
+  var hdg=mk('span','habit-drag-handle','⠿');hdg.style.cssText='font-size:10px;opacity:.5;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;padding:0 3px;color:inherit';hdg.title='Mover a otro día';
+  calDragStart(hdg,chip,'',function(srcKey,newKey,newDayIdx,srcDateStr2,newDateStr){
+    // srcDateStr2 is the column's date from data-datestr, newDateStr is target column's date
+    var srcDate=srcDateStr2||dateStr; // dateStr is captured from the outer scope
+    var tgtDate=newDateStr;
     if(!tgtDate||tgtDate===srcDate)return;
     var srcDone=isHabitDone(hab.id,srcDate);
     var kSrc=getHabitLogKey(hab.id,srcDate);
@@ -1449,7 +1602,7 @@ function deleteItemDirect(col,id,key){
   var items=(D[col][key]&&D[col][key].items)||[];
   var item=items.find(function(x){return x.id===id;});
   confirm2('Eliminar','¿Eliminar "'+(item?item.name:'este elemento')+'"?','danger',function(){
-    if(col==='nutrition'&&item&&item.foods)adjustPantry(item.foods,1);
+    if(col==='nutrition'&&item&&item.foods){try{adjustPantry(item.foods,1);}catch(e){console.warn('pantry restore error',e);}}
     var ni=items.filter(function(x){return x.id!==id;});
     if(ni.length===0)delFS(col,key);else saveFS(col,key,{items:ni});
   });
@@ -1537,12 +1690,34 @@ function deleteItem(id,key){
 }
 
 // ══ WORKOUT MODAL ═══════════════════════════════════════
+
+// Open workout modal with a specific date pre-selected
+function _openModWDate(dateStr){
+  editId=null;editKey=null;
+  G('wTtl').textContent='Nuevo Entrenamiento';
+  G('wNm').value='';G('wSaveTpl').checked=false;G('wType').value='';
+  exercises=[];
+  G('wDatePick').value=dateStr||todayDateStr();
+  renderExs();G('modW').style.display='flex';
+}
+// Open nutrition modal with a specific date pre-selected
+function _openModNDate(dateStr){
+  editId=null;editKey=null;
+  G('nTtl').textContent='Nueva Comida';
+  G('nNm').value='';G('nNotes').value='';
+  foods=[];
+  G('nDatePick').value=dateStr||todayDateStr();
+  renderFds();G('modN').style.display='flex';
+}
 function openModW(item){
   G('wTtl').textContent=item?'Editar Entrenamiento':'Nuevo Entrenamiento';
   G('wNm').value=item?item.name:'';G('wSaveTpl').checked=false;
   G('wType').value='';
   exercises=item&&item.exercises?JSON.parse(JSON.stringify(item.exercises)):[];
-  buildDSMulti('wDS',[selDay]);renderExs();G('modW').style.display='flex';
+  // Date picker: use item's date, or the selected column's date, or today
+  var defDate=item?(item.date||todayDateStr()):wdToDateStr(weekOff,selDay);
+  G('wDatePick').value=defDate;
+  renderExs();G('modW').style.display='flex';
 }
 G('wType').onchange=function(){
   var v=this.value;
@@ -1639,23 +1814,35 @@ function renderExPickList(q){
 }
 function saveWorkout(){
   var name=G('wNm').value.trim();if(!name)return alert('Añade un nombre');
-  var days2=getDSMulti('wDS');
-  var ni={id:editId||uid(),name:name,exercises:JSON.parse(JSON.stringify(exercises)),date:todayDateStr(),completed:false};
+  var dateStr=G('wDatePick').value||todayDateStr();
+  var wd=dateToWD(dateStr);
+  var key=gk(wd.weekOff,wd.dayIdx);
+  var baseEx=JSON.parse(JSON.stringify(exercises));
+  var items=(D.workouts[key]&&D.workouts[key].items||[]).slice();
+
   if(editId){
-    if(editKey&&editKey!==key){var old=(D.workouts[editKey]&&D.workouts[editKey].items||[]).filter(function(x){return x.id!==editId;});if(old.length===0)delFS('workouts',editKey);else saveFS('workouts',editKey,{items:old});items.push(ni);}
-    else{var idx=-1;for(var i=0;i<items.length;i++){if(items[i].id===editId){idx=i;break;}}if(idx>=0)items[idx]=Object.assign({},items[idx],ni);else items.push(ni);}
-  }else{items.push(ni);}
-  days2.forEach(function(day){
-    var key=gk(weekOff,day);var items=(D.workouts[key]&&D.workouts[key].items||[]).slice();
-    var niDay={id:uid(),name:name,exercises:JSON.parse(JSON.stringify(exercises)),date:todayDateStr(),completed:false};
-    if(editId&&days2.length===1){
-      if(editKey&&editKey!==key){var old2=(D.workouts[editKey]&&D.workouts[editKey].items||[]).filter(function(x){return x.id!==editId;});if(old2.length===0)delFS('workouts',editKey);else saveFS('workouts',editKey,{items:old2});items.push(niDay);}
-      else{var idx2=-1;for(var ii=0;ii<items.length;ii++){if(items[ii].id===editId){idx2=ii;break;}}if(idx2>=0)items[idx2]=Object.assign({},items[idx2],niDay);else items.push(niDay);}
-    }else{items.push(niDay);}
-    saveFS('workouts',key,{items:items});
-  });
+    // Remove from old key if different
+    if(editKey&&editKey!==key){
+      var srcItems=(D.workouts[editKey]&&D.workouts[editKey].items||[]).filter(function(x){return x.id!==editId;});
+      if(srcItems.length===0)delFS('workouts',editKey);
+      else{if(!D.workouts[editKey])D.workouts[editKey]={};D.workouts[editKey].items=srcItems;saveFS('workouts',editKey,{items:srcItems});}
+      items.push({id:editId,name:name,exercises:baseEx,date:dateStr,completed:false});
+    }else{
+      var found=false;
+      items=items.map(function(x){if(x.id===editId){found=true;return Object.assign({},x,{name:name,exercises:baseEx,date:dateStr});}return x;});
+      if(!found)items.push({id:editId,name:name,exercises:baseEx,date:dateStr,completed:false});
+    }
+  }else{
+    items.push({id:uid(),name:name,exercises:baseEx,date:dateStr,completed:false});
+  }
+  if(!D.workouts[key])D.workouts[key]={};
+  D.workouts[key].items=items;
+  saveFS('workouts',key,{items:items});
   if(G('wSaveTpl').checked){var tid=uid();saveFS('wkTpl',tid,{id:tid,name:name,exercises:JSON.parse(JSON.stringify(exercises))});}
-  closeM('modW');
+  // If the saved week differs from current view, navigate there
+  if(wd.weekOff!==weekOff&&calView==='week'){weekOff=wd.weekOff;}
+  editId=null;editKey=null;
+  closeM('modW');renderCal();
 }
 G('wSv').onclick=saveWorkout;G('wCnc').onclick=function(){closeM('modW');};G('wX').onclick=function(){closeM('modW');};
 
@@ -1664,7 +1851,9 @@ function openModN(item){
   G('nTtl').textContent=item?'Editar Comida':'Nueva Comida';
   G('nNm').value=item?item.name:'';G('nNotes').value=item?(item.notes||''):'';
   foods=item&&item.foods?JSON.parse(JSON.stringify(item.foods)):[];
-  buildDS('nDS',selDay);renderFds();G('modN').style.display='flex';
+  var defDate=item?(item.date||todayDateStr()):wdToDateStr(weekOff,selDay);
+  G('nDatePick').value=defDate;
+  renderFds();G('modN').style.display='flex';
 }
 function updateFdTotals(){
   var totals={kcal:0,prot:0,carbs:0,fat:0};
@@ -1764,20 +1953,27 @@ G('btnFd').onclick=function(){foods.push({name:'',grams:'',prot:'',carbs:'',fat:
 G('btnFdPlato').onclick=function(){openDishSel();};
 function saveNutrition(){
   var name=G('nNm').value.trim();if(!name)return alert('Añade un nombre');
-  var day=getDS('nDS'),key=gk(weekOff,day),items=(D.nutrition[key]&&D.nutrition[key].items||[]).slice();
+  var dateStr=G('nDatePick').value||todayDateStr();
+  var wd=dateToWD(dateStr);
+  var key=gk(wd.weekOff,wd.dayIdx);
+  var items=(D.nutrition[key]&&D.nutrition[key].items||[]).slice();
   var ni={id:editId||uid(),name:name,notes:G('nNotes').value,foods:JSON.parse(JSON.stringify(foods)),date:todayDateStr(),completed:false};
   if(editId){
     // Restore pantry for the OLD version before overwriting
     var _oldKey=editKey||key;
     var _oldItems=(D.nutrition[_oldKey]&&D.nutrition[_oldKey].items)||[];
     var _oldItem=null;for(var _i=0;_i<_oldItems.length;_i++){if(_oldItems[_i].id===editId){_oldItem=_oldItems[_i];break;}}
-    if(_oldItem&&_oldItem.foods)adjustPantry(_oldItem.foods,1);
+    if(_oldItem&&_oldItem.foods){try{adjustPantry(_oldItem.foods,1);}catch(e){console.warn('pantry restore',e);}}
     if(editKey&&editKey!==key){var old=(D.nutrition[editKey]&&D.nutrition[editKey].items||[]).filter(function(x){return x.id!==editId;});if(old.length===0)delFS('nutrition',editKey);else saveFS('nutrition',editKey,{items:old});items.push(ni);}
     else{var idx=-1;for(var i=0;i<items.length;i++){if(items[i].id===editId){idx=i;break;}}if(idx>=0)items[idx]=Object.assign({},items[idx],ni);else items.push(ni);}
   }else{items.push(ni);}
-  // Deduct pantry for the NEW foods
-  adjustPantry(ni.foods,-1);
-  saveFS('nutrition',key,{items:items});closeM('modN');
+  // Deduct pantry for the NEW foods (wrapped in try so it never blocks saving)
+  try{adjustPantry(ni.foods,-1);}catch(e){console.warn('pantry adjust error',e);}
+  saveFS('nutrition',key,{items:items});
+  if(wd.weekOff!==weekOff&&calView==='week'){weekOff=wd.weekOff;}
+  editId=null;editKey=null;
+  closeM('modN');
+  renderCal();
 }
 G('nSv').onclick=saveNutrition;G('nCnc').onclick=function(){closeM('modN');};G('nX').onclick=function(){closeM('modN');};
 
@@ -2816,6 +3012,34 @@ function renderStepsSleep(cont){
   var gBtn=mk('button','bsave','OK');gBtn.style.cssText='padding:8px 12px;font-size:8px';
   gBtn.onclick=function(){D.profile.stepGoal=parseFloat(gInp.value)||10000;saveProfile();renderProf();};
   gRow.appendChild(gLbl);gRow.appendChild(gInp);gRow.appendChild(gBtn);card.appendChild(gRow);
+  // ── Charts ────────────────────────────────────────────────────────────────
+  var sortedLogs=Object.values(D.ssLogs).sort(function(a,b){return a.date<b.date?-1:1;});
+  if(sortedLogs.length>1){
+    var chartLabels=sortedLogs.map(function(l){return formatDate(l.date);});
+    var stepsData=sortedLogs.map(function(l){return l.steps||0;});
+    var sleepData=sortedLogs.map(function(l){return l.sleep||0;});
+    var chartOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:9},maxTicksLimit:8},grid:{color:'#2a2a2a'}},y:{ticks:{color:'#888',font:{size:9}},grid:{color:'#2a2a2a'}}}};
+    // Steps chart
+    var sWrap=mk('div','chart-wrap');var sCanvas=document.createElement('canvas');sCanvas.id='chartSteps';sWrap.appendChild(sCanvas);
+    sWrap.insertAdjacentHTML('afterbegin','<div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px">Evolución de Pasos</div>');
+    card.appendChild(sWrap);
+    // Sleep chart
+    var slWrap=mk('div','chart-wrap');var slCanvas=document.createElement('canvas');slCanvas.id='chartSleep';slWrap.appendChild(slCanvas);
+    slWrap.insertAdjacentHTML('afterbegin','<div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);opacity:.8;margin-bottom:6px">Evolución de Sueño (h)</div>');
+    card.appendChild(slWrap);
+    setTimeout(function(){
+      var sCtx=G('chartSteps');
+      if(sCtx&&typeof Chart!=='undefined'){
+        if(charts.steps)charts.steps.destroy();
+        charts.steps=new Chart(sCtx.getContext('2d'),{type:'line',data:{labels:chartLabels,datasets:[{data:stepsData,borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.1)',tension:.3,fill:true,pointRadius:3,pointBackgroundColor:'#C9A84C'}]},options:chartOpts});
+      }
+      var slCtx=G('chartSleep');
+      if(slCtx&&typeof Chart!=='undefined'){
+        if(charts.sleep)charts.sleep.destroy();
+        charts.sleep=new Chart(slCtx.getContext('2d'),{type:'line',data:{labels:chartLabels,datasets:[{data:sleepData,borderColor:'#2980b9',backgroundColor:'rgba(41,128,185,0.1)',tension:.3,fill:true,pointRadius:3,pointBackgroundColor:'#2980b9'}]},options:chartOpts});
+      }
+    },80);
+  }
   // History table
   var logs=Object.values(D.ssLogs).sort(function(a,b){return a.date<b.date?1:-1;}).slice(0,10);
   if(logs.length>0){
@@ -2930,6 +3154,162 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // Add "Iniciar Entrenamiento" button to showVW
 
+
+// ══ INYECCIÓN PLAN NUTRICIONAL 30 ABR – 5 MAY 2026 ══════════════════════════
+(function injectMealPlan(){
+  var FLAG='skinny_mp_30apr_5may_v1';
+  if(localStorage.getItem(FLAG))return; // ya inyectado
+
+  var PLAN=[
+    // ── JUE 30 ABR ──────────────────────────────────────────────────────────
+    {date:'2026-04-30',meals:[
+      {name:'Desayuno 07:30',notes:'Pre-cardio',foods:[
+        {name:'Avena en copos',grams:100,kcal:375,prot:13,carbs:67,fat:7},
+        {name:'Proteína whey',grams:30,kcal:120,prot:24,carbs:3,fat:1.8},
+        {name:'Leche desnatada',grams:300,kcal:105,prot:10.2,carbs:15,fat:0.3},
+        {name:'Plátano',grams:150,kcal:134,prot:1.7,carbs:34.5,fat:0.4}]},
+      {name:'Comida 13:30',notes:'Post-cardio',foods:[
+        {name:'Pollo al limón en sartén',grams:220,kcal:363,prot:68.2,carbs:0,fat:7.9},
+        {name:'Pasta integral cocida',grams:250,kcal:390,prot:13.8,carbs:70,fat:2.8},
+        {name:'Espinacas frescas',grams:100,kcal:23,prot:2.9,carbs:3.6,fat:0.4},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]},
+      {name:'Cena 21:00',notes:'',foods:[
+        {name:'Dorada al horno',grams:200,kcal:200,prot:38,carbs:0,fat:6},
+        {name:'Arroz blanco cocido',grams:250,kcal:325,prot:6.8,carbs:70,fat:0.8},
+        {name:'Judías verdes',grams:200,kcal:62,prot:3.6,carbs:14,fat:0.2},
+        {name:'Yogur griego 0%',grams:150,kcal:88,prot:15,carbs:6,fat:0.6},
+        {name:'Aceite de oliva virgen extra',grams:15,kcal:133,prot:0,carbs:0,fat:15}]}
+    ]},
+    // ── VIE 1 MAY ───────────────────────────────────────────────────────────
+    {date:'2026-05-01',meals:[
+      {name:'Desayuno 08:00',notes:'',foods:[
+        {name:'Tortilla de claras con verduras',grams:280,kcal:280,prot:61.6,carbs:14,fat:11.2},
+        {name:'Pan integral tostado',grams:80,kcal:198,prot:7.2,carbs:32.8,fat:2.7},
+        {name:'Aceite de oliva spray',grams:5,kcal:44,prot:0,carbs:0,fat:5}]},
+      {name:'Comida 13:30',notes:'Pre-entreno',foods:[
+        {name:'Pechuga de pavo a la plancha',grams:220,kcal:345,prot:66,carbs:0,fat:7.9},
+        {name:'Arroz blanco cocido',grams:150,kcal:195,prot:4.1,carbs:42,fat:0.4},
+        {name:'Brócoli al vapor',grams:200,kcal:68,prot:5.6,carbs:14,fat:0.8},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]},
+      {name:'Cena 21:30',notes:'Post-entreno',foods:[
+        {name:'Bacalao al horno',grams:200,kcal:182,prot:40,carbs:0,fat:1.8},
+        {name:'Boniato asado',grams:200,kcal:172,prot:3.2,carbs:40,fat:0.2},
+        {name:'Espárragos a la plancha',grams:150,kcal:46,prot:4.3,carbs:9,fat:0.9},
+        {name:'Nueces troceadas',grams:15,kcal:98,prot:2.2,carbs:2.1,fat:9.8},
+        {name:'Yogur griego 0%',grams:200,kcal:118,prot:20,carbs:8,fat:0.8},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]}
+    ]},
+    // ── SÁB 2 MAY ───────────────────────────────────────────────────────────
+    {date:'2026-05-02',meals:[
+      {name:'Desayuno 09:00',notes:'Pre-cardio',foods:[
+        {name:'Pan integral tostado',grams:80,kcal:198,prot:7.2,carbs:32.8,fat:2.7},
+        {name:'Plátano',grams:150,kcal:134,prot:1.7,carbs:34.5,fat:0.4},
+        {name:'Mantequilla de cacahuete',grams:20,kcal:118,prot:5,carbs:4,fat:10},
+        {name:'Yogur griego 0%',grams:150,kcal:88,prot:15,carbs:6,fat:0.6}]},
+      {name:'Comida 13:00',notes:'Post-cardio',foods:[
+        {name:'Lentejas estofadas',grams:300,kcal:348,prot:27,carbs:60,fat:1.2},
+        {name:'Arroz blanco cocido',grams:200,kcal:260,prot:5.4,carbs:56,fat:0.6},
+        {name:'Pan integral',grams:40,kcal:99,prot:3.6,carbs:16.4,fat:1.4},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]},
+      {name:'Cena 21:30',notes:'',foods:[
+        {name:'Salmón a la plancha',grams:180,kcal:374,prot:36,carbs:0,fat:23.4},
+        {name:'Quinoa cocida',grams:200,kcal:240,prot:8.8,carbs:44,fat:3.8},
+        {name:'Ensalada mixta con pepino',grams:200,kcal:30,prot:2,carbs:6,fat:0.2},
+        {name:'Yogur griego 0%',grams:150,kcal:88,prot:15,carbs:6,fat:0.6},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]}
+    ]},
+    // ── DOM 3 MAY ───────────────────────────────────────────────────────────
+    {date:'2026-05-03',meals:[
+      {name:'Desayuno 10:00',notes:'',foods:[
+        {name:'Huevos a la plancha',grams:100,kcal:144,prot:13,carbs:1,fat:10},
+        {name:'Jamón serrano',grams:60,kcal:120,prot:18,carbs:0,fat:5.4},
+        {name:'Aguacate',grams:80,kcal:128,prot:1.6,carbs:7.2,fat:12},
+        {name:'Pan integral',grams:60,kcal:148,prot:5.4,carbs:24.6,fat:2},
+        {name:'Tomate y pepino',grams:150,kcal:22,prot:1,carbs:4.5,fat:0.2}]},
+      {name:'Comida 15:00',notes:'',foods:[
+        {name:'Muslo de pollo sin piel al horno',grams:200,kcal:280,prot:48,carbs:0,fat:10},
+        {name:'Garbanzos cocidos',grams:200,kcal:328,prot:17.8,carbs:54,fat:5.2},
+        {name:'Espinacas frescas',grams:150,kcal:34,prot:4.3,carbs:5.4,fat:0.6},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]},
+      {name:'Cena 21:30',notes:'',foods:[
+        {name:'Atún al natural',grams:150,kcal:186,prot:41.6,carbs:0,fat:1.6},
+        {name:'Arroz integral cocido',grams:150,kcal:166,prot:3.9,carbs:34.5,fat:1.4},
+        {name:'Ensalada verde con zanahoria',grams:200,kcal:40,prot:2,carbs:8,fat:0.2},
+        {name:'Yogur griego 0%',grams:150,kcal:88,prot:15,carbs:6,fat:0.6},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]}
+    ]},
+    // ── LUN 4 MAY ───────────────────────────────────────────────────────────
+    {date:'2026-05-04',meals:[
+      {name:'Desayuno 08:00',notes:'',foods:[
+        {name:'Yogur griego 0%',grams:200,kcal:118,prot:20,carbs:8,fat:0.8},
+        {name:'Avena tostada',grams:80,kcal:300,prot:10.4,carbs:53.6,fat:5.6},
+        {name:'Frutos rojos mixtos',grams:100,kcal:45,prot:0.7,carbs:10,fat:0.4},
+        {name:'Almendras',grams:25,kcal:145,prot:5.2,carbs:5.5,fat:12.5}]},
+      {name:'Comida 14:00',notes:'',foods:[
+        {name:'Merluza al horno',grams:200,kcal:174,prot:38,carbs:0,fat:2},
+        {name:'Lentejas cocidas',grams:200,kcal:232,prot:18,carbs:40,fat:0.8},
+        {name:'Arroz blanco cocido',grams:150,kcal:195,prot:4.1,carbs:42,fat:0.4},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]},
+      {name:'Cena 21:00',notes:'',foods:[
+        {name:'Pavo en dados salteado',grams:180,kcal:283,prot:54,carbs:0,fat:6.5},
+        {name:'Brócoli al vapor',grams:200,kcal:68,prot:5.6,carbs:14,fat:0.8},
+        {name:'Arroz integral cocido',grams:150,kcal:166,prot:3.9,carbs:34.5,fat:1.4},
+        {name:'Yogur griego 0%',grams:150,kcal:88,prot:15,carbs:6,fat:0.6},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]}
+    ]},
+    // ── MAR 5 MAY ───────────────────────────────────────────────────────────
+    {date:'2026-05-05',meals:[
+      {name:'Desayuno 08:00',notes:'',foods:[
+        {name:'Huevos a la plancha',grams:100,kcal:144,prot:13,carbs:1,fat:10},
+        {name:'Pan integral tostado',grams:80,kcal:198,prot:7.2,carbs:32.8,fat:2.7},
+        {name:'Aguacate',grams:80,kcal:96,prot:1.2,carbs:5.4,fat:9},
+        {name:'Pimientos asados + tomate',grams:150,kcal:45,prot:1.5,carbs:10.5,fat:0.3},
+        {name:'Café con leche',grams:150,kcal:69,prot:4.5,carbs:6.8,fat:3}]},
+      {name:'Comida 14:00',notes:'',foods:[
+        {name:'Pollo al curry con garbanzos',grams:200,kcal:330,prot:62,carbs:0,fat:7.2},
+        {name:'Garbanzos cocidos',grams:200,kcal:328,prot:17.8,carbs:54,fat:5.2},
+        {name:'Espinacas frescas',grams:150,kcal:34,prot:4.3,carbs:5.4,fat:0.6},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]},
+      {name:'Cena 21:00',notes:'',foods:[
+        {name:'Salmón a la plancha',grams:150,kcal:312,prot:30,carbs:0,fat:19.5},
+        {name:'Arroz blanco cocido',grams:150,kcal:195,prot:4.1,carbs:42,fat:0.4},
+        {name:'Espinacas salteadas',grams:100,kcal:23,prot:2.9,carbs:3.6,fat:0.4},
+        {name:'Yogur griego 0%',grams:150,kcal:88,prot:15,carbs:6,fat:0.6},
+        {name:'Aceite de oliva virgen extra',grams:10,kcal:88,prot:0,carbs:0,fat:10}]}
+    ]}
+  ];
+
+  // Build entries grouped by day-key
+  var grouped={};
+  PLAN.forEach(function(day){
+    var wd=dateToWD(day.date);
+    var key=gk(wd.weekOff,wd.dayIdx);
+    if(!grouped[key])grouped[key]={key:key,items:[]};
+    day.meals.forEach(function(meal){
+      grouped[key].items.push({
+        id:'mp_'+day.date.replace(/-/g,'')+'_'+meal.name.replace(/\s/g,'').slice(0,8)+'_'+Math.random().toString(36).slice(2,5),
+        name:meal.name,
+        notes:meal.notes||'',
+        foods:meal.foods,
+        date:day.date,
+        completed:false
+      });
+    });
+  });
+
+  // Save each day-key
+  Object.keys(grouped).forEach(function(key){
+    var entry=grouped[key];
+    var existing=(D.nutrition[key]&&D.nutrition[key].items)||[];
+    var allItems=existing.concat(entry.items);
+    D.nutrition[key]={items:allItems};
+    saveFS('nutrition',key,{items:allItems});
+  });
+
+  localStorage.setItem(FLAG,'1');
+  console.log('✅ Plan nutricional 30 Abr – 5 May inyectado correctamente');
+  renderCal();
+})();
 renderCal();
 });
 </script>
