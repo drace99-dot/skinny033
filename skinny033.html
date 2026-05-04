@@ -2926,6 +2926,38 @@ function renderProfHoy(cont){
 
 
 // ── FORM LOGS PANEL (admin only) ──────────────────────────────────────────────
+
+function openFormDetail(log){
+  // Question labels for human-readable display
+  var LABELS={rpe:'Esfuerzo percibido (RPE)',fatiga_muscular:'Fatiga muscular',dolor:'Dolor / Molestias',
+    tipo_dolor:'Tipo de dolor',energia:'Energía al empezar',motivacion:'Motivación',
+    calidad_sueño:'Calidad del sueño previo',sensaciones:'Sensaciones generales',
+    progresion:'Progresión',bomba_muscular:'Congestión muscular',hidratacion:'Hidratación',precauciones:'Precauciones'};
+  var html='<div style="max-width:460px;background:var(--dark);border:1px solid var(--dark4);padding:20px;position:relative">';
+  html+='<div style="font-family:var(--serif);font-size:15px;color:var(--gold);margin-bottom:4px">'+formatDate(log.date)+' '+(log.time||'')+'</div>';
+  html+='<div style="font-size:10px;color:var(--white4);margin-bottom:16px">'+(log.workout||'Sin nombre')+(log.duration?' · '+Math.floor(log.duration/60)+' min':'')+'</div>';
+  var answers=log.answers||{};
+  var keys=Object.keys(answers);
+  if(!keys.length){html+='<div style="color:var(--white4);font-size:11px">Sin respuestas registradas</div>';}
+  else{
+    keys.forEach(function(k){
+      var v=answers[k];
+      var valStr=Array.isArray(v)?v.join(', '):v;
+      if(!valStr)return;
+      html+='<div style="margin-bottom:10px"><div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:3px">'+(LABELS[k]||k.replace(/_/g,' '))+'</div>';
+      html+='<div style="font-size:12px;color:var(--white);padding:6px 10px;background:var(--dark2);border:1px solid var(--dark4)">'+valStr+'</div></div>';
+    });
+  }
+  html+='</div>';
+  // Show in a generic overlay
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer';
+  overlay.innerHTML=html;
+  overlay.onclick=function(e){if(e.target===overlay)overlay.remove();};
+  overlay.querySelector('div').style.cursor='default';
+  overlay.querySelector('div').onclick=function(e){e.stopPropagation();};
+  document.body.appendChild(overlay);
+}
 function renderFormLogs(cont){
   var logs=Object.values(D.formLogs||{}).sort(function(a,b){return a.date<b.date?1:-1;});
   var card=mk('div','prof-card');
@@ -2935,22 +2967,17 @@ function renderFormLogs(cont){
   hdr.appendChild(tit);card.appendChild(hdr);
   if(!logs.length){card.appendChild(mk('div','empty-state','Sin formularios registrados'));cont.appendChild(card);return;}
   logs.forEach(function(log){
-    var row=mk('div','');row.style.cssText='background:var(--dark2);border:1px solid var(--dark4);padding:10px 12px;margin-bottom:6px';
-    var top=mk('div','');top.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:6px';
+    var row=mk('div','');row.style.cssText='background:var(--dark2);border:1px solid var(--dark4);padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:border-color .15s';
+    row.onmouseenter=function(){this.style.borderColor='var(--gold-dim)';};
+    row.onmouseleave=function(){this.style.borderColor='var(--dark4)';};
+    var top=mk('div','');top.style.cssText='display:flex;align-items:center;justify-content:space-between';
     var info=mk('div','');info.style.cssText='font-size:10px;color:var(--white)';
-    info.textContent=formatDate(log.date)+' '+log.time+' · '+log.workout+(log.duration?' · '+Math.floor(log.duration/60)+'min':'');
+    info.textContent=formatDate(log.date)+' '+(log.time||'')+' · '+(log.workout||'')+(log.duration?' · '+Math.floor(log.duration/60)+'min':'');
     var bd=mk('button','lib-btn del','✕');
-    bd.onclick=(function(lid){return function(){confirm2('Eliminar','¿Eliminar este formulario?','danger',function(){delete D.formLogs[lid];delFS('formLogs',lid);renderProf();});};})(log.id);
+    bd.onclick=(function(lid){return function(e){e.stopPropagation();confirm2('Eliminar','¿Eliminar este formulario?','danger',function(){delete D.formLogs[lid];delFS('formLogs',lid);renderProf();});};})(log.id);
     top.appendChild(info);top.appendChild(bd);row.appendChild(top);
-    // Show answers
-    var ansDiv=mk('div','');ansDiv.style.cssText='display:flex;flex-wrap:wrap;gap:4px';
-    Object.keys(log.answers||{}).forEach(function(k){
-      var v=log.answers[k];
-      var tag=mk('div','');tag.style.cssText='background:var(--dark3);padding:3px 7px;font-size:8px;color:var(--white4);border:1px solid var(--dark4)';
-      tag.textContent=k.replace(/_/g,' ')+': '+(Array.isArray(v)?v.join(', '):v);
-      ansDiv.appendChild(tag);
-    });
-    row.appendChild(ansDiv);card.appendChild(row);
+    row.onclick=(function(l){return function(){openFormDetail(l);};})(log);
+    card.appendChild(row);
   });
   cont.appendChild(card);
 }
@@ -3470,28 +3497,28 @@ function renderWkMode(){
           var ser=wkModeItem.exercises[i].series[j];
           ser.done=!ser.done;
           if(ser.done){
+            // CHECK IF ALL DONE FIRST — if so, finish immediately, no rest
+            var _allDone=wkModeItem.exercises.every(function(ex){return (ex.series||[]).every(function(s){return !!s.done;});});
+            if(_allDone){
+              renderWkMode();
+              setTimeout(finishWorkout,300);
+              return;
+            }
+            // Not all done — handle rest/superserie logic
             if(isSuperset){
-              // Check if all exercises in group have done this series
               var nextUnfinished=null;
               for(var g2=gidxLocal+1;g2<grpArr.length;g2++){
                 var nEx=wkModeItem.exercises[grpArr[g2]];
                 var nSer=nEx&&nEx.series[j];
                 if(nSer&&!nSer.done){nextUnfinished=grpArr[g2];break;}
               }
-              if(nextUnfinished!==null){
-                renderWkMode();
-              }else{
-                var restSec=parseInt(ser.rest)||90;
-                startRestCountdown(typeLbl,restSec,i,j);
-                renderWkMode();
-              }
+              if(nextUnfinished!==null){renderWkMode();}
+              else{var restSec=parseInt(ser.rest)||90;startRestCountdown(typeLbl,restSec,i,j);renderWkMode();}
             }else{
               var restSec=parseInt(ser.rest)||90;
               startRestCountdown(wkModeItem.exercises[i].name,restSec,i,j);
               renderWkMode();
             }
-            // Check if ALL series in entire workout are done
-            checkAllDone();
           }else{renderWkMode();}
         };})(ei,si,grp,gidx);
         row.appendChild(chk);
@@ -3503,19 +3530,7 @@ function renderWkMode(){
   });
 }
 
-function checkAllDone(){
-  var exs=wkModeItem.exercises||[];
-  var allDone=exs.every(function(ex){return (ex.series||[]).every(function(s){return !!s.done;});});
-  if(allDone){
-    // Skip rest countdown immediately on last series
-    clearInterval(wkRestInt);
-    G('wkRestOverlay').style.display='none';
-    // Small delay so the ✓ animation is visible
-    setTimeout(function(){
-      finishWorkout();
-    },400);
-  }
-}
+// checkAllDone inlined into chk handler
 
 function finishWorkout(){
   clearInterval(wkTimerInt);wkRunning=false;
@@ -3565,14 +3580,8 @@ var FATIGUE_QS=[
    opts:['Muy malo (< 4h)','Malo (4-5h)','Regular (5-6h)','Bueno (6-7h)','Muy bueno (> 7h)']},
   {id:'sensaciones',q:'¿Cuál describe mejor tus sensaciones generales post-entreno?',type:'single',
    opts:['Agotado/a','Cansado/a pero bien','Neutral','Activo/a','Poderoso/a']},
-  {id:'bomba_muscular',q:'¿Has notado buena congestión/bomba muscular?',type:'single',
-   opts:['Nada','Poca','Moderada','Buena','Excelente']},
   {id:'progresion',q:'¿Has podido progresar respecto a la sesión anterior?',type:'single',
-   opts:['No (bajé carga/reps)','Igual','Sí (más carga)','Sí (más reps)','Sí (ambas)','Primera vez este ejercicio']},
-  {id:'hidratacion',q:'¿Cómo fue tu hidratación durante el entrenamiento?',type:'single',
-   opts:['Insuficiente','Regular','Adecuada','Buena']},
-  {id:'precauciones',q:'¿Necesitas tomar alguna precaución en próximas sesiones?',type:'multi',
-   opts:['Ninguna','Reducir carga','Evitar ciertos movimientos','Visita médica','Más calentamiento','Estiramientos extra','Más descanso']}
+   opts:['No (bajé carga/reps)','Igual','Sí (más carga)','Sí (más reps)','Sí (ambas)','Primera vez este ejercicio']}
 ];
 
 function openFatigueModal(){
@@ -4034,6 +4043,28 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
   localStorage.setItem(FLAG,'1');
   console.log('✅ Biblioteca de ejercicios cargada: '+EX.length+' ejercicios');
 })();
+
+// Click outside any .mol modal to close it
+document.addEventListener('click',function(e){
+  var mols=document.querySelectorAll('.mol');
+  mols.forEach(function(mol){
+    if(mol.style.display!=='flex'&&mol.style.display!=='block')return;
+    if(e.target===mol){mol.style.display='none';}
+  });
+});
+// Click outside any .col overlay to close it
+document.addEventListener('click',function(e){
+  var cols=document.querySelectorAll('.col');
+  cols.forEach(function(col){
+    if(col.style.display!=='flex'&&col.style.display!=='block')return;
+    if(e.target===col){col.style.display='none';}
+  });
+});
+// Click outside dish-cfg-overlay to close it
+document.addEventListener('click',function(e){
+  var d=G('modDCfg');
+  if(d&&(d.style.display==='flex'||d.style.display==='block')&&e.target===d){d.style.display='none';}
+});
 renderCal();
 });
 </script>
