@@ -298,6 +298,27 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 .dm-meal-name{font-size:12px;font-weight:500;color:var(--white);margin-bottom:5px}
 .dm-meal-meta{font-size:10px;color:var(--white3);margin-bottom:7px}
 .dm-meal-acts{display:flex;gap:5px;flex-wrap:wrap}
+/* ── CARDIO MODAL ─────────────────────────────────── */
+.cardio-field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
+.speed-toggle{display:flex;gap:0;margin-top:4px}
+.speed-toggle button{flex:1;padding:5px;border:1px solid var(--dark4);background:var(--dark2);color:var(--white4);font-size:9px;letter-spacing:1px;cursor:pointer;font-family:var(--sans);transition:.15s}
+.speed-toggle button.active{background:var(--gold);border-color:var(--gold);color:var(--black)}
+/* ── ADMIN ALERTS ─────────────────────────────────── */
+.alert-banner{background:rgba(192,57,43,.12);border:1px solid var(--red);border-left:3px solid var(--red);padding:10px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px}
+.alert-banner-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.alert-banner-body{flex:1;min-width:0}
+.alert-banner-title{font-size:10px;font-weight:600;color:var(--red);margin-bottom:2px}
+.alert-banner-msg{font-size:10px;color:var(--white3)}
+.alert-banner-acts{display:flex;gap:5px;margin-top:6px}
+.alert-banner.info{background:rgba(41,128,185,.1);border-color:var(--blue);border-left-color:var(--blue)}
+.alert-banner.info .alert-banner-title{color:var(--blue)}
+.alert-dismiss{background:none;border:1px solid currentColor;color:inherit;font-size:8px;padding:3px 8px;cursor:pointer;font-family:var(--sans);opacity:.7;transition:.15s}
+.alert-dismiss:hover{opacity:1}
+/* ── TIME INPUT ────────────────────────────────────── */
+.time-hm{display:flex;align-items:center;gap:6px}
+.time-hm input{width:60px;text-align:center}
+.time-hm .sep{font-size:18px;color:var(--white4);font-weight:300;line-height:1}
+.time-hm label{font-size:8px;color:var(--white4);letter-spacing:1px}
 /* ── FILTER DROPDOWNS ─────────────────────────────── */
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end}
 .filter-group{display:flex;flex-direction:column;gap:3px;min-width:160px;flex:1}
@@ -547,7 +568,25 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
           <option value="Push">Push (Empuje)</option>
           <option value="Pull">Pull (Tracción)</option>
           <option value="Full Body">Full Body</option>
-          <option value="Cardio">🏃 Cardio</option>
+          <option value="Cardio">🏃 Cardio (general)</option>
+          <option value="Correr">🏃 Correr / Running</option>
+          <option value="Ciclismo indoor">🚴 Ciclismo Indoor</option>
+          <option value="Ciclismo exterior">🚴 Ciclismo Exterior</option>
+          <option value="Barre">💃 Barre</option>
+          <option value="Body Pump">🏋️ Body Pump</option>
+          <option value="Zumba">💃 Zumba</option>
+          <option value="Spinning">🚴 Spinning</option>
+          <option value="Natación">🏊 Natación</option>
+          <option value="Senderismo">🥾 Senderismo / Hiking</option>
+          <option value="Yoga">🧘 Yoga</option>
+          <option value="Pilates">🧘 Pilates</option>
+          <option value="Boxeo">🥊 Boxeo</option>
+          <option value="CrossFit">⚡ CrossFit / HIIT</option>
+          <option value="Escalada">🧗 Escalada</option>
+          <option value="Remo">🚣 Remo</option>
+          <option value="Elíptica">🏃 Elíptica</option>
+          <option value="Caminata">🚶 Caminata</option>
+          <option value="Baile">💃 Baile / Dance</option>
           <option value="Core">Core / Abdomen</option>
           <option value="Otro">✏️ Otro...</option>
         </select>
@@ -555,8 +594,25 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
       <div class="fg" id="wNmWrap"><label class="fl">Nombre del Entrenamiento</label><input type="text" class="fi" id="wNm" placeholder="Ej: Empuje · Pecho & Hombros"></div>
       <div class="fg"><label class="fl">Fecha del Entrenamiento</label><input type="date" class="fi-date" id="wDatePick"></div>
       <button class="btnadd-main" id="btnLoadTpl" style="border-color:var(--gold-dim);color:var(--gold-dim);margin-bottom:10px">Cargar Plantilla</button>
+      <!-- Cardio fields (shown only for cardio types) -->
+      <div id="wCardioFields" style="display:none">
+        <div class="cardio-field-row">
+          <div class="fg" style="margin-bottom:8px"><label class="fl">Hora inicio (opcional)</label><input type="time" class="fi" id="wCardioStart"></div>
+          <div class="fg" style="margin-bottom:8px"><label class="fl">Hora fin (opcional)</label><input type="time" class="fi" id="wCardioEnd"></div>
+        </div>
+        <div class="fg" style="margin-bottom:8px"><label class="fl">Duración total</label>
+          <div class="time-hm"><input type="number" class="fi" id="wCardioDurH" placeholder="0" min="0" max="23" inputmode="numeric"><span class="sep">h</span><input type="number" class="fi" id="wCardioDurM" placeholder="0" min="0" max="59" inputmode="numeric"><span class="sep">min</span></div>
+        </div>
+        <div class="fg" style="margin-bottom:8px"><label class="fl">Distancia (km)</label><input type="number" class="fi" id="wCardioDist" placeholder="0.0" step="0.01" inputmode="decimal"></div>
+        <div id="wCardioSpeedWrap" style="display:none">
+          <div class="fg" style="margin-bottom:4px"><label class="fl">Velocidad media</label><input type="number" class="fi" id="wCardioSpeed" placeholder="—" step="0.01" inputmode="decimal" readonly></div>
+          <div class="speed-toggle"><button id="wSpeedKmh" class="active">km/h</button><button id="wSpeedMinKm">min/km</button></div>
+        </div>
+        <div class="fg" style="margin-bottom:8px"><label class="fl">Esfuerzo percibido (RPE 1-10)</label><input type="number" class="fi" id="wCardioRpe" placeholder="7" min="1" max="10" inputmode="numeric"></div>
+        <div class="fg" style="margin-bottom:8px"><label class="fl">Sensaciones / Notas</label><textarea class="fi-ta" id="wCardioNotes" placeholder="¿Cómo te has sentido?..." style="min-height:60px"></textarea></div>
+      </div>
       <div id="wExs"></div>
-      <div style="display:flex;gap:6px;margin-bottom:10px">
+      <div id="wExBtns" style="display:flex;gap:6px;margin-bottom:10px">
         <button class="btnadd-main" id="btnEx" style="flex:1;margin-bottom:0">+ Ejercicio en blanco</button>
         <button class="btnadd-main" id="btnExLib" style="flex:1;margin-bottom:0;border-color:var(--gold-dim);color:var(--gold-dim)">· Desde biblioteca</button>
       </div>
@@ -971,7 +1027,9 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
       <div class="fg"><label class="fl">Fecha</label><input type="date" class="fi" id="ssDate"></div>
       <div class="row2">
         <div class="fg"><label class="fl">Pasos</label><input type="number" class="fi" id="ssSteps" placeholder="10000" inputmode="numeric"></div>
-        <div class="fg"><label class="fl">Horas de sueño</label><input type="number" class="fi" id="ssSleep" placeholder="8" inputmode="decimal" step="0.5"></div>
+        <div class="fg"><label class="fl">Horas de sueño</label>
+          <div class="time-hm"><input type="number" class="fi" id="ssSleepH" placeholder="7" min="0" max="23" inputmode="numeric"><span class="sep">h</span><input type="number" class="fi" id="ssSleepM" placeholder="30" min="0" max="59" inputmode="numeric"><span class="sep">min</span></div>
+        </div>
       </div>
     </div>
     <div class="mftr"><button class="bcanc" id="ssCnc">Cancelar</button><button class="bsave" id="ssSv">Guardar</button></div>
@@ -1093,7 +1151,7 @@ var fSelCb=null,dSelCb=null,dfSelCb=null,dcfgDish=null,dcfgGrams={};
 var charts={w:null,f:null,ex:null,steps:null,sleep:null};
 var libFoodSearch='',libTrainSearch='';
 
-var D={workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},formLogs:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};
+var D={workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},formLogs:{},changeLog:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};
 var unsubs=[];
 var DAYS=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 
@@ -1117,6 +1175,15 @@ function pfx(col){var p=currentProfile&&currentProfile.prefix||'';return p+col;}
 function saveFS(col,key,data){
   if(col==="bodyLogs"){var idx=-1;for(var i=0;i<D.bodyLogs.length;i++){if(D.bodyLogs[i].id===key){idx=i;break;}}if(idx>=0)D.bodyLogs[idx]=data;else D.bodyLogs.push(data);}
   else{if(!D[col])D[col]={};D[col][key]=data;}
+  // Record change for admin (non-admin users only, skip internal cols)
+  var _skipCols=['changeLog'];
+  if(!isAdminSession&&currentProfile&&_skipCols.indexOf(col)<0){
+    var _clId='cl_'+Date.now();
+    var _clEntry={id:_clId,ts:Date.now(),date:new Date().toLocaleDateString('es-ES'),time:new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}),col:col,user:(currentProfile.name||currentProfile.id),seen:false};
+    if(!D.changeLog)D.changeLog={};D.changeLog[_clId]=_clEntry;
+    // Persist changeLog to localStorage
+    try{var _lk='s033v3_'+(currentProfile?currentProfile.id:'default');var _d=JSON.parse(localStorage.getItem(_lk)||'{}');_d.changeLog=D.changeLog;localStorage.setItem(_lk,JSON.stringify(_d));}catch(e){}
+  }
   if(useFS&&db){ss("sync");db.collection(pfx(col)).doc(key).set(data).then(function(){ss("ok");}).catch(function(){ss("off");});}
   else{lsSave();ss("local");}
 }
@@ -1132,7 +1199,7 @@ function saveProfile(){
   else{lsSave();ss('local');}
 }
 function refreshUI(col){
-  if(col==='workouts'||col==='nutrition')renderCal();
+  if(col==='workouts'||col==='nutrition'||col==='habitDefs'||col==='habitLogs')renderCal();
   if(col==='foodLib'||col==='dishLib'||col==='exLib'||col==='wkTpl'||col==='pantry')renderLib();
   if(col==='bodyLogs'||col==='profile'||col==='ssLogs')renderProf();
   ss('local');
@@ -1146,10 +1213,10 @@ function subData(){
   unsubs.forEach(function(u){u();});unsubs=[];
   var lsKey='s033v3_'+(currentProfile?currentProfile.id:'default');
   if(!useFS||!db){var ls=null;try{ls=JSON.parse(localStorage.getItem(lsKey)||'null');}catch(e){}
-    if(ls){D.workouts=ls.workouts||{};D.nutrition=ls.nutrition||{};D.foodLib=ls.foodLib||{};D.dishLib=ls.dishLib||{};D.exLib=ls.exLib||{};D.wkTpl=ls.wkTpl||{};D.supLogs=ls.supLogs||{};D.habitDefs=ls.habitDefs||{};D.habitLogs=ls.habitLogs||{};D.ssLogs=ls.ssLogs||{};D.pantry=ls.pantry||{};D.formLogs=ls.formLogs||{};D.profile=ls.profile||D.profile;D.bodyLogs=ls.bodyLogs||[];}
+    if(ls){D.workouts=ls.workouts||{};D.nutrition=ls.nutrition||{};D.foodLib=ls.foodLib||{};D.dishLib=ls.dishLib||{};D.exLib=ls.exLib||{};D.wkTpl=ls.wkTpl||{};D.supLogs=ls.supLogs||{};D.habitDefs=ls.habitDefs||{};D.habitLogs=ls.habitLogs||{};D.ssLogs=ls.ssLogs||{};D.pantry=ls.pantry||{};D.formLogs=ls.formLogs||{};D.changeLog=ls.changeLog||{};D.profile=ls.profile||D.profile;D.bodyLogs=ls.bodyLogs||[];}
     ss('local');renderCal();renderLib();renderProf();return;
   }
-  ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl','supLogs','habitDefs','habitLogs','ssLogs','pantry','formLogs'].forEach(function(col){
+  ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl','supLogs','habitDefs','habitLogs','ssLogs','pantry','formLogs','changeLog'].forEach(function(col){
     var u=db.collection(pfx(col)).onSnapshot(function(snap){D[col]={};snap.forEach(function(doc){D[col][doc.id]=doc.data();});refreshUI(col);ss('ok');},function(){ss('off');});
     unsubs.push(u);
   });
@@ -1188,7 +1255,7 @@ function getProfiles(){
 }
 function saveProfiles(profiles){try{localStorage.setItem('s033_profiles',JSON.stringify(profiles));}catch(e){}}
 
-function resetD(){return {workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},formLogs:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};}
+function resetD(){return {workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},formLogs:{},changeLog:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};}
 
 G('loading').style.display='none';G('login').style.display='flex';
 
@@ -1831,16 +1898,80 @@ function openModW(item){
   G('wNm').value=item?item.name:'';G('wSaveTpl').checked=false;
   G('wType').value='';
   exercises=item&&item.exercises?JSON.parse(JSON.stringify(item.exercises)):[];
-  // Date picker: use item's date, or the selected column's date, or today
   var defDate=item?(item.date||todayDateStr()):wdToDateStr(weekOff,selDay);
   G('wDatePick').value=defDate;
+  // Cardio fields
+  var cd=item&&item.cardio;
+  G('wCardioStart').value=cd&&cd.start||'';
+  G('wCardioEnd').value=cd&&cd.end||'';
+  G('wCardioDurH').value=cd?(cd.durH||0):'';
+  G('wCardioDurM').value=cd?(cd.durM||0):'';
+  G('wCardioDist').value=cd?(cd.dist||''):'';
+  G('wCardioRpe').value=cd?(cd.rpe||''):'';
+  G('wCardioNotes').value=cd?(cd.notes||''):'';
+  var isCardio=item&&CARDIO_TYPES.indexOf(item.name||item.type||'')>=0||false;
+  G('wCardioFields').style.display=isCardio?'block':'none';
+  G('wExBtns').style.display=isCardio?'none':'flex';
   renderExs();G('modW').style.display='flex';
 }
+var CARDIO_TYPES=['Correr','Ciclismo indoor','Ciclismo exterior','Barre','Body Pump','Zumba','Spinning','Natación','Senderismo','Yoga','Pilates','Boxeo','CrossFit','Escalada','Remo','Elíptica','Caminata','Baile','Cardio'];
 G('wType').onchange=function(){
   var v=this.value;
   if(v&&v!=='Otro'){G('wNm').value=v;}
   else if(v==='Otro'){G('wNm').value='';G('wNm').focus();}
+  var isCardio=CARDIO_TYPES.indexOf(v)>=0;
+  G('wCardioFields').style.display=isCardio?'block':'none';
+  G('wExBtns').style.display=isCardio?'none':'flex';
+  updateCardioSpeed();
 };
+
+var _speedMode='kmh'; // 'kmh' or 'minkm'
+
+function updateCardioSpeed(){
+  var distKm=parseFloat(G('wCardioDist').value)||0;
+  var durH=(parseFloat(G('wCardioDurH').value)||0)+(parseFloat(G('wCardioDurM').value)||0)/60;
+  var wrap=G('wCardioSpeedWrap');
+  if(distKm>0&&durH>0){
+    wrap.style.display='block';
+    var kmh=distKm/durH;
+    var minkm=durH*60/distKm;
+    var inp=G('wCardioSpeed');
+    if(_speedMode==='kmh'){inp.value=kmh.toFixed(2);inp.placeholder='km/h';}
+    else{inp.value=minkm.toFixed(2);inp.placeholder='min/km';}
+  }else{wrap.style.display='none';}
+}
+
+G('wCardioDist').oninput=updateCardioSpeed;
+G('wCardioDurH').oninput=updateCardioSpeed;
+G('wCardioDurM').oninput=updateCardioSpeed;
+
+// Speed unit toggle
+setTimeout(function(){
+  G('wSpeedKmh').onclick=function(){
+    _speedMode='kmh';
+    G('wSpeedKmh').classList.add('active');G('wSpeedMinKm').classList.remove('active');
+    updateCardioSpeed();
+  };
+  G('wSpeedMinKm').onclick=function(){
+    _speedMode='minkm';
+    G('wSpeedMinKm').classList.add('active');G('wSpeedKmh').classList.remove('active');
+    updateCardioSpeed();
+  };
+  // Auto-compute duration from start/end time
+  function autoComputeDur(){
+    var s=G('wCardioStart').value,e=G('wCardioEnd').value;
+    if(s&&e){
+      var sm=parseInt(s.split(':')[0])*60+parseInt(s.split(':')[1]);
+      var em=parseInt(e.split(':')[0])*60+parseInt(e.split(':')[1]);
+      var diff=em-sm;if(diff<0)diff+=1440;
+      G('wCardioDurH').value=Math.floor(diff/60);
+      G('wCardioDurM').value=diff%60;
+      updateCardioSpeed();
+    }
+  }
+  G('wCardioStart').onchange=autoComputeDur;
+  G('wCardioEnd').onchange=autoComputeDur;
+},300);
 // ── DRAG REORDER ────────────────────────────────────────────
 var dragSrcIdx=null,dragType=null,dragExIdx=null;
 function addDragToExBlk(blk,ei){
@@ -1952,7 +2083,9 @@ function renderExPickList(){
   if(fMus)items=items.filter(function(x){return (x.muscleGroup||'')=== fMus;});
   if(fEquip)items=items.filter(function(x){
     var eq=(x.equipment||'').toLowerCase();
-    return eq.indexOf(fEquip.toLowerCase())>=0;
+    var term=fEquip.toLowerCase();
+    // Match any word in the equipment string
+    return eq.indexOf(term)>=0||eq.split(/[,\/·+& ]+/).some(function(w){return w.trim().indexOf(term)>=0;});
   });
   // Update select active state
   if(G('exPickFilterMus'))G('exPickFilterMus').className='filter-sel'+(fMus?' active':'');
@@ -1998,7 +2131,18 @@ function saveWorkout(){
       if(!found)items.push({id:editId,name:name,exercises:baseEx,date:dateStr,completed:false});
     }
   }else{
-    items.push({id:uid(),name:name,exercises:baseEx,date:dateStr,completed:false});
+    var newItem={id:uid(),name:name,exercises:baseEx,date:dateStr,completed:false};
+    if(CARDIO_TYPES.indexOf(name)>=0){
+      var distV=parseFloat(G('wCardioDist').value)||0;
+      var durHv=parseFloat(G('wCardioDurH').value)||0;
+      var durMv=parseFloat(G('wCardioDurM').value)||0;
+      var durTotal=durHv+durMv/60;
+      newItem.cardio={start:G('wCardioStart').value,end:G('wCardioEnd').value,
+        durH:durHv,durM:durMv,dist:distV,
+        speed:durTotal>0&&distV>0?(distV/durTotal).toFixed(2):0,
+        rpe:G('wCardioRpe').value,notes:G('wCardioNotes').value};
+    }
+    items.push(newItem);
   }
   if(!D.workouts[key])D.workouts[key]={};
   D.workouts[key].items=items;
@@ -2665,7 +2809,64 @@ function renderProf(){
   renderProfMain(cont);
 }
 
+
+// ══ ADMIN ALERTS ══════════════════════════════════════════════════════════════
+var _adminAlertsShownThisSession=false;
+
+function renderAdminAlerts(cont){
+  // ── 1. User change notifications ─────────────────────────────────────────
+  if(!D.changeLog)D.changeLog={};
+  var unseen=Object.values(D.changeLog).filter(function(e){return !e.seen;});
+  if(unseen.length>0&&!_adminAlertsShownThisSession){
+    _adminAlertsShownThisSession=true;
+    var wrap=mk('div','');wrap.style.cssText='padding:12px 16px 0';
+    var hdr=mk('div','');hdr.style.cssText='font-size:8px;letter-spacing:2px;color:var(--red);text-transform:uppercase;margin-bottom:6px';hdr.textContent='📢 Cambios de usuarios';
+    wrap.appendChild(hdr);
+    // Group by user
+    var byUser={};unseen.forEach(function(e){if(!byUser[e.user])byUser[e.user]=[];byUser[e.user].push(e);});
+    Object.keys(byUser).forEach(function(usr){
+      var entries=byUser[usr];
+      var colNames=entries.map(function(e){return e.col;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+      var banner=mk('div','alert-banner info');
+      banner.innerHTML='<div class="alert-banner-icon">👤</div><div class="alert-banner-body"><div class="alert-banner-title">'+usr+'</div><div class="alert-banner-msg">Ha registrado cambios en: '+colNames.join(', ')+'<br><span style="opacity:.6">Últimos cambios: '+entries.slice(-3).map(function(e){return e.date+' '+e.time;}).join(', ')+'</span></div><div class="alert-banner-acts"><button class="alert-dismiss" style="color:var(--blue)">Marcar leído</button><button class="alert-dismiss" style="color:var(--red)">Eliminar</button></div></div>';
+      var btns=banner.querySelectorAll('.alert-dismiss');
+      btns[0].onclick=function(){entries.forEach(function(e){e.seen=true;D.changeLog[e.id].seen=true;});lsSave();wrap.removeChild(banner);};
+      btns[1].onclick=function(){entries.forEach(function(e){delete D.changeLog[e.id];});lsSave();wrap.removeChild(banner);};
+      wrap.appendChild(banner);
+    });
+    cont.appendChild(wrap);
+  }
+
+  // ── 2. Form progress drop alerts ─────────────────────────────────────────
+  var formFlag='_formAlertShown_'+todayDateStr();
+  if(!sessionStorage.getItem(formFlag)){
+    var forms=Object.values(D.formLogs||{}).sort(function(a,b){return a.date<b.date?-1:1;});
+    if(forms.length>=2){
+      sessionStorage.setItem(formFlag,'1');
+      var drops=[];
+      var WATCH={rpe:'Esfuerzo (RPE)',fatiga_muscular:'Fatiga muscular'};
+      var last=forms[forms.length-1],prev=forms[forms.length-2];
+      Object.keys(WATCH).forEach(function(k){
+        var lv=parseInt(last.answers&&last.answers[k]);
+        var pv=parseInt(prev.answers&&prev.answers[k]);
+        if(!isNaN(lv)&&!isNaN(pv)&&lv<pv-2)drops.push(WATCH[k]+': '+pv+'→'+lv);
+      });
+      if(drops.length>0){
+        var wrap2=mk('div','');wrap2.style.cssText='padding:6px 16px 0';
+        var b=mk('div','alert-banner');
+        b.innerHTML='<div class="alert-banner-icon">⚠️</div><div class="alert-banner-body"><div class="alert-banner-title">Descenso detectado en formulario</div><div class="alert-banner-msg">'+drops.join('<br>')+'</div><div class="alert-banner-acts"><button class="alert-dismiss" style="color:var(--red)">OK</button></div></div>';
+        b.querySelector('.alert-dismiss').onclick=function(){wrap2.remove();};
+        wrap2.appendChild(b);cont.appendChild(wrap2);
+      }
+    }
+  }
+}
+
 function renderProfMain(cont){
+  // ── Admin alerts ──────────────────────────────────────────────────────────
+  if(isAdminSession){
+    renderAdminAlerts(cont);
+  }
   // ── Date header ──────────────────────────────────────────────────────────
   var today=new Date();
   var todayStr=today.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
@@ -2927,6 +3128,31 @@ function renderProfHoy(cont){
 
 // ── FORM LOGS PANEL (admin only) ──────────────────────────────────────────────
 
+
+function renderFormCharts(cont){
+  var forms=Object.values(D.formLogs||{}).sort(function(a,b){return a.date<b.date?-1:1;});
+  if(forms.length<2){var em=mk('div','empty-state');em.textContent='Necesitas al menos 2 registros para ver gráficos';cont.appendChild(em);return;}
+  var labels=forms.map(function(f){return f.date;});
+  var WATCH={rpe:'Esfuerzo (RPE)',fatiga_muscular:'Fatiga muscular',energia:'Energía',motivacion:'Motivación'};
+  var COLORS={rpe:'#C9A84C',fatiga_muscular:'#c0392b',energia:'#27ae60',motivacion:'#2980b9'};
+
+  Object.keys(WATCH).forEach(function(k){
+    var vals=forms.map(function(f){
+      var v=f.answers&&f.answers[k];
+      if(!v)return null;
+      var n=parseInt(v);return isNaN(n)?null:n;
+    });
+    if(vals.every(function(v){return v===null;}))return;
+    var wrap=mk('div','chart-wrap');
+    wrap.insertAdjacentHTML('afterbegin','<div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:'+COLORS[k]+';margin-bottom:6px">'+WATCH[k]+'</div>');
+    var canvas=document.createElement('canvas');canvas.id='fChart_'+k;wrap.appendChild(canvas);cont.appendChild(wrap);
+    setTimeout(function(cid,lbs,vs,col){return function(){
+      var ctx=G(cid);if(!ctx||typeof Chart==='undefined')return;
+      new Chart(ctx.getContext('2d'),{type:'line',data:{labels:lbs,datasets:[{data:vs,borderColor:col,backgroundColor:col.replace(')',',0.1)').replace('rgb','rgba'),tension:.3,fill:true,pointRadius:4,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#2a2a2a'}},y:{min:1,max:10,ticks:{color:'#888',font:{size:9}},grid:{color:'#2a2a2a'}}}}});
+    };}(canvas.id,labels,vals,COLORS[k]),80);
+  });
+}
+
 function openFormDetail(log){
   // Question labels for human-readable display
   var LABELS={rpe:'Esfuerzo percibido (RPE)',fatiga_muscular:'Fatiga muscular',dolor:'Dolor / Molestias',
@@ -2966,6 +3192,12 @@ function renderFormLogs(cont){
   var tit=mk('div','');tit.style.cssText='font-family:var(--serif);font-size:16px;color:var(--gold);letter-spacing:2px';tit.textContent='Formularios Post-Entrenamiento';
   hdr.appendChild(tit);card.appendChild(hdr);
   if(!logs.length){card.appendChild(mk('div','empty-state','Sin formularios registrados'));cont.appendChild(card);return;}
+  // Progress charts
+  var chartsCard=mk('div','prof-card');chartsCard.style.marginBottom='12px';
+  var chHdr=mk('div','');chHdr.style.cssText='font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px';chHdr.textContent='Evolución de respuestas';
+  chartsCard.appendChild(chHdr);
+  renderFormCharts(chartsCard);
+  cont.appendChild(chartsCard);
   logs.forEach(function(log){
     var row=mk('div','');row.style.cssText='background:var(--dark2);border:1px solid var(--dark4);padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:border-color .15s';
     row.onmouseenter=function(){this.style.borderColor='var(--gold-dim)';};
@@ -3264,12 +3496,19 @@ var ssEditId=null;
 G('ssX').onclick=function(){closeM('modSS');};G('ssCnc').onclick=function(){closeM('modSS');};
 function openSSModal(log){
   ssEditId=log?log.id:null;G('ssTtl').textContent=log?'Editar registro':'Registro de hoy';
-  G('ssDate').value=log?log.date:todayDateStr();G('ssSteps').value=log?(log.steps||''):'';G('ssSleep').value=log?(log.sleep||''):'';
+  G('ssDate').value=log?log.date:todayDateStr();
+  G('ssSteps').value=log?(log.steps||''):'';
+  var slp=log?(log.sleep||0):0;
+  if(G('ssSleepH'))G('ssSleepH').value=Math.floor(slp)||'';
+  if(G('ssSleepM'))G('ssSleepM').value=Math.round((slp%1)*60)||'';
   G('modSS').style.display='flex';
 }
 G('ssSv').onclick=function(){
   var date=G('ssDate').value;if(!date)return alert('Selecciona fecha');
-  var steps=parseFloat(G('ssSteps').value)||0,sleep=parseFloat(G('ssSleep').value)||0;
+  var steps=parseFloat(G('ssSteps').value)||0;
+  var slpH=parseFloat((G('ssSleepH')&&G('ssSleepH').value)||0)||0;
+  var slpM=parseFloat((G('ssSleepM')&&G('ssSleepM').value)||0)||0;
+  var sleep=slpH+(slpM/60);
   var id=ssEditId||('ss_'+date);
   if(!D.ssLogs)D.ssLogs={};D.ssLogs[id]={id:id,date:date,steps:steps,sleep:sleep};
   saveFS('ssLogs',id,D.ssLogs[id]);closeM('modSS');if(mainTab==='prof')renderProf();
@@ -3687,7 +3926,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ INYECCIÓN PLAN NUTRICIONAL 30 ABR – 5 MAY 2026 ══════════════════════════
 (function injectMealPlan(){
-  var FLAG='skinny_mp_30apr_5may_v1';
+  var FLAG='skinny_mp_30apr_5may_v2';
   if(localStorage.getItem(FLAG))return; // ya inyectado
 
   var PLAN=[
@@ -3843,7 +4082,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ EXERCISE LIBRARY PRELOAD ══════════════════════════════════════════════════
 (function preloadExLib(){
-  var FLAG='skinny_exlib_v2';
+  var FLAG='skinny_exlib_v3';
   if(localStorage.getItem(FLAG))return;
   var EX=[
     // ── PECHO ─────────────────────────────────────────────────────────────
@@ -4065,6 +4304,93 @@ document.addEventListener('click',function(e){
   var d=G('modDCfg');
   if(d&&(d.style.display==='flex'||d.style.display==='block')&&e.target===d){d.style.display='none';}
 });
+
+// ══ CARDIO ACTIVITY PRELOAD ═══════════════════════════════════════════════════
+(function preloadCardioActivities(){
+  var FLAG='skinny_cardio_v1';
+  if(localStorage.getItem(FLAG))return;
+  var ACTS=[
+    {name:'Correr (cinta)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Gemelos, Core',equipment:'Cinta de correr'},
+    {name:'Correr (exterior)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Gemelos',equipment:'Sin material'},
+    {name:'Correr (intervals)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Sistema cardiovascular',equipment:'Sin material / Cinta'},
+    {name:'Ciclismo Indoor (spinning)',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Gemelos',equipment:'Bicicleta estática / Spinning'},
+    {name:'Ciclismo exterior',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Core',equipment:'Bicicleta'},
+    {name:'Barre',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Core, Estabilizadores',equipment:'Barra de ballet / Silla'},
+    {name:'Body Pump',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Barra con discos'},
+    {name:'Zumba',muscleGroup:'Cardio',muscles:'Caderas, Core, Piernas, Hombros',equipment:'Sin material'},
+    {name:'Body Combat',muscleGroup:'Cardio',muscles:'Core, Brazos, Piernas',equipment:'Sin material'},
+    {name:'Body Balance',muscleGroup:'Full Body',muscles:'Core, Flexibilidad, Equilibrio',equipment:'Sin material'},
+    {name:'Body Step',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Gemelos',equipment:'Step'},
+    {name:'GAP (Glúteos Abdomen Piernas)',muscleGroup:'Piernas',muscles:'Glúteos, Core, Cuádriceps, Isquiotibiales',equipment:'Sin material / Mancuernas'},
+    {name:'HIIT',muscleGroup:'Full Body',muscles:'Cuerpo completo, Sistema cardiovascular',equipment:'Sin material'},
+    {name:'Tabata',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Sin material'},
+    {name:'Circuit Training',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Varía'},
+    {name:'Natación (crol)',muscleGroup:'Cardio',muscles:'Dorsales, Hombros, Core, Tríceps, Piernas',equipment:'Piscina'},
+    {name:'Natación (braza)',muscleGroup:'Cardio',muscles:'Pecho, Hombros, Rodillas, Core',equipment:'Piscina'},
+    {name:'Natación (espalda)',muscleGroup:'Cardio',muscles:'Dorsales, Hombros, Core',equipment:'Piscina'},
+    {name:'Natación (mariposa)',muscleGroup:'Cardio',muscles:'Dorsales, Hombros, Pecho, Core',equipment:'Piscina'},
+    {name:'Aquagym',muscleGroup:'Cardio',muscles:'Cuerpo completo',equipment:'Piscina / Mancuernas de agua'},
+    {name:'Senderismo (hiking)',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Gemelos',equipment:'Sin material / Bastones'},
+    {name:'Senderismo de montaña',muscleGroup:'Cardio',muscles:'Piernas, Glúteos, Core, Resistencia',equipment:'Sin material / Bastones'},
+    {name:'Yoga (Hatha)',muscleGroup:'Full Body',muscles:'Flexibilidad, Core, Estabilizadores',equipment:'Esterilla'},
+    {name:'Yoga (Vinyasa)',muscleGroup:'Full Body',muscles:'Core, Hombros, Cadera, Flexibilidad',equipment:'Esterilla'},
+    {name:'Yoga (Ashtanga)',muscleGroup:'Full Body',muscles:'Core, Hombros, Flexibilidad, Fuerza',equipment:'Esterilla'},
+    {name:'Yoga (Hot/Bikram)',muscleGroup:'Full Body',muscles:'Flexibilidad, Core, Respiración',equipment:'Esterilla'},
+    {name:'Pilates (suelo)',muscleGroup:'Core',muscles:'Core, Transverso abdominal, Estabilizadores',equipment:'Esterilla'},
+    {name:'Pilates (reformer)',muscleGroup:'Full Body',muscles:'Core, Glúteos, Espalda, Hombros',equipment:'Reformer'},
+    {name:'Boxeo (sacos)',muscleGroup:'Full Body',muscles:'Hombros, Core, Brazos, Piernas',equipment:'Saco / Guantes'},
+    {name:'Boxeo (sparring)',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Guantes / Protecciones'},
+    {name:'Kickboxing',muscleGroup:'Full Body',muscles:'Piernas, Core, Brazos',equipment:'Sin material / Guantes'},
+    {name:'CrossFit WOD',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Varía (barra, kettlebell, etc.)'},
+    {name:'Escalada en roca',muscleGroup:'Full Body',muscles:'Antebrazos, Espalda, Core, Hombros, Piernas',equipment:'Pies de gato / Arnés'},
+    {name:'Escalada en rocódromo',muscleGroup:'Full Body',muscles:'Antebrazos, Dorsales, Core, Hombros',equipment:'Pies de gato'},
+    {name:'Remo en máquina (ergómetro)',muscleGroup:'Full Body',muscles:'Espalda, Piernas, Brazos, Core',equipment:'Máquina de remo'},
+    {name:'Remo en agua',muscleGroup:'Full Body',muscles:'Espalda, Hombros, Bíceps, Core, Piernas',equipment:'Remo / Kayak'},
+    {name:'Elíptica',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Hombros',equipment:'Máquina elíptica'},
+    {name:'Escaladora (StairMaster)',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Gemelos',equipment:'Escaladora'},
+    {name:'Caminata rápida',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Gemelos',equipment:'Sin material'},
+    {name:'Caminata nórdica',muscleGroup:'Full Body',muscles:'Piernas, Core, Brazos, Hombros',equipment:'Bastones nórdicos'},
+    {name:'Baile (salsa)',muscleGroup:'Cardio',muscles:'Caderas, Piernas, Core',equipment:'Sin material'},
+    {name:'Baile (bachata)',muscleGroup:'Cardio',muscles:'Caderas, Piernas, Core',equipment:'Sin material'},
+    {name:'Baile (hip hop)',muscleGroup:'Cardio',muscles:'Piernas, Core, Coordinación',equipment:'Sin material'},
+    {name:'Baile (flamenco)',muscleGroup:'Cardio',muscles:'Piernas, Core, Brazos',equipment:'Sin material / Zapatos de baile'},
+    {name:'Patinaje (inline)',muscleGroup:'Cardio',muscles:'Glúteos, Abductores, Cuádriceps, Gemelos',equipment:'Patines'},
+    {name:'Patinaje sobre hielo',muscleGroup:'Cardio',muscles:'Glúteos, Abductores, Core, Piernas',equipment:'Patines de hielo'},
+    {name:'Esquí alpino',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Core, Isquiotibiales',equipment:'Esquís / Botas'},
+    {name:'Snowboard',muscleGroup:'Full Body',muscles:'Core, Piernas, Equilibrio',equipment:'Snowboard / Botas'},
+    {name:'Surf',muscleGroup:'Full Body',muscles:'Core, Hombros, Dorsales, Equilibrio',equipment:'Tabla de surf'},
+    {name:'Paddle surf (SUP)',muscleGroup:'Full Body',muscles:'Core, Hombros, Dorsales, Piernas',equipment:'Tabla SUP + remo'},
+    {name:'Tenis',muscleGroup:'Full Body',muscles:'Hombro dominante, Core, Piernas, Muñeca',equipment:'Raqueta'},
+    {name:'Pádel',muscleGroup:'Full Body',muscles:'Hombros, Core, Piernas, Muñeca',equipment:'Pala de pádel'},
+    {name:'Bádminton',muscleGroup:'Cardio',muscles:'Hombros, Core, Piernas, Muñeca',equipment:'Raqueta'},
+    {name:'Fútbol',muscleGroup:'Cardio',muscles:'Piernas, Core, Coordinación',equipment:'Sin material / Balón'},
+    {name:'Baloncesto',muscleGroup:'Full Body',muscles:'Piernas, Core, Brazos',equipment:'Sin material / Balón'},
+    {name:'Voleibol',muscleGroup:'Full Body',muscles:'Hombros, Core, Piernas',equipment:'Sin material / Balón'},
+    {name:'Artes marciales (karate)',muscleGroup:'Full Body',muscles:'Core, Piernas, Brazos, Flexibilidad',equipment:'Sin material / Kimono'},
+    {name:'Artes marciales (judo)',muscleGroup:'Full Body',muscles:'Core, Espalda, Piernas, Agarre',equipment:'Tatami / Judogui'},
+    {name:'Taekwondo',muscleGroup:'Full Body',muscles:'Piernas, Core, Coordinación',equipment:'Sin material / Protecciones'},
+    {name:'Jump rope / Comba',muscleGroup:'Cardio',muscles:'Gemelos, Core, Coordinación, Hombros',equipment:'Comba'},
+    {name:'Batalla de cuerdas (Battle ropes)',muscleGroup:'Full Body',muscles:'Hombros, Core, Brazos, Cardiovascular',equipment:'Battle ropes'},
+    {name:'TRX cardiovascular',muscleGroup:'Full Body',muscles:'Core, Hombros, Piernas',equipment:'TRX'},
+    {name:'Kettlebell Swing',muscleGroup:'Full Body',muscles:'Glúteos, Isquiotibiales, Core, Hombros',equipment:'Kettlebell'},
+    {name:'Jumping jacks',muscleGroup:'Cardio',muscles:'Piernas, Core, Hombros',equipment:'Sin material'},
+    {name:'Burpees',muscleGroup:'Full Body',muscles:'Cuerpo completo, Cardiovascular',equipment:'Sin material'},
+    {name:'Mountain climbers',muscleGroup:'Cardio',muscles:'Core, Hombros, Piernas',equipment:'Sin material'},
+    {name:'Step aeróbico',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Gemelos',equipment:'Step'},
+    {name:'Pole dance (fitness)',muscleGroup:'Full Body',muscles:'Hombros, Core, Brazos, Piernas',equipment:'Barra vertical'},
+    {name:'Bicicleta de carga (cargo bike)',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos',equipment:'Bicicleta de carga'},
+    {name:'Natación con aletas',muscleGroup:'Cardio',muscles:'Gemelos, Cuádriceps, Core',equipment:'Piscina + aletas'},
+    {name:'Golf (18 hoyos a pie)',muscleGroup:'Cardio',muscles:'Core, Caderas, Hombros',equipment:'Palos de golf'},
+    {name:'Voleibol playa',muscleGroup:'Full Body',muscles:'Piernas, Hombros, Core',equipment:'Sin material / Red'},
+  ];
+  ACTS.forEach(function(ex){
+    var id=uid();
+    var entry={id:id,name:ex.name,muscleGroup:ex.muscleGroup,equipment:ex.equipment,notes:ex.muscles};
+    D.exLib[id]=entry;saveFS('exLib',id,entry);
+  });
+  localStorage.setItem(FLAG,'1');
+  console.log('✅ Actividades cardio cargadas: '+ACTS.length);
+})();
 renderCal();
 });
 </script>
