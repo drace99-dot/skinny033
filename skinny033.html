@@ -298,6 +298,38 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 .dm-meal-name{font-size:12px;font-weight:500;color:var(--white);margin-bottom:5px}
 .dm-meal-meta{font-size:10px;color:var(--white3);margin-bottom:7px}
 .dm-meal-acts{display:flex;gap:5px;flex-wrap:wrap}
+/* ── RING FIX ─────────────────────────────────────── */
+.ring-center-text{font-family:var(--serif);fill:var(--white);text-anchor:middle;dominant-baseline:middle}
+/* ── WORKOUT MODE REDESIGN ────────────────────────── */
+.wk-current-banner{background:var(--dark2);border-bottom:1px solid var(--dark4);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.wk-current-ex{font-size:11px;color:var(--gold);font-family:var(--serif);letter-spacing:1px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-current-ser{font-size:9px;color:var(--white4);letter-spacing:2px;text-transform:uppercase;flex-shrink:0}
+.wk-active-row{background:rgba(201,168,76,.07)!important;border-left:2px solid var(--gold)!important}
+.wk-input-row{display:grid;grid-template-columns:28px 1fr 1fr 1fr 1fr 1fr 1fr 38px;gap:3px;align-items:center;padding:5px 4px;margin-bottom:3px;background:var(--dark2);border:1px solid var(--dark4)}
+.wk-inp{background:var(--dark3);border:1px solid var(--dark4);color:var(--white);padding:6px 3px;text-align:center;font-size:11px;font-family:var(--sans);width:100%;outline:none;border-radius:0;-webkit-appearance:none}
+.wk-inp:focus{border-color:var(--gold-dim)}
+.wk-inp.target{border-color:rgba(201,168,76,.2);color:var(--white3)}
+.wk-inp-hdr{display:grid;grid-template-columns:28px 1fr 1fr 1fr 1fr 1fr 1fr 38px;gap:3px;padding:2px 4px;margin-bottom:1px}
+.wk-inp-hdr div{font-size:6px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-dim);text-align:center}
+.wk-series-done{opacity:.5;background:var(--dark)!important}
+.ss-card{background:var(--dark2);border:1px solid rgba(201,168,76,.3);border-left:3px solid var(--gold);margin-bottom:10px;overflow:hidden}
+.ss-card-hdr{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.ss-card-hdr:hover{background:rgba(201,168,76,.04)}
+.ss-card-type{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-family:var(--sans)}
+.ss-card-names{font-size:11px;color:var(--white3);margin-top:3px}
+.ss-card-toggle{font-size:10px;color:var(--gold-dim)}
+.ss-card-body{padding:0 10px 10px}
+.wk-ex-section{margin-bottom:6px}
+/* ── FATIGUE MODAL ────────────────────────────────── */
+.fat-q{margin-bottom:16px}
+.fat-q-title{font-size:10px;letter-spacing:1px;color:var(--white);margin-bottom:8px;font-weight:500}
+.fat-q-opts{display:flex;flex-wrap:wrap;gap:6px}
+.fat-opt{padding:6px 11px;background:var(--dark2);border:1px solid var(--dark4);color:var(--white4);font-size:10px;cursor:pointer;transition:.15s;border-radius:0;font-family:var(--sans)}
+.fat-opt:hover{border-color:var(--gold-dim);color:var(--white)}
+.fat-opt.sel{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--gold)}
+.fat-opt.r.sel{background:rgba(192,57,43,.12);border-color:var(--red);color:var(--red)}
+.fat-scale{display:flex;gap:4px}
+.fat-scale .fat-opt{flex:1;text-align:center;padding:7px 4px}
 /* ── ADMIN DRAG (drag handles hidden for clients) ──── */
 .no-drag .cdrag-btn,.no-drag .cdrag-btn.g,.no-drag .habit-drag-handle{display:none!important}
 /* ── PROFILE REDESIGN ─────────────────────────────── */
@@ -319,7 +351,7 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 /* ── CIRCULAR PROGRESS ─────────────────────────────── */
 .ring-wrap{display:flex;gap:16px;justify-content:center;padding:16px 0;flex-wrap:wrap}
 .ring-item{display:flex;flex-direction:column;align-items:center;gap:8px}
-.ring-svg{transform:rotate(-90deg)}
+/* ring-svg: rotation handled inline */
 .ring-bg{fill:none;stroke:var(--dark4)}
 .ring-fg{fill:none;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
 .ring-label{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--white4);text-align:center}
@@ -802,36 +834,54 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 
 <!-- WORKOUT MODE OVERLAY -->
 <div style="display:none;position:fixed;inset:0;background:var(--black);z-index:700;flex-direction:column" id="wkMode">
-  <div style="background:var(--dark);border-bottom:1px solid var(--gold-dim);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-    <div style="font-family:var(--serif);font-size:16px;color:var(--gold)" id="wkModeName">Entrenamiento</div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="font-family:var(--serif);font-size:20px;color:var(--gold)" id="wkModeTimer">00:00</div>
+  <!-- Top bar: name + timer -->
+  <div style="background:var(--dark);border-bottom:1px solid var(--gold-dim);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div style="font-family:var(--serif);font-size:15px;color:var(--gold);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%" id="wkModeName">Entrenamiento</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="font-family:var(--serif);font-size:18px;color:var(--gold)" id="wkModeTimer">00:00</div>
       <button class="wbtn" id="wkModePlay">▶</button>
       <button class="btn-out" id="wkModeEnd">Terminar</button>
     </div>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:12px" id="wkModeBody"></div>
-  <!-- Rest countdown overlay -->
-  <div id="wkRestOverlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.96);z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:16px">
-    <div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--white3)" id="wkRestExName">Descanso</div>
-    <div style="font-family:var(--serif);font-size:72px;font-weight:300;color:var(--gold)" id="wkRestCount">90</div>
-    <div style="font-size:9px;color:var(--white4)">segundos de descanso</div>
-    <div style="display:flex;gap:10px;margin-top:8px">
+  <!-- Current exercise banner -->
+  <div class="wk-current-banner" id="wkCurrentBanner">
+    <div style="display:flex;flex-direction:column;flex:1;min-width:0">
+      <div class="wk-current-ex" id="wkCurrentEx">—</div>
+      <div class="wk-current-ser" id="wkCurrentSer">Serie 1</div>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:10px" id="wkModeBody"></div>
+  <!-- Rest overlay -->
+  <div id="wkRestOverlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.97);z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px">
+    <div style="font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--white3)" id="wkRestExName">Descanso</div>
+    <div style="font-family:var(--serif);font-size:80px;font-weight:300;color:var(--gold);line-height:1" id="wkRestCount">90</div>
+    <div style="font-size:8px;color:var(--white4)">segundos</div>
+    <div style="display:flex;gap:10px">
       <button class="bcanc" id="wkRestSkip">Saltar</button>
       <button class="bsave b" id="wkRestAdd30">+30s</button>
     </div>
-    <!-- Edit last/next series during rest -->
-    <div style="width:100%;max-width:500px;padding:0 16px;margin-top:12px">
+    <div style="width:100%;max-width:480px;margin-top:8px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="background:var(--dark2);border:1px solid var(--dark4);padding:10px">
-          <div style="font-size:8px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px">SERIE REALIZADA</div>
+          <div style="font-size:7px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px">SERIE REALIZADA</div>
           <div id="wkLastSerEdit"></div>
         </div>
         <div style="background:var(--dark2);border:1px solid var(--dark4);padding:10px">
-          <div style="font-size:8px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px">SIGUIENTE SERIE</div>
+          <div style="font-size:7px;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px">SIGUIENTE SERIE</div>
           <div id="wkNextSerEdit"></div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+<!-- FATIGUE QUESTIONNAIRE MODAL -->
+<div class="mol" id="modFatigue" style="display:none">
+  <div class="modal" style="max-width:520px">
+    <div class="mhdr"><div class="mttl">Cuestionario Post-Entrenamiento</div><button class="mclose" id="fatX">&#x2715;</button></div>
+    <div class="mbody" id="fatBody"></div>
+    <div class="mftr">
+      <button class="bcanc" id="fatSkip">Omitir</button>
+      <button class="bsave" id="fatSave">Guardar Respuestas</button>
     </div>
   </div>
 </div>
@@ -1000,7 +1050,7 @@ var fSelCb=null,dSelCb=null,dfSelCb=null,dcfgDish=null,dcfgGrams={};
 var charts={w:null,f:null,ex:null,steps:null,sleep:null};
 var libFoodSearch='',libTrainSearch='';
 
-var D={workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};
+var D={workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},formLogs:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};
 var unsubs=[];
 var DAYS=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 
@@ -1053,10 +1103,10 @@ function subData(){
   unsubs.forEach(function(u){u();});unsubs=[];
   var lsKey='s033v3_'+(currentProfile?currentProfile.id:'default');
   if(!useFS||!db){var ls=null;try{ls=JSON.parse(localStorage.getItem(lsKey)||'null');}catch(e){}
-    if(ls){D.workouts=ls.workouts||{};D.nutrition=ls.nutrition||{};D.foodLib=ls.foodLib||{};D.dishLib=ls.dishLib||{};D.exLib=ls.exLib||{};D.wkTpl=ls.wkTpl||{};D.supLogs=ls.supLogs||{};D.habitDefs=ls.habitDefs||{};D.habitLogs=ls.habitLogs||{};D.ssLogs=ls.ssLogs||{};D.pantry=ls.pantry||{};D.profile=ls.profile||D.profile;D.bodyLogs=ls.bodyLogs||[];}
+    if(ls){D.workouts=ls.workouts||{};D.nutrition=ls.nutrition||{};D.foodLib=ls.foodLib||{};D.dishLib=ls.dishLib||{};D.exLib=ls.exLib||{};D.wkTpl=ls.wkTpl||{};D.supLogs=ls.supLogs||{};D.habitDefs=ls.habitDefs||{};D.habitLogs=ls.habitLogs||{};D.ssLogs=ls.ssLogs||{};D.pantry=ls.pantry||{};D.formLogs=ls.formLogs||{};D.profile=ls.profile||D.profile;D.bodyLogs=ls.bodyLogs||[];}
     ss('local');renderCal();renderLib();renderProf();return;
   }
-  ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl','supLogs','habitDefs','habitLogs','ssLogs','pantry'].forEach(function(col){
+  ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl','supLogs','habitDefs','habitLogs','ssLogs','pantry','formLogs'].forEach(function(col){
     var u=db.collection(pfx(col)).onSnapshot(function(snap){D[col]={};snap.forEach(function(doc){D[col][doc.id]=doc.data();});refreshUI(col);ss('ok');},function(){ss('off');});
     unsubs.push(u);
   });
@@ -1095,7 +1145,7 @@ function getProfiles(){
 }
 function saveProfiles(profiles){try{localStorage.setItem('s033_profiles',JSON.stringify(profiles));}catch(e){}}
 
-function resetD(){return {workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};}
+function resetD(){return {workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},formLogs:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};}
 
 G('loading').style.display='none';G('login').style.display='flex';
 
@@ -2581,6 +2631,21 @@ function renderProfMain(cont){
     setTimeout(function(){renderProfProgreso(subCont.querySelector('.prof-sub-inner'));},80);}
   };
   panelBtns.appendChild(bProg);
+  // Formularios (admin only)
+  if(isAdminSession){
+    var bForms=mk('button','prof-panel-btn','');
+    bForms.innerHTML='<span class="prof-panel-btn-icon">📋</span><span>Formularios</span><span class="prof-panel-btn-sub">Post-entrenamiento</span>';
+    bForms.onclick=function(){
+      var subCont=G('profSubForms');
+      if(subCont.classList.contains('open')){subCont.classList.remove('open');bForms.style.borderColor='';}
+      else{document.querySelectorAll('.prof-sub-panel').forEach(function(p){p.classList.remove('open');});
+      document.querySelectorAll('.prof-panel-btn').forEach(function(b){b.style.borderColor='';});
+      subCont.querySelector('.prof-sub-inner').innerHTML='';
+      renderFormLogs(subCont.querySelector('.prof-sub-inner'));
+      subCont.classList.add('open');bForms.style.borderColor='var(--gold-dim)';}
+    };
+    panelBtns.appendChild(bForms);
+  }
   cont.appendChild(panelBtns);
 
   // Sub-panel: Datos físicos
@@ -2595,6 +2660,11 @@ function renderProfMain(cont){
   var subProgInner=mk('div','prof-sub-inner');subProgInner.innerHTML='';
   subProg.appendChild(subProgInner);
   cont.appendChild(subProg);
+
+  // Sub-panel: Formularios
+  var subForms=mk('div','prof-sub-panel');subForms.id='profSubForms';
+  subForms.appendChild(mk('div','prof-sub-inner'));
+  cont.appendChild(subForms);
 
   // ── HOY section (inline, always visible) ──────────────────────────────────
   var hoyWrap=mk('div','');hoyWrap.style.cssText='padding:0 16px';
@@ -2785,6 +2855,36 @@ function renderProfHoy(cont){
   cont.appendChild(sCard);
 }
 
+
+// ── FORM LOGS PANEL (admin only) ──────────────────────────────────────────────
+function renderFormLogs(cont){
+  var logs=Object.values(D.formLogs||{}).sort(function(a,b){return a.date<b.date?1:-1;});
+  var card=mk('div','prof-card');
+  var hdr=mk('div','');hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--dark4)';
+  hdr.appendChild(mk('div','').setAttribute?Object.assign(mk('div',''),{style:'font-family:var(--serif);font-size:16px;color:var(--gold);letter-spacing:2px',textContent:'Formularios Post-Entrenamiento'}):mk('div',''));
+  var tit=mk('div','');tit.style.cssText='font-family:var(--serif);font-size:16px;color:var(--gold);letter-spacing:2px';tit.textContent='Formularios Post-Entrenamiento';
+  hdr.appendChild(tit);card.appendChild(hdr);
+  if(!logs.length){card.appendChild(mk('div','empty-state','Sin formularios registrados'));cont.appendChild(card);return;}
+  logs.forEach(function(log){
+    var row=mk('div','');row.style.cssText='background:var(--dark2);border:1px solid var(--dark4);padding:10px 12px;margin-bottom:6px';
+    var top=mk('div','');top.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:6px';
+    var info=mk('div','');info.style.cssText='font-size:10px;color:var(--white)';
+    info.textContent=formatDate(log.date)+' '+log.time+' · '+log.workout+(log.duration?' · '+Math.floor(log.duration/60)+'min':'');
+    var bd=mk('button','lib-btn del','✕');
+    bd.onclick=(function(lid){return function(){confirm2('Eliminar','¿Eliminar este formulario?','danger',function(){delete D.formLogs[lid];delFS('formLogs',lid);renderProf();});};})(log.id);
+    top.appendChild(info);top.appendChild(bd);row.appendChild(top);
+    // Show answers
+    var ansDiv=mk('div','');ansDiv.style.cssText='display:flex;flex-wrap:wrap;gap:4px';
+    Object.keys(log.answers||{}).forEach(function(k){
+      var v=log.answers[k];
+      var tag=mk('div','');tag.style.cssText='background:var(--dark3);padding:3px 7px;font-size:8px;color:var(--white4);border:1px solid var(--dark4)';
+      tag.textContent=k.replace(/_/g,' ')+': '+(Array.isArray(v)?v.join(', '):v);
+      ansDiv.appendChild(tag);
+    });
+    row.appendChild(ansDiv);card.appendChild(row);
+  });
+  cont.appendChild(card);
+}
 function renderProfProgreso(cont){
   // Body log section
   var bCard=mk('div','prof-card');
@@ -3095,25 +3195,39 @@ function renderStepsSleep(cont){
   var R=54,CIRC=2*Math.PI*R;
   function makeRing(val,goal,color,label,unit){
     var pct=Math.min(val/(goal||1),1);var offset=CIRC*(1-pct);
-    var over=val>goal;
+    var over=val>goal;var stroke=over?'#27ae60':color;
     var wrap=mk('div','ring-item');
-    var svgNS='http://www.w3.org/2000/svg';
-    var svg=document.createElementNS(svgNS,'svg');
-    svg.setAttribute('width','130');svg.setAttribute('height','130');svg.setAttribute('viewBox','0 0 130 130');svg.className='ring-svg';
-    var bg=document.createElementNS(svgNS,'circle');bg.setAttribute('cx','65');bg.setAttribute('cy','65');bg.setAttribute('r',R);bg.setAttribute('stroke-width','10');bg.className='ring-bg';
-    var fg=document.createElementNS(svgNS,'circle');fg.setAttribute('cx','65');fg.setAttribute('cy','65');fg.setAttribute('r',R);fg.setAttribute('stroke-width','10');
-    fg.setAttribute('stroke-dasharray',CIRC);fg.setAttribute('stroke-dashoffset',offset);
-    fg.style.stroke=over?'#27ae60':color;fg.className='ring-fg';
+    var NS='http://www.w3.org/2000/svg';
+    var svg=document.createElementNS(NS,'svg');
+    svg.setAttribute('width','130');svg.setAttribute('height','130');svg.setAttribute('viewBox','0 0 130 130');
+    // Rings start from top (rotate via transform on circle)
+    var bg=document.createElementNS(NS,'circle');
+    bg.setAttribute('cx','65');bg.setAttribute('cy','65');bg.setAttribute('r',R);
+    bg.setAttribute('stroke-width','10');bg.setAttribute('fill','none');bg.setAttribute('stroke','#2a2a2a');
+    var fg=document.createElementNS(NS,'circle');
+    fg.setAttribute('cx','65');fg.setAttribute('cy','65');fg.setAttribute('r',R);
+    fg.setAttribute('stroke-width','10');fg.setAttribute('fill','none');
+    fg.setAttribute('stroke',stroke);fg.setAttribute('stroke-linecap','round');
+    fg.setAttribute('stroke-dasharray',String(CIRC));fg.setAttribute('stroke-dashoffset',String(offset));
+    fg.setAttribute('transform','rotate(-90 65 65)');
     svg.appendChild(bg);svg.appendChild(fg);
-    // Center text via foreignObject
-    var fo=document.createElementNS(svgNS,'foreignObject');fo.setAttribute('x','15');fo.setAttribute('y','32');fo.setAttribute('width','100');fo.setAttribute('height','66');
-    var inner=document.createElement('div');inner.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;transform:rotate(90deg)';
-    var vEl=document.createElement('div');vEl.style.cssText='font-family:serif;font-size:22px;color:var(--white);line-height:1';vEl.textContent=typeof val==='number'?r(val):val;
-    var sEl=document.createElement('div');sEl.style.cssText='font-size:9px;color:var(--white4);letter-spacing:1px;margin-top:2px';sEl.textContent=unit;
-    inner.appendChild(vEl);inner.appendChild(sEl);fo.appendChild(inner);svg.appendChild(fo);
-    var lbl=mk('div','ring-label',label);
-    var sub=mk('div','ring-sub','Obj: '+r(goal)+' '+unit);
-    wrap.appendChild(svg);wrap.appendChild(lbl);wrap.appendChild(sub);
+    // Value text — centered, upright
+    var valStr=typeof val==='number'?r(val):String(val);
+    var tv=document.createElementNS(NS,'text');
+    tv.setAttribute('x','65');tv.setAttribute('y',unit?'60':'68');
+    tv.setAttribute('text-anchor','middle');tv.setAttribute('dominant-baseline','middle');
+    tv.setAttribute('fill','#f0f0f0');tv.setAttribute('font-size','22');tv.setAttribute('font-family','Georgia,serif');
+    tv.textContent=valStr;svg.appendChild(tv);
+    if(unit){
+      var tu=document.createElementNS(NS,'text');
+      tu.setAttribute('x','65');tu.setAttribute('y','80');
+      tu.setAttribute('text-anchor','middle');tu.setAttribute('dominant-baseline','middle');
+      tu.setAttribute('fill','#888');tu.setAttribute('font-size','10');tu.setAttribute('font-family','sans-serif');
+      tu.textContent=unit;svg.appendChild(tu);
+    }
+    wrap.appendChild(svg);
+    wrap.appendChild(mk('div','ring-label',label));
+    wrap.appendChild(mk('div','ring-sub','Obj: '+r(goal)+(unit?' '+unit:'')));
     return wrap;
   }
   var ringWrap=mk('div','ring-wrap');
@@ -3173,19 +3287,42 @@ function renderStepsSleep(cont){
 // ── WORKOUT MODE ──────────────────────────────────────────────
 var wkModeItem=null,wkModeKey=null,wkTimerInt=null,wkTimerSec=0,wkRestInt=null,wkRestSec=0;
 var wkRunning=false,wkCurrentExIdx=0,wkCurrentSerIdx=0;
+var fatigueAnswers={};
 
 function startWorkoutMode(item,key){
   wkModeItem=JSON.parse(JSON.stringify(item));wkModeKey=key;
-  wkTimerSec=0;wkRunning=false;
+  wkTimerSec=0;wkRunning=false;fatigueAnswers={};
   G('wkModeName').textContent=item.name;G('wkModeTimer').textContent='00:00';G('wkModePlay').textContent='▶';
   G('wkRestOverlay').style.display='none';
   renderWkMode();G('wkMode').style.display='flex';
+  // Auto-start timer
+  wkRunning=true;G('wkModePlay').textContent='⏸';
+  clearInterval(wkTimerInt);
+  wkTimerInt=setInterval(function(){wkTimerSec++;var m=Math.floor(wkTimerSec/60),s=wkTimerSec%60;G('wkModeTimer').textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;},1000);
+}
+
+function updateCurrentBanner(){
+  var exs=wkModeItem?wkModeItem.exercises||[]:[];
+  // Find first undone series
+  for(var i=0;i<exs.length;i++){
+    var ex=exs[i];
+    for(var j=0;j<(ex.series||[]).length;j++){
+      if(!ex.series[j].done){
+        G('wkCurrentEx').textContent=(ex.supersetNext?'⚡ ':'')+( ex.name||'Ejercicio '+(i+1));
+        G('wkCurrentSer').textContent='Serie '+(j+1)+' de '+(ex.series.length);
+        return;
+      }
+    }
+  }
+  G('wkCurrentEx').textContent='¡Entrenamiento completado!';
+  G('wkCurrentSer').textContent='';
 }
 function renderWkMode(){
   var body=G('wkModeBody');body.innerHTML='';
   var exs=wkModeItem.exercises||[];
+  updateCurrentBanner();
 
-  // Build superserie groups: [[0,1],[2],[3,4,5]] etc.
+  // Build groups
   var groups=[],gi=0;
   while(gi<exs.length){
     var grp=[gi];
@@ -3195,29 +3332,64 @@ function renderWkMode(){
 
   groups.forEach(function(grp){
     var isSuperset=grp.length>1;
-    var groupWrap=mk('div','');
+    var typeLbl=grp.length===2?'BISERIE':'SUPERSERIE ('+grp.length+' ejercicios)';
+    // All series done in this group?
+    var grpDone=grp.every(function(ei){return (exs[ei].series||[]).every(function(s){return !!s.done;});});
+
+    // ── Superserie card wrapper ──────────────────────────────────────────────
+    var wrap=isSuperset?mk('div','ss-card'):mk('div','wk-ex-section');
+
     if(isSuperset){
-      var ssLabel=mk('div','wk-superset-label','⚡ SUPERSERIE ('+grp.length+' ejercicios · descanso al final del grupo)');
-      groupWrap.appendChild(ssLabel);
+      var cardHdr=mk('div','ss-card-hdr');
+      var cardLeft=mk('div','');
+      cardLeft.appendChild(mk('div','ss-card-type','⚡ '+typeLbl));
+      cardLeft.appendChild(mk('div','ss-card-names',grp.map(function(ei){return exs[ei].name||'Ejercicio '+(ei+1);}).join(' + ')));
+      var tog=mk('span','ss-card-toggle',grpDone?'✓':'▼');
+      cardHdr.appendChild(cardLeft);cardHdr.appendChild(tog);
+      var cardBody=mk('div','ss-card-body');
+      cardHdr.onclick=function(){cardBody.style.display=cardBody.style.display==='none'?'block':'none';tog.textContent=cardBody.style.display==='none'?'▶':'▼';};
+      wrap.appendChild(cardHdr);wrap.appendChild(cardBody);
+      var innerWrap=cardBody;
+    }else{
+      var innerWrap=wrap;
     }
 
     grp.forEach(function(ei,gidx){
       var ex=exs[ei];
-      var sec=mk('div','wk-ex-section'+(isSuperset?' in-superset':''));
+      var sec=mk('div','wk-ex-section');
+      if(isSuperset)sec.style.cssText='border-left:2px solid rgba(201,168,76,.25);padding-left:8px;margin-bottom:8px';
       var nm=mk('div','wk-ex-name',ex.name||'Ejercicio '+(ei+1));
-      if(isSuperset)nm.style.cssText='font-size:13px;padding:4px 0';
+      if(isSuperset)nm.style.cssText='font-size:12px;padding:4px 0;color:var(--white3)';
       sec.appendChild(nm);
-      var hrow=mk('div','');hrow.style.cssText='display:grid;grid-template-columns:28px 1fr 1fr 1fr 1fr 1fr 36px;gap:4px;margin-bottom:4px';
-      ['','Reps','Kg','RIR','RPE','Desc',''].forEach(function(l){var d=mk('div');d.style.cssText='font-size:7px;color:var(--gold-dim);text-align:center;text-transform:uppercase;letter-spacing:1px';d.textContent=l;hrow.appendChild(d);});
+
+      // Column headers
+      var hrow=mk('div','wk-inp-hdr');
+      ['#','Reps','Tiempo(s)','Kg','RIR','RPE','Desc(s)',''].forEach(function(l){var d=mk('div');d.textContent=l;hrow.appendChild(d);});
       sec.appendChild(hrow);
 
       (ex.series||[]).forEach(function(s,si){
         var done=!!(s.done);
-        var row=mk('div','wk-series-row'+(done?' done-ser':''));
-        var lbl=mk('div','wk-ser-lbl',String(si+1));
-        [{k:'reps'},{k:'weight'},{k:'rir'},{k:'rpe'},{k:'rest'}].forEach(function(f){
-          var d=mk('div','wk-ser-val',s[f.k]||'—');row.appendChild(d);
+        var row=mk('div','wk-input-row'+(done?' wk-series-done':''));
+        var lbl=mk('div','');lbl.style.cssText='text-align:center;font-size:11px;color:var(--gold-dim)';lbl.textContent=String(si+1);
+        row.appendChild(lbl);
+
+        // Editable fields: reps, time, weight, rir, rpe, rest
+        [{k:'reps',p:'—'},{k:'time',p:'—'},{k:'weight',p:'—'},{k:'rir',p:'—'},{k:'rpe',p:'—'},{k:'rest',p:'90'}].forEach(function(f){
+          var inp=document.createElement('input');inp.type='number';
+          inp.className='wk-inp';inp.inputMode='decimal';
+          inp.placeholder=s['_tgt_'+f.k]||s[f.k]||f.p; // target as placeholder
+          inp.value=s['_usr_'+f.k]!==undefined?s['_usr_'+f.k]:(s[f.k]||'');
+          inp.disabled=done;
+          inp.oninput=(function(i,j,key){return function(){
+            // Save user value separately from admin target
+            var ser=wkModeItem.exercises[i].series[j];
+            ser['_usr_'+key]=this.value;
+            // Also update the live value
+            ser[key]=this.value;
+          };})(ei,si,f.k);
+          row.appendChild(inp);
         });
+
         var chk=mk('button','wk-check'+(done?' done':''),done?'✓':'○');
         chk.onclick=(function(i,j,grpArr,gidxLocal){return function(e){
           e.stopPropagation();
@@ -3225,23 +3397,18 @@ function renderWkMode(){
           ser.done=!ser.done;
           if(ser.done){
             if(isSuperset){
-              // In a superserie: rest only after all exercises in the group have this series done
-              // Find next exercise in group that hasn't done this series yet
-              var nextInGroup=null;
+              // Check if all exercises in group have done this series
+              var nextUnfinished=null;
               for(var g2=gidxLocal+1;g2<grpArr.length;g2++){
-                var nextEx=wkModeItem.exercises[grpArr[g2]];
-                var nextSer=nextEx&&nextEx.series[j];
-                if(nextSer&&!nextSer.done){nextInGroup=grpArr[g2];break;}
+                var nEx=wkModeItem.exercises[grpArr[g2]];
+                var nSer=nEx&&nEx.series[j];
+                if(nSer&&!nSer.done){nextUnfinished=grpArr[g2];break;}
               }
-              if(nextInGroup!==null){
-                // Move to next exercise — no rest yet, just scroll
+              if(nextUnfinished!==null){
                 renderWkMode();
-                var nextSection=body.querySelectorAll('.wk-ex-section')[nextInGroup];
-                if(nextSection)nextSection.scrollIntoView({behavior:'smooth',block:'center'});
               }else{
-                // All exercises in group done for this series — start rest
                 var restSec=parseInt(ser.rest)||90;
-                startRestCountdown('Superserie',restSec,i,j);
+                startRestCountdown(typeLbl,restSec,i,j);
                 renderWkMode();
               }
             }else{
@@ -3249,15 +3416,29 @@ function renderWkMode(){
               startRestCountdown(wkModeItem.exercises[i].name,restSec,i,j);
               renderWkMode();
             }
+            // Check if ALL series in entire workout are done
+            checkAllDone();
           }else{renderWkMode();}
         };})(ei,si,grp,gidx);
-        row.insertBefore(lbl,row.firstChild);row.appendChild(chk);
+        row.appendChild(chk);
         sec.appendChild(row);
       });
-      groupWrap.appendChild(sec);
+      innerWrap.appendChild(sec);
     });
-    body.appendChild(groupWrap);
+    body.appendChild(wrap);
   });
+}
+
+function checkAllDone(){
+  var exs=wkModeItem.exercises||[];
+  var allDone=exs.every(function(ex){return (ex.series||[]).every(function(s){return !!s.done;});});
+  if(allDone){
+    setTimeout(function(){
+      G('wkRestOverlay').style.display='none';
+      clearInterval(wkRestInt);
+      openFatigueModal();
+    },600);
+  }
 }
 G('wkModePlay').onclick=function(){
   if(wkRunning){clearInterval(wkTimerInt);wkRunning=false;G('wkModePlay').textContent='▶';}
@@ -3266,12 +3447,93 @@ G('wkModePlay').onclick=function(){
 };
 G('wkModeEnd').onclick=function(){
   confirm2('Terminar entrenamiento','¿Finalizar el entrenamiento?','info',function(){
-    clearInterval(wkTimerInt);clearInterval(wkRestInt);
+    clearInterval(wkTimerInt);clearInterval(wkRestInt);wkRunning=false;
+    G('wkRestOverlay').style.display='none';
+    // Save user-filled values back to the workout item
+    if(wkModeKey&&wkModeItem){
+      var key=wkModeKey;
+      var items=(D.workouts[key]&&D.workouts[key].items)||[];
+      var idx=-1;for(var i=0;i<items.length;i++){if(items[i].id===wkModeItem.id){idx=i;break;}}
+      if(idx>=0){items[idx]=Object.assign({},items[idx],{exercises:wkModeItem.exercises,completed:true});}
+      else{wkModeItem.completed=true;items.push(wkModeItem);}
+      if(!D.workouts[key])D.workouts[key]={};
+      D.workouts[key].items=items;
+      saveFS('workouts',key,{items:items});
+    }
     G('wkMode').style.display='none';
-    // Mark workout as completed
-    if(wkModeKey){toggleCompleted('workouts',wkModeKey,wkModeItem.id);}
+    renderCal();
+    openFatigueModal();
   });
 };
+
+// ── FATIGUE MODAL ──────────────────────────────────────────────────────────
+var FATIGUE_QS=[
+  {id:'rpe',q:'¿Cómo valorarías el esfuerzo percibido del entrenamiento?',type:'scale',
+   opts:['1 — Muy fácil','2','3','4','5 — Moderado','6','7','8','9','10 — Máximo esfuerzo']},
+  {id:'fatiga_muscular',q:'¿Qué nivel de fatiga muscular sientes?',type:'scale',
+   opts:['1 — Sin fatiga','2','3','4','5','6','7','8','9','10 — Agotamiento total']},
+  {id:'dolor',q:'¿Tienes dolor o molestia articular/muscular?',type:'multi',
+   opts:['Sin dolor','Hombros','Codos','Muñecas','Zona lumbar','Caderas','Rodillas','Tobillos','Cuello','Pecho']},
+  {id:'tipo_dolor',q:'Si hay dolor, ¿cómo lo describirías?',type:'multi',
+   opts:['No aplica','Punzante','Quemazón','Presión','Tensión muscular','Rigidez','Dolor sordo','Agudo']},
+  {id:'energia',q:'¿Cómo era tu nivel de energía al empezar?',type:'single',
+   opts:['Muy bajo','Bajo','Normal','Alto','Muy alto']},
+  {id:'motivacion',q:'¿Cómo ha sido tu motivación durante el entreno?',type:'single',
+   opts:['Muy baja','Baja','Normal','Alta','Muy alta']},
+  {id:'calidad_sueño',q:'¿Cómo fue tu sueño la noche anterior?',type:'single',
+   opts:['Muy malo (< 4h)','Malo (4-5h)','Regular (5-6h)','Bueno (6-7h)','Muy bueno (> 7h)']},
+  {id:'sensaciones',q:'¿Cuál describe mejor tus sensaciones generales post-entreno?',type:'single',
+   opts:['Agotado/a','Cansado/a pero bien','Neutral','Activo/a','Poderoso/a']},
+  {id:'bomba_muscular',q:'¿Has notado buena congestión/bomba muscular?',type:'single',
+   opts:['Nada','Poca','Moderada','Buena','Excelente']},
+  {id:'progresion',q:'¿Has podido progresar respecto a la sesión anterior?',type:'single',
+   opts:['No (bajé carga/reps)','Igual','Sí (más carga)','Sí (más reps)','Sí (ambas)','Primera vez este ejercicio']},
+  {id:'hidratacion',q:'¿Cómo fue tu hidratación durante el entrenamiento?',type:'single',
+   opts:['Insuficiente','Regular','Adecuada','Buena']},
+  {id:'precauciones',q:'¿Necesitas tomar alguna precaución en próximas sesiones?',type:'multi',
+   opts:['Ninguna','Reducir carga','Evitar ciertos movimientos','Visita médica','Más calentamiento','Estiramientos extra','Más descanso']}
+];
+
+function openFatigueModal(){
+  fatigueAnswers={};
+  var body=G('fatBody');body.innerHTML='';
+  FATIGUE_QS.forEach(function(q){
+    var block=mk('div','fat-q');
+    block.appendChild(mk('div','fat-q-title',q.q));
+    var opts=mk('div','fat-q-opts'+(q.type==='scale'?' fat-scale':''));
+    q.opts.forEach(function(opt,oi){
+      var btn=mk('button','fat-opt'+(opt.toLowerCase().indexOf('dolor')>=0||opt.toLowerCase().indexOf('malo')>=0?'':'')); 
+      btn.textContent=opt;
+      btn.onclick=function(){
+        if(q.type==='single'||q.type==='scale'){
+          opts.querySelectorAll('.fat-opt').forEach(function(b){b.classList.remove('sel');});
+          btn.classList.add('sel');
+          fatigueAnswers[q.id]=opt;
+        }else{
+          btn.classList.toggle('sel');
+          var sel=[];opts.querySelectorAll('.fat-opt.sel').forEach(function(b){sel.push(b.textContent);});
+          fatigueAnswers[q.id]=sel;
+        }
+      };
+      opts.appendChild(btn);
+    });
+    block.appendChild(opts);body.appendChild(block);
+  });
+  G('modFatigue').style.display='flex';
+}
+
+function saveFatigueForm(){
+  var id='f'+Date.now();
+  var entry={id:id,date:todayDateStr(),time:new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}),
+    workout:wkModeItem?wkModeItem.name:'',duration:wkTimerSec,answers:Object.assign({},fatigueAnswers)};
+  if(!D.formLogs)D.formLogs={};
+  D.formLogs[id]=entry;
+  saveFS('formLogs',id,entry);
+}
+
+G('fatSave').onclick=function(){saveFatigueForm();G('modFatigue').style.display='none';};
+G('fatSkip').onclick=function(){G('modFatigue').style.display='none';};
+G('fatX').onclick=function(){G('modFatigue').style.display='none';};
 function startRestCountdown(exName,secs,ei,si){
   clearInterval(wkRestInt);wkRestSec=secs;
   G('wkRestExName').textContent=exName||'Descanso';
@@ -3468,6 +3730,209 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
   localStorage.setItem(FLAG,'1');
   console.log('✅ Plan nutricional 30 Abr – 5 May inyectado correctamente');
   renderCal();
+})();
+
+// ══ EXERCISE LIBRARY PRELOAD ══════════════════════════════════════════════════
+(function preloadExLib(){
+  var FLAG='skinny_exlib_v2';
+  if(localStorage.getItem(FLAG))return;
+  var EX=[
+    // ── PECHO ─────────────────────────────────────────────────────────────
+    {name:'Press de banca plano',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Deltoides anterior',equipment:'Barra + Banco'},
+    {name:'Press de banca inclinado',muscleGroup:'Pecho',muscles:'Pectoral mayor (porción clavicular), Tríceps',equipment:'Mancuernas / Barra + Banco inclinado'},
+    {name:'Press de banca declinado',muscleGroup:'Pecho',muscles:'Pectoral mayor (porción esternal inferior), Tríceps',equipment:'Barra + Banco declinado'},
+    {name:'Press con mancuernas plano',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Deltoides anterior',equipment:'Mancuernas + Banco'},
+    {name:'Aperturas con mancuernas plano',muscleGroup:'Pecho',muscles:'Pectoral mayor, Bíceps (cab. larga)',equipment:'Mancuernas + Banco'},
+    {name:'Aperturas en polea cruzada',muscleGroup:'Pecho',muscles:'Pectoral mayor (todas las porciones)',equipment:'Poleas cruzadas'},
+    {name:'Fondos en paralelas (pecho)',muscleGroup:'Pecho',muscles:'Pectoral mayor (inferior), Tríceps',equipment:'Paralelas'},
+    {name:'Pull-over con mancuerna',muscleGroup:'Pecho',muscles:'Pectoral mayor, Dorsal ancho, Serratos',equipment:'Mancuerna + Banco'},
+    {name:'Press en máquina Smith plano',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps',equipment:'Máquina Smith'},
+    {name:'Flexiones (push-ups)',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Deltoides anterior',equipment:'Sin material'},
+    {name:'Flexiones con pies elevados',muscleGroup:'Pecho',muscles:'Pectoral mayor (clavicular), Tríceps',equipment:'Banco / silla'},
+    {name:'Press en máquina de pecho (chest press)',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps',equipment:'Máquina'},
+    {name:'Aperturas inclinadas con mancuernas',muscleGroup:'Pecho',muscles:'Pectoral mayor (clavicular)',equipment:'Mancuernas + Banco inclinado'},
+    {name:'Cable Fly en polea alta',muscleGroup:'Pecho',muscles:'Pectoral mayor (inferior)',equipment:'Poleas'},
+    {name:'Cable Fly en polea baja',muscleGroup:'Pecho',muscles:'Pectoral mayor (clavicular)',equipment:'Poleas'},
+    {name:'Press con banda elástica',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps',equipment:'Banda elástica'},
+    {name:'Press en máquina Pec Deck',muscleGroup:'Pecho',muscles:'Pectoral mayor, Coracobraquial',equipment:'Máquina Pec Deck'},
+    {name:'Press con pelota medicinal (pase)',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Core',equipment:'Pelota medicinal'},
+    {name:'Press landmine (press de pecho unilateral)',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Core',equipment:'Barra + soporte'},
+    {name:'Press de banca con agarre neutro',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Deltoides',equipment:'Mancuernas + Banco'},
+    // ── ESPALDA ──────────────────────────────────────────────────────────
+    {name:'Peso muerto convencional',muscleGroup:'Espalda',muscles:'Dorsal, Trapecios, Erectores, Glúteos, Isquiotibiales',equipment:'Barra'},
+    {name:'Dominadas (pull-ups)',muscleGroup:'Espalda',muscles:'Dorsal ancho, Bíceps, Romboides',equipment:'Barra dominadas'},
+    {name:'Remo con barra',muscleGroup:'Espalda',muscles:'Dorsal ancho, Romboides, Trapecios, Bíceps',equipment:'Barra'},
+    {name:'Remo en polea baja (cable)',muscleGroup:'Espalda',muscles:'Dorsal ancho, Romboides, Bíceps',equipment:'Polea baja'},
+    {name:'Jalón al pecho en polea',muscleGroup:'Espalda',muscles:'Dorsal ancho, Bíceps, Romboides',equipment:'Polea alta'},
+    {name:'Jalón con agarre neutro',muscleGroup:'Espalda',muscles:'Dorsal ancho, Bíceps',equipment:'Polea alta'},
+    {name:'Remo con mancuerna unilateral',muscleGroup:'Espalda',muscles:'Dorsal ancho, Romboides, Bíceps',equipment:'Mancuerna + Banco'},
+    {name:'Remo Pendlay',muscleGroup:'Espalda',muscles:'Dorsal, Romboides, Trapecios',equipment:'Barra'},
+    {name:'Pullover en polea',muscleGroup:'Espalda',muscles:'Dorsal ancho, Serrato anterior',equipment:'Polea alta'},
+    {name:'Hiperextensiones en banco',muscleGroup:'Espalda',muscles:'Erectores espinales, Glúteos, Isquiotibiales',equipment:'Banco romano'},
+    {name:'Face Pull',muscleGroup:'Espalda',muscles:'Romboides, Deltoides posterior, Rotadores externos',equipment:'Polea alta'},
+    {name:'Remo en máquina',muscleGroup:'Espalda',muscles:'Dorsal, Romboides, Bíceps',equipment:'Máquina'},
+    {name:'Jalón en máquina',muscleGroup:'Espalda',muscles:'Dorsal ancho, Bíceps',equipment:'Máquina'},
+    {name:'Remo invertido (inverted row)',muscleGroup:'Espalda',muscles:'Dorsal, Romboides, Bíceps',equipment:'Barra / TRX'},
+    {name:'Encogimientos con barra (shrugs)',muscleGroup:'Espalda',muscles:'Trapecios',equipment:'Barra'},
+    {name:'Jalón con agarre prono estrecho',muscleGroup:'Espalda',muscles:'Dorsal ancho (porción baja), Bíceps',equipment:'Polea alta'},
+    {name:'Good Morning',muscleGroup:'Espalda',muscles:'Erectores espinales, Isquiotibiales, Glúteos',equipment:'Barra'},
+    {name:'Remo T-bar',muscleGroup:'Espalda',muscles:'Dorsal, Romboides, Trapecios',equipment:'T-bar o barra + soporte'},
+    {name:'Peso muerto sumo',muscleGroup:'Espalda',muscles:'Glúteos, Isquiotibiales, Erectores, Aductores',equipment:'Barra'},
+    {name:'Peso muerto rumano',muscleGroup:'Espalda',muscles:'Isquiotibiales, Glúteos, Erectores',equipment:'Barra'},
+    // ── HOMBROS ──────────────────────────────────────────────────────────
+    {name:'Press militar con barra',muscleGroup:'Hombros',muscles:'Deltoides (todas las porciones), Tríceps, Trapecios',equipment:'Barra'},
+    {name:'Press con mancuernas sentado',muscleGroup:'Hombros',muscles:'Deltoides (todas), Tríceps',equipment:'Mancuernas + Banco'},
+    {name:'Elevaciones laterales con mancuernas',muscleGroup:'Hombros',muscles:'Deltoides medial',equipment:'Mancuernas'},
+    {name:'Elevaciones frontales con mancuernas',muscleGroup:'Hombros',muscles:'Deltoides anterior',equipment:'Mancuernas'},
+    {name:'Pájaros / Elevaciones posteriores',muscleGroup:'Hombros',muscles:'Deltoides posterior, Romboides',equipment:'Mancuernas / Polea'},
+    {name:'Press Arnold',muscleGroup:'Hombros',muscles:'Deltoides (todas), Tríceps, Rotadores',equipment:'Mancuernas'},
+    {name:'Face Pull con polea',muscleGroup:'Hombros',muscles:'Deltoides posterior, Rotadores externos, Trapecios',equipment:'Polea alta'},
+    {name:'Elevaciones laterales en polea baja',muscleGroup:'Hombros',muscles:'Deltoides medial',equipment:'Polea baja'},
+    {name:'Press en máquina de hombros',muscleGroup:'Hombros',muscles:'Deltoides, Tríceps',equipment:'Máquina'},
+    {name:'Upright row (remo al cuello)',muscleGroup:'Hombros',muscles:'Deltoides, Trapecios',equipment:'Barra / Mancuernas'},
+    {name:'Cuban press',muscleGroup:'Hombros',muscles:'Rotadores externos, Deltoides posterior',equipment:'Mancuernas'},
+    {name:'Bus driver',muscleGroup:'Hombros',muscles:'Deltoides anterior, Rotadores',equipment:'Disco'},
+    {name:'W-raise con mancuernas',muscleGroup:'Hombros',muscles:'Deltoides posterior, Romboides, Rotadores',equipment:'Mancuernas'},
+    {name:'Band pull-apart',muscleGroup:'Hombros',muscles:'Deltoides posterior, Romboides',equipment:'Banda elástica'},
+    {name:'Press Z con barra (landmine press)',muscleGroup:'Hombros',muscles:'Deltoides anterior, Tríceps',equipment:'Barra'},
+    {name:'Elevaciones laterales con banda',muscleGroup:'Hombros',muscles:'Deltoides medial',equipment:'Banda elástica'},
+    {name:'Handstand push-up (pino)',muscleGroup:'Hombros',muscles:'Deltoides, Tríceps, Core',equipment:'Sin material'},
+    {name:'Push press',muscleGroup:'Hombros',muscles:'Deltoides, Tríceps, Piernas (impulso)',equipment:'Barra'},
+    {name:'Thruster',muscleGroup:'Hombros',muscles:'Deltoides, Cuádriceps, Glúteos, Tríceps',equipment:'Barra / Mancuernas'},
+    {name:'Elevaciones laterales 21s',muscleGroup:'Hombros',muscles:'Deltoides medial',equipment:'Mancuernas'},
+    // ── BÍCEPS ───────────────────────────────────────────────────────────
+    {name:'Curl con barra recta',muscleGroup:'Bíceps',muscles:'Bíceps braquial, Braquial anterior',equipment:'Barra'},
+    {name:'Curl con mancuernas alterno',muscleGroup:'Bíceps',muscles:'Bíceps braquial, Braquioradial',equipment:'Mancuernas'},
+    {name:'Curl en banco Scott (predicador)',muscleGroup:'Bíceps',muscles:'Bíceps (cabeza corta), Braquial',equipment:'Banco predicador + barra/mancuerna'},
+    {name:'Curl martillo',muscleGroup:'Bíceps',muscles:'Braquioradial, Bíceps, Braquial',equipment:'Mancuernas'},
+    {name:'Curl en polea baja',muscleGroup:'Bíceps',muscles:'Bíceps braquial',equipment:'Polea baja'},
+    {name:'Curl concentrado',muscleGroup:'Bíceps',muscles:'Bíceps braquial (pico)',equipment:'Mancuerna'},
+    {name:'Curl con barra Z',muscleGroup:'Bíceps',muscles:'Bíceps braquial, Braquial',equipment:'Barra EZ'},
+    {name:'Curl 21s con barra',muscleGroup:'Bíceps',muscles:'Bíceps braquial (arco completo)',equipment:'Barra'},
+    {name:'Curl araña (spider curl)',muscleGroup:'Bíceps',muscles:'Bíceps braquial (cabeza larga)',equipment:'Banco inclinado + barra/mancuernas'},
+    {name:'Curl con barra en banco inclinado',muscleGroup:'Bíceps',muscles:'Bíceps (cabeza larga), Braquial',equipment:'Banco inclinado + mancuernas'},
+    {name:'Curl Zottman',muscleGroup:'Bíceps',muscles:'Bíceps, Braquioradial, Braquial',equipment:'Mancuernas'},
+    {name:'Curl inverso (reverse curl)',muscleGroup:'Bíceps',muscles:'Braquioradial, Bíceps, Extensores del antebrazo',equipment:'Barra / Mancuernas'},
+    {name:'Curl con polea alta (cara)',muscleGroup:'Bíceps',muscles:'Bíceps braquial',equipment:'Polea alta'},
+    {name:'Curl con banda elástica',muscleGroup:'Bíceps',muscles:'Bíceps braquial',equipment:'Banda elástica'},
+    {name:'Chin-up (dominada supina)',muscleGroup:'Bíceps',muscles:'Bíceps, Dorsal ancho',equipment:'Barra dominadas'},
+    {name:'Curl en polea alta bilateral',muscleGroup:'Bíceps',muscles:'Bíceps (posición pico)',equipment:'Poleas altas'},
+    {name:'Curl bayesian (polea trasera)',muscleGroup:'Bíceps',muscles:'Bíceps (cabeza larga, estiramiento completo)',equipment:'Polea baja trasera'},
+    {name:'Curl con TRX',muscleGroup:'Bíceps',muscles:'Bíceps, Braquial',equipment:'TRX'},
+    {name:'Drag curl',muscleGroup:'Bíceps',muscles:'Bíceps (cabeza larga)',equipment:'Barra'},
+    {name:'Curl con kettlebell',muscleGroup:'Bíceps',muscles:'Bíceps, Braquial',equipment:'Kettlebell'},
+    // ── TRÍCEPS ──────────────────────────────────────────────────────────
+    {name:'Press francés con barra',muscleGroup:'Tríceps',muscles:'Tríceps braquial (cabeza larga)',equipment:'Barra EZ / Recta + Banco'},
+    {name:'Fondos en paralelas (tríceps)',muscleGroup:'Tríceps',muscles:'Tríceps (todas las cabezas)',equipment:'Paralelas'},
+    {name:'Press de banca agarre cerrado',muscleGroup:'Tríceps',muscles:'Tríceps, Pectoral (aducción), Deltoides anterior',equipment:'Barra + Banco'},
+    {name:'Extensión de tríceps en polea alta',muscleGroup:'Tríceps',muscles:'Tríceps (todas las cabezas)',equipment:'Polea alta'},
+    {name:'Extensión sobre la cabeza en polea',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Polea baja'},
+    {name:'Extensión sobre la cabeza con mancuerna',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Mancuerna'},
+    {name:'Patadas de tríceps (kickbacks)',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza lateral y medial)',equipment:'Mancuerna'},
+    {name:'Push-down con cuerda',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza lateral)',equipment:'Polea alta + cuerda'},
+    {name:'Skull crusher (rompe cráneos)',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Barra EZ + Banco'},
+    {name:'Dips en banco (bench dips)',muscleGroup:'Tríceps',muscles:'Tríceps, Deltoides anterior',equipment:'Banco'},
+    {name:'Extensión unilateral en polea',muscleGroup:'Tríceps',muscles:'Tríceps',equipment:'Polea alta'},
+    {name:'Flexiones con agarre diamante',muscleGroup:'Tríceps',muscles:'Tríceps, Pectoral',equipment:'Sin material'},
+    {name:'Press con mancuernas agarre neutro cerrado',muscleGroup:'Tríceps',muscles:'Tríceps, Pectoral',equipment:'Mancuernas + Banco'},
+    {name:'Press JM',muscleGroup:'Tríceps',muscles:'Tríceps (todas las cabezas)',equipment:'Barra + Banco'},
+    {name:'Extensión con banda elástica',muscleGroup:'Tríceps',muscles:'Tríceps',equipment:'Banda elástica'},
+    {name:'Push-down con barra recta',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza lateral y medial)',equipment:'Polea alta'},
+    {name:'Extensión de tríceps en máquina',muscleGroup:'Tríceps',muscles:'Tríceps (todas las cabezas)',equipment:'Máquina'},
+    {name:'Rolling extension (DB)',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Mancuernas + Banco'},
+    {name:'Press california (modified skull crusher)',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Barra EZ + Banco'},
+    {name:'Extensión inclinada sobre la cabeza',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Polea baja'},
+    // ── PIERNAS/CUÁDRICEPS ────────────────────────────────────────────────
+    {name:'Sentadilla con barra (back squat)',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Core',equipment:'Barra + Rack'},
+    {name:'Sentadilla frontal (front squat)',muscleGroup:'Piernas',muscles:'Cuádriceps (énfasis), Glúteos, Core',equipment:'Barra + Rack'},
+    {name:'Prensa de piernas',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Isquiotibiales',equipment:'Máquina prensa'},
+    {name:'Extensión de cuádriceps en máquina',muscleGroup:'Piernas',muscles:'Cuádriceps (recto femoral, vastos)',equipment:'Máquina extensora'},
+    {name:'Zancadas con mancuernas',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Isquiotibiales',equipment:'Mancuernas'},
+    {name:'Sentadilla búlgara (RFESS)',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Estabilizadores',equipment:'Mancuernas + Banco'},
+    {name:'Hack squat en máquina',muscleGroup:'Piernas',muscles:'Cuádriceps (vasto medial y lateral)',equipment:'Máquina hack squat'},
+    {name:'Sentadilla goblet',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Core',equipment:'Kettlebell / Mancuerna'},
+    {name:'Leg press a una pierna',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Máquina prensa'},
+    {name:'Sissy squat',muscleGroup:'Piernas',muscles:'Cuádriceps (recto femoral)',equipment:'Sin material / Máquina'},
+    {name:'Sentadilla sumo',muscleGroup:'Piernas',muscles:'Aductores, Glúteos, Cuádriceps',equipment:'Barra / Mancuerna'},
+    {name:'Step-up con mancuernas',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Cajón + Mancuernas'},
+    {name:'Zancada inversa',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Sin material / Mancuernas'},
+    {name:'Sentadilla en máquina Smith',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Máquina Smith'},
+    {name:'Sentadilla overhead',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Hombros, Core',equipment:'Barra'},
+    {name:'Pistol squat (sentadilla unilateral)',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Estabilizadores',equipment:'Sin material'},
+    {name:'Prensa de piernas unilateral',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Máquina prensa'},
+    {name:'Sentadilla con bandas',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Banda elástica'},
+    {name:'Wall squat (sentadilla en pared)',muscleGroup:'Piernas',muscles:'Cuádriceps',equipment:'Pared'},
+    {name:'Split squat',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Sin material / Barra'},
+    // ── GLÚTEOS ──────────────────────────────────────────────────────────
+    {name:'Hip thrust con barra',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Isquiotibiales, Core',equipment:'Barra + Banco'},
+    {name:'Peso muerto rumano (RDL)',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Isquiotibiales',equipment:'Barra / Mancuernas'},
+    {name:'Patada de glúteo en máquina',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Máquina / Polea baja'},
+    {name:'Abducción de cadera en máquina',muscleGroup:'Glúteos',muscles:'Glúteo medio y menor',equipment:'Máquina'},
+    {name:'Frog pump',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Sin material'},
+    {name:'Sentadilla sumo profunda',muscleGroup:'Glúteos',muscles:'Glúteos, Aductores, Cuádriceps',equipment:'Barra / Mancuerna'},
+    {name:'Good morning con barra',muscleGroup:'Glúteos',muscles:'Glúteos, Isquiotibiales, Erectores',equipment:'Barra'},
+    {name:'Cable kickback',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Polea baja'},
+    {name:'Zancada lateral',muscleGroup:'Glúteos',muscles:'Glúteo medio, Aductores',equipment:'Sin material / Mancuerna'},
+    {name:'Hip thrust unilateral',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Banco'},
+    {name:'Monster walk con banda',muscleGroup:'Glúteos',muscles:'Glúteo medio',equipment:'Banda elástica'},
+    {name:'Romanian deadlift unilateral',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Isquiotibiales',equipment:'Mancuerna / Barra'},
+    {name:'Sentadilla lateral con banda',muscleGroup:'Glúteos',muscles:'Glúteo medio',equipment:'Banda elástica'},
+    {name:'Nordcuad inverso (reverse nordics)',muscleGroup:'Glúteos',muscles:'Isquiotibiales, Glúteo mayor',equipment:'Sin material / Apoyo'},
+    {name:'45° hip extension en banco',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Isquiotibiales',equipment:'Banco 45°'},
+    {name:'Puente de glúteo bilateral',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Core',equipment:'Sin material'},
+    {name:'Donkey kicks',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Sin material / Polea'},
+    {name:'Abducción tumbado con banda',muscleGroup:'Glúteos',muscles:'Glúteo medio',equipment:'Banda elástica'},
+    {name:'Hip thrust en máquina',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Máquina'},
+    {name:'Single-leg press (glúteo)',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Cuádriceps',equipment:'Máquina prensa'},
+    // ── ISQUIOTIBIALES ────────────────────────────────────────────────────
+    {name:'Curl femoral tumbado',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales (todas las cabezas)',equipment:'Máquina'},
+    {name:'Curl femoral sentado',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales',equipment:'Máquina'},
+    {name:'Curl femoral en polea',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales',equipment:'Polea baja'},
+    {name:'Nordic curl',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales (excéntrico)',equipment:'Sin material / Apoyo'},
+    {name:'Peso muerto con piernas rígidas (SLDL)',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Glúteos, Erectores',equipment:'Barra'},
+    {name:'Glute-ham raise (GHR)',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Glúteos',equipment:'Máquina GHR'},
+    {name:'Good morning con barra',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Erectores, Glúteos',equipment:'Barra'},
+    {name:'Curl con fitball',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Core',equipment:'Fitball'},
+    {name:'Hip hinge con banda elástica',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Glúteos',equipment:'Banda elástica'},
+    {name:'Curl femoral con banda (decúbito)',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales',equipment:'Banda elástica'},
+    // ── PANTORRILLAS ─────────────────────────────────────────────────────
+    {name:'Elevación de talones de pie',muscleGroup:'Pantorrillas',muscles:'Gastrocnemio, Sóleo',equipment:'Sin material / Mancuernas'},
+    {name:'Elevación de talones sentado',muscleGroup:'Pantorrillas',muscles:'Sóleo',equipment:'Máquina / Mancuernas'},
+    {name:'Elevación en leg press',muscleGroup:'Pantorrillas',muscles:'Gastrocnemio, Sóleo',equipment:'Máquina prensa'},
+    {name:'Saltos a la comba',muscleGroup:'Pantorrillas',muscles:'Gastrocnemio, Sóleo, Tibial anterior',equipment:'Comba'},
+    {name:'Elevación unilateral en escalón',muscleGroup:'Pantorrillas',muscles:'Gastrocnemio',equipment:'Escalón'},
+    // ── ABDOMINALES / CORE ────────────────────────────────────────────────
+    {name:'Crunch abdominal',muscleGroup:'Core',muscles:'Recto abdominal',equipment:'Sin material'},
+    {name:'Plancha frontal (plank)',muscleGroup:'Core',muscles:'Core completo, Glúteos, Cuádriceps',equipment:'Sin material'},
+    {name:'Plancha lateral',muscleGroup:'Core',muscles:'Oblicuos, Core lateral',equipment:'Sin material'},
+    {name:'Rueda abdominal (ab wheel)',muscleGroup:'Core',muscles:'Recto abdominal, Oblicuos, Core',equipment:'Rueda abdominal'},
+    {name:'Leg raise tumbado',muscleGroup:'Core',muscles:'Recto abdominal (porción inferior)',equipment:'Sin material'},
+    {name:'Dragon flag',muscleGroup:'Core',muscles:'Recto abdominal (completo)',equipment:'Banco'},
+    {name:'Dead bug',muscleGroup:'Core',muscles:'Recto abdominal, Oblicuos, Multífidos',equipment:'Sin material'},
+    {name:'Pallof press',muscleGroup:'Core',muscles:'Core anti-rotación, Oblicuos',equipment:'Polea'},
+    {name:'Russian twist',muscleGroup:'Core',muscles:'Oblicuos, Recto abdominal',equipment:'Sin material / Disco'},
+    {name:'Hollow body hold',muscleGroup:'Core',muscles:'Recto abdominal, Flexores de cadera',equipment:'Sin material'},
+    {name:'V-up',muscleGroup:'Core',muscles:'Recto abdominal, Flexores de cadera',equipment:'Sin material'},
+    {name:'Hanging leg raise (en barra)',muscleGroup:'Core',muscles:'Recto abdominal inferior, Flexores de cadera',equipment:'Barra dominadas'},
+    {name:'Ab rollout en barra (barbell rollout)',muscleGroup:'Core',muscles:'Core completo, Dorsales, Hombros',equipment:'Barra'},
+    {name:'Stirring the pot (fitball)',muscleGroup:'Core',muscles:'Core completo',equipment:'Fitball'},
+    {name:'Crunch en cable (cuerda)',muscleGroup:'Core',muscles:'Recto abdominal',equipment:'Polea alta + cuerda'},
+    {name:'L-sit',muscleGroup:'Core',muscles:'Core, Flexores de cadera, Cuádriceps, Tríceps',equipment:'Paralelas / Suelo'},
+    {name:'Sit-up',muscleGroup:'Core',muscles:'Recto abdominal, Flexores de cadera',equipment:'Sin material'},
+    {name:'Mountain climber',muscleGroup:'Core',muscles:'Core, Flexores de cadera, Hombros',equipment:'Sin material'},
+    {name:'Vacío abdominal (stomach vacuum)',muscleGroup:'Core',muscles:'Transverso abdominal',equipment:'Sin material'},
+    {name:'Crunch bicicleta',muscleGroup:'Core',muscles:'Recto abdominal, Oblicuos',equipment:'Sin material'}
+  ];
+
+  EX.forEach(function(ex){
+    var existingNames=Object.values(D.exLib||{}).map(function(e){return (e.name||'').toLowerCase();});
+    if(existingNames.indexOf((ex.name||'').toLowerCase())>=0)return;
+    var id=uid();
+    var entry={id:id,name:ex.name,muscleGroup:ex.muscleGroup,equipment:ex.equipment||'',notes:ex.muscles||''};
+    D.exLib[id]=entry;saveFS('exLib',id,entry);
+  });
+  localStorage.setItem(FLAG,'1');
+  console.log('✅ Biblioteca de ejercicios cargada: '+EX.length+' ejercicios');
 })();
 renderCal();
 });
