@@ -298,6 +298,13 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 .dm-meal-name{font-size:12px;font-weight:500;color:var(--white);margin-bottom:5px}
 .dm-meal-meta{font-size:10px;color:var(--white3);margin-bottom:7px}
 .dm-meal-acts{display:flex;gap:5px;flex-wrap:wrap}
+/* ── FILTER DROPDOWNS ─────────────────────────────── */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:3px;min-width:160px;flex:1}
+.filter-lbl{font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim)}
+.filter-sel{background:var(--dark2);border:1px solid var(--dark4);color:var(--white3);padding:7px 10px;font-family:var(--sans);font-size:11px;cursor:pointer;outline:none;border-radius:0;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;transition:border-color .2s}
+.filter-sel:focus,.filter-sel:hover{border-color:var(--gold-dim);color:var(--white)}
+.filter-sel.active{border-color:var(--gold);color:var(--gold)}
 /* ── RING FIX ─────────────────────────────────────── */
 .ring-center-text{font-family:var(--serif);fill:var(--white);text-anchor:middle;dominant-baseline:middle}
 /* ── WORKOUT MODE REDESIGN ────────────────────────── */
@@ -573,7 +580,43 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
       <button class="btnrm" id="exPickX">&#x2715;</button>
     </div>
     <input type="text" class="fi" id="exPickSearch" placeholder="Buscar ejercicio..." style="margin-bottom:8px">
-    <div class="lib-sel-wrap" id="exPickList" style="max-height:260px"></div>
+    <div class="filter-bar" style="margin-bottom:8px">
+      <div class="filter-group">
+        <div class="filter-lbl">Grupo Muscular</div>
+        <select class="filter-sel" id="exPickFilterMus">
+          <option value="">Todos los grupos</option>
+          <option value="Pecho">Pecho</option>
+          <option value="Espalda">Espalda</option>
+          <option value="Hombros">Hombros</option>
+          <option value="Bíceps">Bíceps</option>
+          <option value="Tríceps">Tríceps</option>
+          <option value="Piernas">Piernas</option>
+          <option value="Glúteos">Glúteos</option>
+          <option value="Isquiotibiales">Isquiotibiales</option>
+          <option value="Core">Core</option>
+          <option value="Pantorrillas">Pantorrillas</option>
+          <option value="Cardio">Cardio</option>
+          <option value="Full Body">Full Body</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-lbl">Material</div>
+        <select class="filter-sel" id="exPickFilterEquip">
+          <option value="">Todo el material</option>
+          <option value="Sin material">Sin material</option>
+          <option value="Barra">Barra</option>
+          <option value="Mancuernas">Mancuernas</option>
+          <option value="Máquina">Máquina</option>
+          <option value="Polea">Polea / Cable</option>
+          <option value="Kettlebell">Kettlebell</option>
+          <option value="Bandas">Bandas elásticas</option>
+          <option value="TRX">TRX</option>
+          <option value="Smith">Smith</option>
+          <option value="Banco">Banco</option>
+        </select>
+      </div>
+    </div>
+    <div class="lib-sel-wrap" id="exPickList" style="max-height:220px"></div>
   </div>
 </div>
 
@@ -724,7 +767,7 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
           </select>
         </div>
       </div>
-      <div class="fg"><label class="fl">Notas (técnica, variantes...)</label><textarea class="fi-ta" id="elNotes" placeholder="Técnica, cuidados, variantes..."></textarea></div>
+      <div class="fg" id="elNotesRow"><label class="fl">Grupos Musculares Involucrados</label><textarea class="fi-ta" id="elNotes" placeholder="Ej: Pectoral mayor, Tríceps, Deltoides anterior"></textarea></div>
     </div>
     <div class="mftr"><button class="bcanc" id="elCnc">Cancelar</button><button class="bsave" id="elSv">Guardar Ejercicio</button></div>
   </div>
@@ -1886,20 +1929,52 @@ G('btnLoadTpl').onclick=function(){openTplSel();};
 
 // Exercise picker
 G('exPickX').onclick=function(){G('modExPick').style.display='none';};
-G('exPickSearch').oninput=function(){renderExPickList(this.value);};
-function openExPick(){G('exPickSearch').value='';renderExPickList('');G('modExPick').style.display='flex';}
-function renderExPickList(q){
+G('exPickSearch').oninput=function(){renderExPickList();};
+function openExPick(){
+  G('exPickSearch').value='';
+  if(G('exPickFilterMus'))G('exPickFilterMus').value='';
+  if(G('exPickFilterEquip'))G('exPickFilterEquip').value='';
+  renderExPickList();
+  G('modExPick').style.display='flex';
+}
+// Attach filter change events after DOM ready
+setTimeout(function(){
+  if(G('exPickFilterMus'))G('exPickFilterMus').onchange=function(){renderExPickList();};
+  if(G('exPickFilterEquip'))G('exPickFilterEquip').onchange=function(){renderExPickList();};
+},200);
+function renderExPickList(){
+  var q=(G('exPickSearch').value||'').toLowerCase();
+  var fMus=G('exPickFilterMus')?G('exPickFilterMus').value:'';
+  var fEquip=G('exPickFilterEquip')?G('exPickFilterEquip').value:'';
   var list=G('exPickList');list.innerHTML='';
   var items=Object.values(D.exLib).sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
-  if(q)items=items.filter(function(x){return x.name&&x.name.toLowerCase().indexOf(q.toLowerCase())>=0;});
-  if(!items.length){list.innerHTML='<div class="lib-opt" style="cursor:default;color:var(--white4)">Sin ejercicios. Añade en Biblioteca primero.</div>';return;}
-  items.forEach(function(item){
-    var opt=mk('div','lib-opt');
-    opt.innerHTML='<div>'+item.name+'</div><div class="lib-opt-meta">'+(item.muscleGroup||'')+(item.equipment?' · '+item.equipment:'')+'</div>';
-    opt.onclick=function(){
-      exercises.push({name:item.name,exLibId:item.id,series:[{reps:'',weight:'',rir:'',rpe:'',rest:''}]});
-      renderExs();G('modExPick').style.display='none';
-    };list.appendChild(opt);
+  if(q)items=items.filter(function(x){return x.name&&x.name.toLowerCase().indexOf(q)>=0;});
+  if(fMus)items=items.filter(function(x){return (x.muscleGroup||'')=== fMus;});
+  if(fEquip)items=items.filter(function(x){
+    var eq=(x.equipment||'').toLowerCase();
+    return eq.indexOf(fEquip.toLowerCase())>=0;
+  });
+  // Update select active state
+  if(G('exPickFilterMus'))G('exPickFilterMus').className='filter-sel'+(fMus?' active':'');
+  if(G('exPickFilterEquip'))G('exPickFilterEquip').className='filter-sel'+(fEquip?' active':'');
+  if(!items.length){
+    var em=mk('div','lib-opt');em.style.cssText='cursor:default;color:var(--white4);text-align:center;padding:16px';
+    em.textContent=Object.values(D.exLib).length?'Sin resultados para estos filtros':'Sin ejercicios en biblioteca';
+    list.appendChild(em);return;
+  }
+  // Group by muscle group for clarity
+  var grouped={};items.forEach(function(it){var g=it.muscleGroup||'Otros';if(!grouped[g])grouped[g]=[];grouped[g].push(it);});
+  Object.keys(grouped).sort().forEach(function(grp){
+    var gHdr=mk('div','');gHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);padding:8px 8px 4px;background:var(--dark);position:sticky;top:0;z-index:1';gHdr.textContent=grp;
+    list.appendChild(gHdr);
+    grouped[grp].forEach(function(item){
+      var opt=mk('div','lib-opt');
+      opt.innerHTML='<div style="font-size:12px">'+item.name+'</div><div class="lib-opt-meta" style="font-size:9px">'+(item.equipment||'')+'</div>';
+      opt.onclick=function(){
+        exercises.push({name:item.name,exLibId:item.id,series:[{reps:'',weight:'',rir:'',rpe:'',rest:''}]});
+        renderExs();G('modExPick').style.display='none';
+      };list.appendChild(opt);
+    });
   });
 }
 function saveWorkout(){
@@ -2395,31 +2470,23 @@ function renderLibEjercicios(cont){
   // Search
   var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar ejercicio...';sr.id='srEjercicios';
   sr.oninput=function(){libTrainSearch=this.value;filterExList();};srRow.appendChild(sr);cont.appendChild(srRow);
-  // Filter buttons
-  var allMus=['','Pecho','Espalda','Hombros','Bíceps','Tríceps','Piernas','Glúteos','Core','Cardio','Full Body'];
-  var allEquip=['','Barra','Mancuernas','Máquina','Polea','Peso corporal','Kettlebell','Bandas','TRX','Smith'];
-  var fRow=mk('div','');fRow.style.cssText='margin-bottom:10px;display:flex;flex-direction:column;gap:6px';
-  // Muscle filter
-  var musRow=mk('div','');musRow.style.cssText='display:flex;gap:4px;flex-wrap:wrap';
-  var musLbl=mk('div','');musLbl.style.cssText='font-size:7px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:3px';musLbl.textContent='Grupo muscular:';
-  musRow.appendChild(musLbl);
-  allMus.forEach(function(m){
-    var fb=mk('button','',m||'Todos');
-    fb.style.cssText='padding:3px 8px;background:'+(exFilterMus===m?'var(--gold)':'var(--dark3)')+';border:1px solid '+(exFilterMus===m?'var(--gold)':'var(--dark4)')+';color:'+(exFilterMus===m?'var(--black)':'var(--white3)')+';font-size:8px;cursor:pointer;font-family:var(--sans)';
-    fb.onclick=function(){exFilterMus=m;filterExList();};musRow.appendChild(fb);
-  });
-  // Equipment filter
-  var equipRow=mk('div','');equipRow.style.cssText='display:flex;gap:4px;flex-wrap:wrap';
-  var equipLbl=mk('div','');equipLbl.style.cssText='font-size:7px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:3px';equipLbl.textContent='Material:';
-  equipRow.appendChild(equipLbl);
-  allEquip.forEach(function(e){
-    var fb=mk('button','',e||'Todos');
-    fb.style.cssText='padding:3px 8px;background:'+(exFilterEquip===e?'var(--blue)':'var(--dark3)')+';border:1px solid '+(exFilterEquip===e?'var(--blue)':'var(--dark4)')+';color:'+(exFilterEquip===e?'var(--white)':'var(--white3)')+';font-size:8px;cursor:pointer;font-family:var(--sans)';
-    fb.onclick=function(){exFilterEquip=e;filterExList();};equipRow.appendChild(fb);
-  });
-  var musWrap=mk('div');musWrap.appendChild(musLbl);musWrap.appendChild(musRow);
-  var eqWrap=mk('div');eqWrap.appendChild(equipLbl);eqWrap.appendChild(equipRow);
-  fRow.appendChild(musWrap);fRow.appendChild(eqWrap);cont.appendChild(fRow);
+  // Filter dropdowns
+  var allMusOpts=['','Pecho','Espalda','Hombros','Bíceps','Tríceps','Piernas','Glúteos','Isquiotibiales','Core','Pantorrillas','Cardio','Full Body'];
+  var allEquipOpts=['','Barra','Mancuernas','Máquina','Polea','Peso corporal','Kettlebell','Bandas','TRX','Smith','Sin material'];
+  var fRow=mk('div','filter-bar');
+  // Muscle dropdown
+  var musGrp=mk('div','filter-group');musGrp.appendChild(mk('div','filter-lbl','Grupo Muscular'));
+  var musSel=document.createElement('select');musSel.className='filter-sel'+(exFilterMus?' active':'');
+  allMusOpts.forEach(function(m){var op=document.createElement('option');op.value=m;op.textContent=m||'Todos los grupos';if(exFilterMus===m)op.selected=true;musSel.appendChild(op);});
+  musSel.onchange=function(){exFilterMus=this.value;this.className='filter-sel'+(this.value?' active':'');filterExList();};
+  musGrp.appendChild(musSel);fRow.appendChild(musGrp);
+  // Equipment dropdown
+  var eqGrp=mk('div','filter-group');eqGrp.appendChild(mk('div','filter-lbl','Material'));
+  var eqSel=document.createElement('select');eqSel.className='filter-sel'+(exFilterEquip?' active':'');
+  allEquipOpts.forEach(function(e){var op=document.createElement('option');op.value=e;op.textContent=e||'Todo el material';if(exFilterEquip===e)op.selected=true;eqSel.appendChild(op);});
+  eqSel.onchange=function(){exFilterEquip=this.value;this.className='filter-sel'+(this.value?' active':'');filterExList();};
+  eqGrp.appendChild(eqSel);fRow.appendChild(eqGrp);
+  cont.appendChild(fRow);
   // List
   var listDiv=mk('div');listDiv.id='listEjercicios';
   var items=Object.values(D.exLib);
@@ -2519,6 +2586,8 @@ function openExModal(item){
   elEditId=item?item.id:null;G('elTtl').textContent=item?'Editar Ejercicio':'Nuevo Ejercicio';
   G('elNm').value=item?item.name:'';G('elMus').value=item?(item.muscleGroup||''):'';
   G('elEquip').value=item?(item.equipment||''):'';G('elNotes').value=item?(item.notes||''):'';
+  // Only admin can see/edit muscles involved
+  if(G('elNotesRow'))G('elNotesRow').style.display=isAdminSession?'':'none';
   G('modEL').style.display='flex';
 }
 function saveEx(){
@@ -2895,13 +2964,16 @@ function renderProfProgreso(cont){
   if(D.bodyLogs.length>0){
     var wWrap=mk('div','chart-wrap');var wCanvas=document.createElement('canvas');wCanvas.id='chartWt';wWrap.appendChild(wCanvas);bCard.appendChild(wWrap);
     var fWrap=mk('div','chart-wrap');var fCanvas=document.createElement('canvas');fCanvas.id='chartFt';fWrap.appendChild(fCanvas);bCard.appendChild(fWrap);
-    var tbl=mk('table','blog-table');tbl.innerHTML='<thead><tr><th>Fecha</th><th>Peso (kg)</th><th>% Graso</th><th></th></tr></thead>';
-    var tbody=mk('tbody');D.bodyLogs.slice().sort(function(a,b){return a.date<b.date?1:-1;}).forEach(function(log){
-      var tr=mk('tr');tr.innerHTML='<td>'+formatDate(log.date)+'</td><td>'+log.weight+'</td><td>'+(log.fatPct||'—')+'</td>';
-      var td=mk('td');var be=mk('button','lib-btn','✎');be.onclick=(function(l){return function(){openBodyLog(l);};})(log);
-      var bd=mk('button','lib-btn del','✕');bd.onclick=(function(l){return function(){confirm2('Eliminar','¿Eliminar registro del '+formatDate(l.date)+'?','danger',function(){delFS('bodyLogs',l.id);});};})(log);
-      td.appendChild(be);td.appendChild(bd);tr.appendChild(td);tbody.appendChild(tr);
-    });tbl.appendChild(tbody);bCard.appendChild(tbl);
+    // History table: admin only
+    if(isAdminSession){
+      var tbl=mk('table','blog-table');tbl.innerHTML='<thead><tr><th>Fecha</th><th>Peso (kg)</th><th>% Graso</th><th></th></tr></thead>';
+      var tbody=mk('tbody');D.bodyLogs.slice().sort(function(a,b){return a.date<b.date?1:-1;}).forEach(function(log){
+        var tr=mk('tr');tr.innerHTML='<td>'+formatDate(log.date)+'</td><td>'+log.weight+'</td><td>'+(log.fatPct||'—')+'</td>';
+        var td=mk('td');var be=mk('button','lib-btn','✎');be.onclick=(function(l){return function(){openBodyLog(l);};})(log);
+        var bd=mk('button','lib-btn del','✕');bd.onclick=(function(l){return function(){confirm2('Eliminar','¿Eliminar registro del '+formatDate(l.date)+'?','danger',function(){delFS('bodyLogs',l.id);});};})(log);
+        td.appendChild(be);td.appendChild(bd);tr.appendChild(td);tbody.appendChild(tr);
+      });tbl.appendChild(tbody);bCard.appendChild(tbl);
+    }
   }else{bCard.appendChild(mk('div','empty-state','Añade tu primer registro corporal'));}
   cont.appendChild(bCard);
 
@@ -3269,17 +3341,19 @@ function renderStepsSleep(cont){
       }
     },80);
   }
-  // History table
-  var logs=Object.values(D.ssLogs).sort(function(a,b){return a.date<b.date?1:-1;}).slice(0,10);
-  if(logs.length>0){
-    var tbl=mk('table','blog-table');tbl.style.marginTop='12px';tbl.innerHTML='<thead><tr><th>Fecha</th><th>Pasos</th><th>Sueño</th><th></th></tr></thead>';
-    var tbody=mk('tbody');
-    logs.forEach(function(log){
-      var tr=mk('tr');tr.innerHTML='<td>'+formatDate(log.date)+'</td><td>'+r(log.steps)+'</td><td>'+(log.sleep||0)+'h</td>';
-      var td=mk('td');var be=mk('button','lib-btn','✎');be.onclick=(function(l){return function(){openSSModal(l);};})(log);
-      var bd=mk('button','lib-btn del','✕');bd.onclick=(function(l){return function(){confirm2('Eliminar','¿Eliminar registro?','danger',function(){delete D.ssLogs[l.id];delFS('ssLogs',l.id);renderProf();});};})(log);
-      td.appendChild(be);td.appendChild(bd);tr.appendChild(td);tbody.appendChild(tr);
-    });tbl.appendChild(tbody);card.appendChild(tbl);
+  // History table: admin only
+  if(isAdminSession){
+    var logs=Object.values(D.ssLogs).sort(function(a,b){return a.date<b.date?1:-1;}).slice(0,10);
+    if(logs.length>0){
+      var tbl=mk('table','blog-table');tbl.style.marginTop='12px';tbl.innerHTML='<thead><tr><th>Fecha</th><th>Pasos</th><th>Sueño</th><th></th></tr></thead>';
+      var tbody=mk('tbody');
+      logs.forEach(function(log){
+        var tr=mk('tr');tr.innerHTML='<td>'+formatDate(log.date)+'</td><td>'+r(log.steps)+'</td><td>'+(log.sleep||0)+'h</td>';
+        var td=mk('td');var be=mk('button','lib-btn','✎');be.onclick=(function(l){return function(){openSSModal(l);};})(log);
+        var bd=mk('button','lib-btn del','✕');bd.onclick=(function(l){return function(){confirm2('Eliminar','¿Eliminar registro?','danger',function(){delete D.ssLogs[l.id];delFS('ssLogs',l.id);renderProf();});};})(log);
+        td.appendChild(be);td.appendChild(bd);tr.appendChild(td);tbody.appendChild(tr);
+      });tbl.appendChild(tbody);card.appendChild(tbl);
+    }
   }
   cont.appendChild(card);
 }
@@ -3495,8 +3569,9 @@ var FATIGUE_QS=[
 ];
 
 function openFatigueModal(){
+  var modal=G('modFatigue');if(!modal)return;
   fatigueAnswers={};
-  var body=G('fatBody');body.innerHTML='';
+  var body=G('fatBody');if(!body)return;body.innerHTML='';
   FATIGUE_QS.forEach(function(q){
     var block=mk('div','fat-q');
     block.appendChild(mk('div','fat-q-title',q.q));
@@ -3531,9 +3606,13 @@ function saveFatigueForm(){
   saveFS('formLogs',id,entry);
 }
 
-G('fatSave').onclick=function(){saveFatigueForm();G('modFatigue').style.display='none';};
-G('fatSkip').onclick=function(){G('modFatigue').style.display='none';};
-G('fatX').onclick=function(){G('modFatigue').style.display='none';};
+// Fatigue modal handlers - bound immediately since HTML is static
+(function bindFatigue(){
+  var fs=G('fatSave'),fsk=G('fatSkip'),fx=G('fatX');
+  if(fs)fs.onclick=function(){saveFatigueForm();G('modFatigue').style.display='none';};
+  if(fsk)fsk.onclick=function(){G('modFatigue').style.display='none';};
+  if(fx)fx.onclick=function(){G('modFatigue').style.display='none';};
+})();
 function startRestCountdown(exName,secs,ei,si){
   clearInterval(wkRestInt);wkRestSec=secs;
   G('wkRestExName').textContent=exName||'Descanso';
