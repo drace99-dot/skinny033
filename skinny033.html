@@ -298,6 +298,33 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 .dm-meal-name{font-size:12px;font-weight:500;color:var(--white);margin-bottom:5px}
 .dm-meal-meta{font-size:10px;color:var(--white3);margin-bottom:7px}
 .dm-meal-acts{display:flex;gap:5px;flex-wrap:wrap}
+/* ── ADMIN DRAG (drag handles hidden for clients) ──── */
+.no-drag .cdrag-btn,.no-drag .cdrag-btn.g,.no-drag .habit-drag-handle{display:none!important}
+/* ── PROFILE REDESIGN ─────────────────────────────── */
+.prof-main-hoy{display:flex;flex-direction:column;gap:0}
+.prof-panel-btns{display:flex;gap:10px;margin:14px 0 4px;flex-wrap:wrap}
+.prof-panel-btn{flex:1;min-width:130px;padding:18px 14px;background:var(--dark2);border:1px solid var(--dark4);color:var(--white3);font-family:var(--serif);font-size:14px;letter-spacing:2px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:4px;transition:.2s}
+.prof-panel-btn:hover{border-color:var(--gold-dim);color:var(--white)}
+.prof-panel-btn-icon{font-size:22px;margin-bottom:2px}
+.prof-panel-btn-sub{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--white4);font-family:var(--sans)}
+.prof-sub-panel{display:none;flex-direction:column}
+.prof-sub-panel.open{display:flex}
+.prof-sub-back{background:none;border:none;color:var(--gold-dim);font-size:9px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;padding:8px 0;text-align:left;font-family:var(--sans);margin-bottom:8px}
+.prof-sub-back:hover{color:var(--gold)}
+/* ── SUPERSERIE ────────────────────────────────────── */
+.superset-badge{font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);padding:2px 8px;margin-left:8px;cursor:default}
+.superset-link{text-align:center;padding:4px 0;font-size:9px;letter-spacing:1px;color:var(--gold-dim);border-left:2px dashed rgba(201,168,76,.3);margin:0 16px;padding-left:8px}
+.wk-superset-label{font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:6px 0 2px;border-top:1px solid rgba(201,168,76,.2);margin-top:2px}
+.wk-ex-section.in-superset{border-left:2px solid rgba(201,168,76,.35);margin-left:4px;padding-left:8px}
+/* ── CIRCULAR PROGRESS ─────────────────────────────── */
+.ring-wrap{display:flex;gap:16px;justify-content:center;padding:16px 0;flex-wrap:wrap}
+.ring-item{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ring-svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--dark4)}
+.ring-fg{fill:none;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+.ring-label{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--white4);text-align:center}
+.ring-val{font-family:var(--serif);font-size:20px;color:var(--white);text-align:center;margin-top:-4px}
+.ring-sub{font-size:9px;color:var(--white4);text-align:center}
 /* ── CAL VIEW MODES ───────────────────────────────── */
 .cal-viewbar{background:var(--dark);border-bottom:1px solid var(--dark4);padding:5px 14px;display:flex;gap:5px;flex-shrink:0;align-items:center}
 .cvb{padding:5px 13px;background:transparent;border:1px solid var(--dark4);color:var(--white4);font-size:7px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:var(--sans);transition:.2s;white-space:nowrap}
@@ -457,11 +484,6 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
 
   <!-- PERFIL -->
   <div class="section" id="secProf" style="display:none">
-    <div class="stab-row">
-      <button class="stab active" id="stPD">Datos</button>
-      <button class="stab" id="stPH">Hoy</button>
-      <button class="stab" id="stPP">Progreso</button>
-    </div>
     <div class="prof-scroll" id="profContent"></div>
   </div>
 </div>
@@ -1047,6 +1069,7 @@ function subData(){
 
 // ══ MULTI-PROFILE AUTH ════════════════════════════════════
 var currentProfile=null; // {id, name, username, prefix}
+var isAdminSession=false;
 
 // Built-in profiles (stored also in localStorage/Firebase)
 var BUILTIN_PROFILES=[
@@ -1087,7 +1110,7 @@ function doLogin(){
   var found=null;
   for(var i=0;i<profiles.length;i++){if(profiles[i].username===u&&profiles[i].password===p){found=profiles[i];break;}}
   if(found){
-    currentProfile=found;
+    currentProfile=found;isAdminSession=false;
     G('login').style.display='none';G('app').style.display='flex';
     // Show profile name in nav
     var navLogo=document.querySelector('.nav-logo');if(navLogo)navLogo.textContent='S033 · '+found.name;
@@ -1100,7 +1123,7 @@ G('btnLogin').onclick=doLogin;G('lp').onkeydown=function(e){if(e.key==='Enter')d
 G('btnOut').onclick=function(){confirm2('¿Cerrar sesión?','','info',function(){
   unsubs.forEach(function(u){u();});unsubs=[];
   G('app').style.display='none';G('login').style.display='flex';
-  G('lu').value='';G('lp').value='';currentProfile=null;D=resetD();
+  G('lu').value='';G('lp').value='';currentProfile=null;isAdminSession=false;D=resetD();
   var navLogo=document.querySelector('.nav-logo');if(navLogo)navLogo.textContent='S033';
 });};
 
@@ -1139,7 +1162,7 @@ function renderAdminPanel(){
     var acts=mk('div','lib-item-acts');
     var bLogin=mk('button','lib-btn apply','Entrar');
     bLogin.onclick=(function(pr){return function(){
-      currentProfile=pr;G('adminPanel').style.display='none';G('app').style.display='flex';
+      currentProfile=pr;isAdminSession=true;G('adminPanel').style.display='none';G('app').style.display='flex';
       var navLogo=document.querySelector('.nav-logo');if(navLogo)navLogo.textContent='S033 · '+pr.name;
       D=resetD();subData();
     };})(prof);
@@ -1363,6 +1386,7 @@ function adjustPantry(foodsList,sign){
 }
 
 function renderCal(){
+  var appEl=G('app');if(appEl){if(isAdminSession)appEl.classList.remove('no-drag');else appEl.classList.add('no-drag');}
   if(calView==='day')renderCalDay();
   else if(calView==='month')renderCalMonth();
   else renderCalWeek();
@@ -1751,6 +1775,17 @@ function renderExs(){
     var actRow=mk('div');actRow.style.cssText='display:flex;gap:4px';
     var bLib=mk('button','btnlib','💾');bLib.title='Guardar en biblioteca';
     bLib.onclick=(function(i){return function(){var nm=exercises[i].name;if(!nm)return alert('Añade un nombre primero');var id=uid();saveFS('exLib',id,{id:id,name:nm,muscleGroup:'',equipment:'',notes:''});alert('Guardado en biblioteca: '+nm);}})(ei);
+    // Superserie toggle (only shown if not the last exercise)
+    if(ei<exercises.length-1){
+      var bSS=mk('button','btnlib','');bSS.style.cssText='font-size:8px;letter-spacing:1px;padding:3px 7px';
+      var ssActive=!!exercises[ei].supersetNext;
+      bSS.textContent=ssActive?'⚡ Superserie':'⚡ Unir';
+      bSS.title=ssActive?'Quitar de superserie':'Unir con siguiente como superserie';
+      bSS.style.borderColor=ssActive?'var(--gold)':'var(--dark4)';
+      bSS.style.color=ssActive?'var(--gold)':'var(--white4)';
+      bSS.onclick=(function(i){return function(){exercises[i].supersetNext=!exercises[i].supersetNext;renderExs();};})(ei);
+      actRow.appendChild(bSS);
+    }
     var rm=mk('button','btnrm','✕');rm.onclick=(function(i){return function(){exercises.splice(i,1);renderExs();};})(ei);
     actRow.appendChild(bLib);actRow.appendChild(rm);hdr.appendChild(lbl);hdr.appendChild(actRow);
     var ni=document.createElement('input');ni.type='text';ni.className='fi';ni.placeholder='Nombre del ejercicio';ni.value=ex.name||'';ni.style.cssText='margin-bottom:8px;width:100%';
@@ -1763,6 +1798,11 @@ function renderExs(){
     rowBtns.appendChild(aN);rowBtns.appendChild(aC);
     blk.appendChild(hdr);blk.appendChild(ni);blk.appendChild(sc);blk.appendChild(rowBtns);
     cont.appendChild(blk);addDragToExBlk(blk,ei);renderSer(ei);
+    // Visual connector if this exercise is part of a superserie with the next
+    if(ex.supersetNext&&ei<exercises.length-1){
+      var link=mk('div','superset-link','⚡ SUPERSERIE — descanso solo al final del grupo');
+      cont.appendChild(link);
+    }
   });
 }
 function renderSer(ei){
@@ -2499,15 +2539,67 @@ G('atSv').onclick=function(){
 G('atCnc').onclick=function(){closeM('modAT');};G('atX').onclick=function(){closeM('modAT');};
 
 // ══ PROFILE ══════════════════════════════════════════════
-G('stPD').onclick=function(){profTab='datos';['stPD','stPH','stPP'].forEach(function(x){G(x).classList.remove('active');});G('stPD').classList.add('active');renderProf();};
-G('stPH').onclick=function(){profTab='hoy';['stPD','stPH','stPP'].forEach(function(x){G(x).classList.remove('active');});G('stPH').classList.add('active');renderProf();};
-G('stPP').onclick=function(){profTab='prog';['stPD','stPH','stPP'].forEach(function(x){G(x).classList.remove('active');});G('stPP').classList.add('active');renderProf();};
+// Profile tabs removed - using panel buttons instead
 
 function renderProf(){
   var cont=G('profContent');cont.innerHTML='';
-  if(profTab==='datos')renderProfDatos(cont);
-  else if(profTab==='hoy')renderProfHoy(cont);
-  else renderProfProgreso(cont);
+  renderProfMain(cont);
+}
+
+function renderProfMain(cont){
+  // ── Date header ──────────────────────────────────────────────────────────
+  var today=new Date();
+  var todayStr=today.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  var tit=mk('div','');tit.style.cssText='font-family:var(--serif);font-size:18px;color:var(--gold);margin-bottom:12px;letter-spacing:1px;padding:16px 16px 0';
+  tit.textContent=todayStr.charAt(0).toUpperCase()+todayStr.slice(1);cont.appendChild(tit);
+
+  // ── Panel buttons: Datos físicos & Progreso ───────────────────────────────
+  var panelBtns=mk('div','prof-panel-btns');panelBtns.style.cssText='display:flex;gap:10px;margin:0 16px 8px;flex-wrap:wrap';
+
+  // Datos físicos button
+  var bDatos=mk('button','prof-panel-btn','');
+  bDatos.innerHTML='<span class="prof-panel-btn-icon">📊</span><span>Datos Físicos</span><span class="prof-panel-btn-sub">Peso · Altura · Objetivos</span>';
+  bDatos.onclick=function(){
+    var subCont=G('profSubDatos');
+    if(subCont.classList.contains('open')){subCont.classList.remove('open');bDatos.style.borderColor='';}
+    else{document.querySelectorAll('.prof-sub-panel').forEach(function(p){p.classList.remove('open');});
+    document.querySelectorAll('.prof-panel-btn').forEach(function(b){b.style.borderColor='';});
+    subCont.classList.add('open');bDatos.style.borderColor='var(--gold-dim)';}
+  };
+  panelBtns.appendChild(bDatos);
+
+  // Progreso button
+  var bProg=mk('button','prof-panel-btn','');
+  bProg.innerHTML='<span class="prof-panel-btn-icon">📈</span><span>Progreso</span><span class="prof-panel-btn-sub">Peso · Grasa · Pasos · Sueño</span>';
+  bProg.onclick=function(){
+    var subCont=G('profSubProg');
+    if(subCont.classList.contains('open')){subCont.classList.remove('open');bProg.style.borderColor='';}
+    else{document.querySelectorAll('.prof-sub-panel').forEach(function(p){p.classList.remove('open');});
+    document.querySelectorAll('.prof-panel-btn').forEach(function(b){b.style.borderColor='';});
+    subCont.classList.add('open');bProg.style.borderColor='var(--gold-dim)';
+    // Render charts after panel is visible
+    setTimeout(function(){renderProfProgreso(subCont.querySelector('.prof-sub-inner'));},80);}
+  };
+  panelBtns.appendChild(bProg);
+  cont.appendChild(panelBtns);
+
+  // Sub-panel: Datos físicos
+  var subDatos=mk('div','prof-sub-panel');subDatos.id='profSubDatos';
+  var subDatosInner=mk('div','prof-sub-inner');
+  renderProfDatos(subDatosInner);
+  subDatos.appendChild(subDatosInner);
+  cont.appendChild(subDatos);
+
+  // Sub-panel: Progreso
+  var subProg=mk('div','prof-sub-panel');subProg.id='profSubProg';
+  var subProgInner=mk('div','prof-sub-inner');subProgInner.innerHTML='';
+  subProg.appendChild(subProgInner);
+  cont.appendChild(subProg);
+
+  // ── HOY section (inline, always visible) ──────────────────────────────────
+  var hoyWrap=mk('div','');hoyWrap.style.cssText='padding:0 16px';
+  renderProfHoy(hoyWrap);
+  cont.appendChild(hoyWrap);
 }
 
 function renderProfDatos(cont){
@@ -2999,12 +3091,35 @@ function renderStepsSleep(cont){
   var sg=mk('div','stat-grid');
   [{l:'Pasos hoy',v:r(todaySteps)},{l:'Objetivo',v:r(stepGoal)},{l:'Sueño hoy',v:(todaySleep||0)+'h'},{l:'Objetivo',v:'8h'}].forEach(function(s){var c=mk('div','stat-mini');c.innerHTML='<div class="stat-mini-val">'+s.v+'</div><div class="stat-mini-lbl">'+s.l+'</div>';sg.appendChild(c);});
   card.appendChild(sg);
-  // Steps bar
-  [{l:'Pasos',val:todaySteps,goal:stepGoal,cls:'kcal'},{l:'Sueño (horas)',val:todaySleep,goal:sleepGoal,cls:'prot'}].forEach(function(m){
-    var pct=Math.min((m.val/m.goal)*100,100);var over=m.val>m.goal;
-    var row=mk('div','macro-bar-row');row.innerHTML='<div class="macro-bar-hdr"><span>'+m.l+'</span><span>'+m.val+' / '+m.goal+'</span></div><div class="bar-track"><div class="bar-fill '+m.cls+(over?' over':'')+'" style="width:'+pct+'%"></div></div>';
-    card.appendChild(row);
-  });
+  // Circular rings
+  var R=54,CIRC=2*Math.PI*R;
+  function makeRing(val,goal,color,label,unit){
+    var pct=Math.min(val/(goal||1),1);var offset=CIRC*(1-pct);
+    var over=val>goal;
+    var wrap=mk('div','ring-item');
+    var svgNS='http://www.w3.org/2000/svg';
+    var svg=document.createElementNS(svgNS,'svg');
+    svg.setAttribute('width','130');svg.setAttribute('height','130');svg.setAttribute('viewBox','0 0 130 130');svg.className='ring-svg';
+    var bg=document.createElementNS(svgNS,'circle');bg.setAttribute('cx','65');bg.setAttribute('cy','65');bg.setAttribute('r',R);bg.setAttribute('stroke-width','10');bg.className='ring-bg';
+    var fg=document.createElementNS(svgNS,'circle');fg.setAttribute('cx','65');fg.setAttribute('cy','65');fg.setAttribute('r',R);fg.setAttribute('stroke-width','10');
+    fg.setAttribute('stroke-dasharray',CIRC);fg.setAttribute('stroke-dashoffset',offset);
+    fg.style.stroke=over?'#27ae60':color;fg.className='ring-fg';
+    svg.appendChild(bg);svg.appendChild(fg);
+    // Center text via foreignObject
+    var fo=document.createElementNS(svgNS,'foreignObject');fo.setAttribute('x','15');fo.setAttribute('y','32');fo.setAttribute('width','100');fo.setAttribute('height','66');
+    var inner=document.createElement('div');inner.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;transform:rotate(90deg)';
+    var vEl=document.createElement('div');vEl.style.cssText='font-family:serif;font-size:22px;color:var(--white);line-height:1';vEl.textContent=typeof val==='number'?r(val):val;
+    var sEl=document.createElement('div');sEl.style.cssText='font-size:9px;color:var(--white4);letter-spacing:1px;margin-top:2px';sEl.textContent=unit;
+    inner.appendChild(vEl);inner.appendChild(sEl);fo.appendChild(inner);svg.appendChild(fo);
+    var lbl=mk('div','ring-label',label);
+    var sub=mk('div','ring-sub','Obj: '+r(goal)+' '+unit);
+    wrap.appendChild(svg);wrap.appendChild(lbl);wrap.appendChild(sub);
+    return wrap;
+  }
+  var ringWrap=mk('div','ring-wrap');
+  ringWrap.appendChild(makeRing(todaySteps,stepGoal,'#C9A84C','Pasos',''));
+  ringWrap.appendChild(makeRing(todaySleep,sleepGoal,'#2980b9','Sueño','h'));
+  card.appendChild(ringWrap);
   // Step goal setting
   var gRow=mk('div','');gRow.style.cssText='display:flex;align-items:center;gap:8px;margin-top:10px';
   var gLbl=mk('label','fl','Objetivo pasos/día:');gLbl.style.marginBottom='0';
@@ -3068,36 +3183,80 @@ function startWorkoutMode(item,key){
 }
 function renderWkMode(){
   var body=G('wkModeBody');body.innerHTML='';
-  (wkModeItem.exercises||[]).forEach(function(ex,ei){
-    var sec=mk('div','wk-ex-section');
-    var nm=mk('div','wk-ex-name',ex.name||'Ejercicio '+(ei+1));sec.appendChild(nm);
-    // Column headers
-    var hrow=mk('div','');hrow.style.cssText='display:grid;grid-template-columns:28px 1fr 1fr 1fr 1fr 1fr 36px;gap:4px;margin-bottom:4px';
-    ['','Reps','Kg','RIR','RPE','Desc',''].forEach(function(l){var d=mk('div');d.style.cssText='font-size:7px;color:var(--gold-dim);text-align:center;text-transform:uppercase;letter-spacing:1px';d.textContent=l;hrow.appendChild(d);});
-    sec.appendChild(hrow);
-    (ex.series||[]).forEach(function(s,si){
-      var done=!!(s.done);
-      var row=mk('div','wk-series-row'+(done?' done-ser':''));
-      var lbl=mk('div','wk-ser-lbl',String(si+1));
-      [{k:'reps'},{k:'weight'},{k:'rir'},{k:'rpe'},{k:'rest'}].forEach(function(f){
-        var d=mk('div','wk-ser-val',s[f.k]||'—');row.appendChild(d);
+  var exs=wkModeItem.exercises||[];
+
+  // Build superserie groups: [[0,1],[2],[3,4,5]] etc.
+  var groups=[],gi=0;
+  while(gi<exs.length){
+    var grp=[gi];
+    while(exs[gi]&&exs[gi].supersetNext&&gi<exs.length-1){gi++;grp.push(gi);}
+    groups.push(grp);gi++;
+  }
+
+  groups.forEach(function(grp){
+    var isSuperset=grp.length>1;
+    var groupWrap=mk('div','');
+    if(isSuperset){
+      var ssLabel=mk('div','wk-superset-label','⚡ SUPERSERIE ('+grp.length+' ejercicios · descanso al final del grupo)');
+      groupWrap.appendChild(ssLabel);
+    }
+
+    grp.forEach(function(ei,gidx){
+      var ex=exs[ei];
+      var sec=mk('div','wk-ex-section'+(isSuperset?' in-superset':''));
+      var nm=mk('div','wk-ex-name',ex.name||'Ejercicio '+(ei+1));
+      if(isSuperset)nm.style.cssText='font-size:13px;padding:4px 0';
+      sec.appendChild(nm);
+      var hrow=mk('div','');hrow.style.cssText='display:grid;grid-template-columns:28px 1fr 1fr 1fr 1fr 1fr 36px;gap:4px;margin-bottom:4px';
+      ['','Reps','Kg','RIR','RPE','Desc',''].forEach(function(l){var d=mk('div');d.style.cssText='font-size:7px;color:var(--gold-dim);text-align:center;text-transform:uppercase;letter-spacing:1px';d.textContent=l;hrow.appendChild(d);});
+      sec.appendChild(hrow);
+
+      (ex.series||[]).forEach(function(s,si){
+        var done=!!(s.done);
+        var row=mk('div','wk-series-row'+(done?' done-ser':''));
+        var lbl=mk('div','wk-ser-lbl',String(si+1));
+        [{k:'reps'},{k:'weight'},{k:'rir'},{k:'rpe'},{k:'rest'}].forEach(function(f){
+          var d=mk('div','wk-ser-val',s[f.k]||'—');row.appendChild(d);
+        });
+        var chk=mk('button','wk-check'+(done?' done':''),done?'✓':'○');
+        chk.onclick=(function(i,j,grpArr,gidxLocal){return function(e){
+          e.stopPropagation();
+          var ser=wkModeItem.exercises[i].series[j];
+          ser.done=!ser.done;
+          if(ser.done){
+            if(isSuperset){
+              // In a superserie: rest only after all exercises in the group have this series done
+              // Find next exercise in group that hasn't done this series yet
+              var nextInGroup=null;
+              for(var g2=gidxLocal+1;g2<grpArr.length;g2++){
+                var nextEx=wkModeItem.exercises[grpArr[g2]];
+                var nextSer=nextEx&&nextEx.series[j];
+                if(nextSer&&!nextSer.done){nextInGroup=grpArr[g2];break;}
+              }
+              if(nextInGroup!==null){
+                // Move to next exercise — no rest yet, just scroll
+                renderWkMode();
+                var nextSection=body.querySelectorAll('.wk-ex-section')[nextInGroup];
+                if(nextSection)nextSection.scrollIntoView({behavior:'smooth',block:'center'});
+              }else{
+                // All exercises in group done for this series — start rest
+                var restSec=parseInt(ser.rest)||90;
+                startRestCountdown('Superserie',restSec,i,j);
+                renderWkMode();
+              }
+            }else{
+              var restSec=parseInt(ser.rest)||90;
+              startRestCountdown(wkModeItem.exercises[i].name,restSec,i,j);
+              renderWkMode();
+            }
+          }else{renderWkMode();}
+        };})(ei,si,grp,gidx);
+        row.insertBefore(lbl,row.firstChild);row.appendChild(chk);
+        sec.appendChild(row);
       });
-      var chk=mk('button','wk-check'+(done?' done':''),done?'✓':'○');
-      chk.onclick=(function(i,j){return function(e){
-        e.stopPropagation();
-        var ser=wkModeItem.exercises[i].series[j];
-        ser.done=!ser.done;
-        if(ser.done){
-          // Start rest countdown
-          var restSec=parseInt(ser.rest)||90;
-          startRestCountdown(ex.name,restSec,i,j);
-        }
-        renderWkMode();
-      };})(ei,si);
-      row.insertBefore(lbl,row.firstChild);row.appendChild(chk);
-      sec.appendChild(row);
+      groupWrap.appendChild(sec);
     });
-    body.appendChild(sec);
+    body.appendChild(groupWrap);
   });
 }
 G('wkModePlay').onclick=function(){
