@@ -557,38 +557,44 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
     <div class="mbody">
       <div class="fg"><label class="fl">Tipo de Entrenamiento</label>
         <select class="fi-sel" id="wType">
-          <option value="">— Selecciona tipo —</option>
-          <option value="Pecho">🏋️ Pecho</option>
-          <option value="Espalda">💪 Espalda / Tracción</option>
-          <option value="Hombros">🔺 Hombros</option>
-          <option value="Bíceps">💪 Bíceps</option>
-          <option value="Tríceps">💪 Tríceps</option>
-          <option value="Pierna">🦵 Pierna</option>
-          <option value="Glúteos">🍑 Glúteos</option>
-          <option value="Push">Push (Empuje)</option>
-          <option value="Pull">Pull (Tracción)</option>
-          <option value="Full Body">Full Body</option>
-          <option value="Cardio">🏃 Cardio (general)</option>
-          <option value="Correr">🏃 Correr / Running</option>
-          <option value="Ciclismo indoor">🚴 Ciclismo Indoor</option>
-          <option value="Ciclismo exterior">🚴 Ciclismo Exterior</option>
-          <option value="Barre">💃 Barre</option>
-          <option value="Body Pump">🏋️ Body Pump</option>
-          <option value="Zumba">💃 Zumba</option>
-          <option value="Spinning">🚴 Spinning</option>
-          <option value="Natación">🏊 Natación</option>
-          <option value="Senderismo">🥾 Senderismo / Hiking</option>
-          <option value="Yoga">🧘 Yoga</option>
-          <option value="Pilates">🧘 Pilates</option>
-          <option value="Boxeo">🥊 Boxeo</option>
-          <option value="CrossFit">⚡ CrossFit / HIIT</option>
-          <option value="Escalada">🧗 Escalada</option>
-          <option value="Remo">🚣 Remo</option>
-          <option value="Elíptica">🏃 Elíptica</option>
-          <option value="Caminata">🚶 Caminata</option>
-          <option value="Baile">💃 Baile / Dance</option>
-          <option value="Core">Core / Abdomen</option>
-          <option value="Otro">✏️ Otro...</option>
+          <option value="">— Selecciona categoría —</option>
+          <optgroup label="⚡ Actividades">
+            <option value="Correr">🏃 Correr / Running</option>
+            <option value="Ciclismo indoor">🚴 Ciclismo Indoor</option>
+            <option value="Ciclismo exterior">🚴 Ciclismo Exterior</option>
+            <option value="Barre">💃 Barre</option>
+            <option value="Body Pump">🏋️ Body Pump</option>
+            <option value="Zumba">💃 Zumba</option>
+            <option value="Spinning">🚴 Spinning</option>
+            <option value="Natación">🏊 Natación</option>
+            <option value="Senderismo">🥾 Senderismo / Hiking</option>
+            <option value="Yoga">🧘 Yoga</option>
+            <option value="Pilates">🧘 Pilates</option>
+            <option value="Boxeo">🥊 Boxeo</option>
+            <option value="CrossFit">⚡ CrossFit / HIIT</option>
+            <option value="Escalada">🧗 Escalada</option>
+            <option value="Remo">🚣 Remo</option>
+            <option value="Elíptica">🏃 Elíptica</option>
+            <option value="Caminata">🚶 Caminata</option>
+            <option value="Baile">💃 Baile / Dance</option>
+            <option value="Cardio">🏃 Cardio (general)</option>
+          </optgroup>
+          <optgroup label="🏋️ Fuerza">
+            <option value="Pecho">🏋️ Pecho</option>
+            <option value="Espalda">💪 Espalda / Tracción</option>
+            <option value="Hombros">🔺 Hombros</option>
+            <option value="Bíceps">💪 Bíceps</option>
+            <option value="Tríceps">💪 Tríceps</option>
+            <option value="Pierna">🦵 Pierna</option>
+            <option value="Glúteos">🍑 Glúteos</option>
+            <option value="Push">Push (Empuje)</option>
+            <option value="Pull">Pull (Tracción)</option>
+            <option value="Full Body">Full Body</option>
+            <option value="Core">Core / Abdomen</option>
+          </optgroup>
+          <optgroup label="✏️ Otros">
+            <option value="Otro">✏️ Personalizado...</option>
+          </optgroup>
         </select>
       </div>
       <div class="fg" id="wNmWrap"><label class="fl">Nombre del Entrenamiento</label><input type="text" class="fi" id="wNm" placeholder="Ej: Empuje · Pecho & Hombros"></div>
@@ -650,7 +656,7 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
           <option value="Glúteos">Glúteos</option>
           <option value="Isquiotibiales">Isquiotibiales</option>
           <option value="Core">Core</option>
-          <option value="Pantorrillas">Pantorrillas</option>
+          <option value="Gemelos">Gemelos</option>
           <option value="Cardio">Cardio</option>
           <option value="Full Body">Full Body</option>
         </select>
@@ -1149,7 +1155,7 @@ var flEditId=null,wtEditId=null,blEditId=null;
 var viewItem=null,viewKey=null,applyTplItem=null;
 var fSelCb=null,dSelCb=null,dfSelCb=null,dcfgDish=null,dcfgGrams={};
 var charts={w:null,f:null,ex:null,steps:null,sleep:null};
-var libFoodSearch='',libTrainSearch='';
+var libFoodSearch='',libTrainSearch='',foodFilterType='';
 
 var D={workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},formLogs:{},changeLog:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};
 var unsubs=[];
@@ -2081,12 +2087,10 @@ function renderExPickList(){
   var items=Object.values(D.exLib).sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
   if(q)items=items.filter(function(x){return x.name&&x.name.toLowerCase().indexOf(q)>=0;});
   if(fMus)items=items.filter(function(x){return (x.muscleGroup||'')=== fMus;});
-  if(fEquip)items=items.filter(function(x){
+  if(fEquip){var fEqLow=fEquip.toLowerCase();items=items.filter(function(x){
     var eq=(x.equipment||'').toLowerCase();
-    var term=fEquip.toLowerCase();
-    // Match any word in the equipment string
-    return eq.indexOf(term)>=0||eq.split(/[,\/·+& ]+/).some(function(w){return w.trim().indexOf(term)>=0;});
-  });
+    return eq.indexOf(fEqLow)>=0;
+  });}
   // Update select active state
   if(G('exPickFilterMus'))G('exPickFilterMus').className='filter-sel'+(fMus?' active':'');
   if(G('exPickFilterEquip'))G('exPickFilterEquip').className='filter-sel'+(fEquip?' active':'');
@@ -2391,7 +2395,6 @@ function applyLibFilter(listId, emptyId, q){
   var em=G(emptyId);if(em)em.style.display=anyVisible||!rows.length?'none':'';
 }
 
-var foodFilterType='';
 var FOOD_TYPES=['','Lácteos','Carne roja','Carne blanca','Pescado','Huevos','Cereales','Legumbres','Verduras','Frutas','Frutos secos','Aceites y grasas','Bebidas','Suplementos','Procesados','Otro'];
 
 function renderLibAlimentos(cont){
@@ -2400,19 +2403,13 @@ function renderLibAlimentos(cont){
   var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar alimento...';sr.id='srAlimentos';
   sr.oninput=function(){libFoodSearch=this.value;applyFoodFilter();};
   srRow.appendChild(sr);cont.appendChild(srRow);
-  // Type filter dropdown
-  var fWrap=mk('div','');fWrap.style.cssText='margin-bottom:10px';
-  var fBtn=mk('button','btnadd-main','Filtrar por tipo: '+(foodFilterType||'Todos')+'  ▾');fBtn.style.cssText='padding:8px 12px;text-align:left;border-color:var(--dark4);color:var(--white3)';
-  var fList=mk('div','');fList.style.cssText='display:none;background:var(--dark3);border:1px solid var(--dark4);max-height:200px;overflow-y:auto';
-  FOOD_TYPES.forEach(function(t){
-    var opt=mk('div','lib-opt',t||'Todos');
-    opt.style.padding='8px 12px';
-    opt.onclick=function(){foodFilterType=t;fBtn.textContent='Filtrar por tipo: '+(t||'Todos')+'  ▾';fList.style.display='none';applyFoodFilter();};
-    fList.appendChild(opt);
-  });
-  fBtn.onclick=function(e){e.stopPropagation();fList.style.display=fList.style.display==='none'?'block':'none';};
-  document.addEventListener('click',function(){fList.style.display='none';},{once:true});
-  fWrap.appendChild(fBtn);fWrap.appendChild(fList);cont.appendChild(fWrap);
+  // Type filter - native select (works on all platforms)
+  var fWrap=mk('div','filter-bar');fWrap.style.marginBottom='10px';
+  var fGrp=mk('div','filter-group');fGrp.appendChild(mk('div','filter-lbl','Categoría'));
+  var fSel=document.createElement('select');fSel.className='filter-sel'+(foodFilterType?' active':'');
+  FOOD_TYPES.forEach(function(t){var op=document.createElement('option');op.value=t;op.textContent=t||'Todas las categorías';if(foodFilterType===t)op.selected=true;fSel.appendChild(op);});
+  fSel.onchange=function(){foodFilterType=this.value;this.className='filter-sel'+(this.value?' active':'');applyFoodFilter();};
+  fGrp.appendChild(fSel);fWrap.appendChild(fGrp);cont.appendChild(fWrap);
   var listDiv=mk('div');listDiv.id='listAlimentos';
   var items=Object.values(D.foodLib);
   if(!items.length){var em=mk('div','empty-state','Añade tu primer alimento');em.id='emptyAlimentos';cont.appendChild(em);cont.appendChild(listDiv);return;}
@@ -2615,7 +2612,7 @@ function renderLibEjercicios(cont){
   var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar ejercicio...';sr.id='srEjercicios';
   sr.oninput=function(){libTrainSearch=this.value;filterExList();};srRow.appendChild(sr);cont.appendChild(srRow);
   // Filter dropdowns
-  var allMusOpts=['','Pecho','Espalda','Hombros','Bíceps','Tríceps','Piernas','Glúteos','Isquiotibiales','Core','Pantorrillas','Cardio','Full Body'];
+  var allMusOpts=['','Pecho','Espalda','Hombros','Bíceps','Tríceps','Piernas','Glúteos','Isquiotibiales','Core','Gemelos','Cardio','Full Body'];
   var allEquipOpts=['','Barra','Mancuernas','Máquina','Polea','Peso corporal','Kettlebell','Bandas','TRX','Smith','Sin material'];
   var fRow=mk('div','filter-bar');
   // Muscle dropdown
@@ -2655,13 +2652,18 @@ function renderLibEjercicios(cont){
 }
 function filterExList(){
   var q=(libTrainSearch||'').toLowerCase();
+  var fMus=exFilterMus||'';
+  var fEq=(exFilterEquip||'').toLowerCase();
   var rows=document.querySelectorAll('#listEjercicios [data-name]');
   var any=false;
   rows.forEach(function(row){
     var n=(row.getAttribute('data-name')||'').toLowerCase();
     var m=row.getAttribute('data-mus')||'';
-    var e=row.getAttribute('data-equip')||'';
-    var ok=(!q||n.indexOf(q)>=0)&&(!exFilterMus||m===exFilterMus)&&(!exFilterEquip||e===exFilterEquip);
+    var e=(row.getAttribute('data-equip')||'').toLowerCase();
+    var matchQ=!q||n.indexOf(q)>=0;
+    var matchM=!fMus||m===fMus;
+    var matchE=!fEq||e.indexOf(fEq)>=0;
+    var ok=matchQ&&matchM&&matchE;
     row.style.display=ok?'':'none';if(ok)any=true;
   });
   var em=G('emptyEjercicios');if(em)em.style.display=(!any&&rows.length)?'':'none';
@@ -2827,8 +2829,11 @@ function renderAdminAlerts(cont){
     Object.keys(byUser).forEach(function(usr){
       var entries=byUser[usr];
       var colNames=entries.map(function(e){return e.col;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+      var colLabels={workouts:'Entrenamientos',nutrition:'Nutrición',habitDefs:'Hábitos',habitLogs:'Logs hábitos',ssLogs:'Pasos/Sueño',bodyLogs:'Datos corporales',formLogs:'Formularios',foodLib:'Alimentos',supLogs:'Suplementos'};
+      var colDisplay=colNames.map(function(cn){return colLabels[cn]||cn;}).join(', ');
+      var lastEntry=entries[entries.length-1];
       var banner=mk('div','alert-banner info');
-      banner.innerHTML='<div class="alert-banner-icon">👤</div><div class="alert-banner-body"><div class="alert-banner-title">'+usr+'</div><div class="alert-banner-msg">Ha registrado cambios en: '+colNames.join(', ')+'<br><span style="opacity:.6">Últimos cambios: '+entries.slice(-3).map(function(e){return e.date+' '+e.time;}).join(', ')+'</span></div><div class="alert-banner-acts"><button class="alert-dismiss" style="color:var(--blue)">Marcar leído</button><button class="alert-dismiss" style="color:var(--red)">Eliminar</button></div></div>';
+      banner.innerHTML='<div class="alert-banner-icon">👤</div><div class="alert-banner-body"><div class="alert-banner-title">Cambio en perfil: '+usr+'</div><div class="alert-banner-msg">Ha registrado: <b>'+colDisplay+'</b><br><span style="opacity:.7;font-size:9px">Último: '+lastEntry.date+' '+lastEntry.time+' · '+entries.length+' cambio'+(entries.length>1?'s':'')+'</span></div><div class="alert-banner-acts"><button class="alert-dismiss" style="color:var(--blue)">Marcar leído</button><button class="alert-dismiss" style="color:var(--red)">Eliminar</button></div></div>';
       var btns=banner.querySelectorAll('.alert-dismiss');
       btns[0].onclick=function(){entries.forEach(function(e){e.seen=true;D.changeLog[e.id].seen=true;});lsSave();wrap.removeChild(banner);};
       btns[1].onclick=function(){entries.forEach(function(e){delete D.changeLog[e.id];});lsSave();wrap.removeChild(banner);};
@@ -3132,24 +3137,46 @@ function renderProfHoy(cont){
 function renderFormCharts(cont){
   var forms=Object.values(D.formLogs||{}).sort(function(a,b){return a.date<b.date?-1:1;});
   if(forms.length<2){var em=mk('div','empty-state');em.textContent='Necesitas al menos 2 registros para ver gráficos';cont.appendChild(em);return;}
-  var labels=forms.map(function(f){return f.date;});
-  var WATCH={rpe:'Esfuerzo (RPE)',fatiga_muscular:'Fatiga muscular',energia:'Energía',motivacion:'Motivación'};
-  var COLORS={rpe:'#C9A84C',fatiga_muscular:'#c0392b',energia:'#27ae60',motivacion:'#2980b9'};
+  var labels=forms.map(function(f){return f.date+(f.time?' '+f.time:'');});
+  // All numeric questions
+  var WATCH={
+    rpe:'Esfuerzo percibido (RPE)',
+    fatiga_muscular:'Fatiga muscular',
+    energia:'Energía al empezar',
+    motivacion:'Motivación',
+    calidad_sueño:'Calidad del sueño',
+    sensaciones:'Sensaciones generales',
+    progresion:'Progresión'
+  };
+  var COLORS=['#C9A84C','#c0392b','#27ae60','#2980b9','#8e44ad','#e67e22','#1abc9c'];
+  var colorIdx=0;
+  // Scale mapping for non-numeric fields
+  var SCALE_MAP={
+    sensaciones:{'Agotado/a':1,'Cansado/a pero bien':4,'Neutral':5,'Activo/a':7,'Poderoso/a':10},
+    progresion:{'No (bajé carga/reps)':1,'Igual':5,'Sí (más reps)':7,'Sí (más carga)':8,'Sí (ambas)':10,'Primera vez este ejercicio':6},
+    calidad_sueño:{'Muy malo (< 4h)':1,'Malo (4-5h)':3,'Regular (5-6h)':5,'Bueno (6-7h)':7,'Muy bueno (> 7h)':9}
+  };
 
   Object.keys(WATCH).forEach(function(k){
+    var color=COLORS[colorIdx%COLORS.length];colorIdx++;
     var vals=forms.map(function(f){
       var v=f.answers&&f.answers[k];
       if(!v)return null;
-      var n=parseInt(v);return isNaN(n)?null:n;
+      if(Array.isArray(v))return null;
+      var n=parseInt(v);
+      if(!isNaN(n))return n;
+      // Try scale map
+      if(SCALE_MAP[k]&&SCALE_MAP[k][v]!==undefined)return SCALE_MAP[k][v];
+      return null;
     });
     if(vals.every(function(v){return v===null;}))return;
     var wrap=mk('div','chart-wrap');
-    wrap.insertAdjacentHTML('afterbegin','<div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:'+COLORS[k]+';margin-bottom:6px">'+WATCH[k]+'</div>');
+    wrap.insertAdjacentHTML('afterbegin','<div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:'+color+';margin-bottom:6px">'+WATCH[k]+'</div>');
     var canvas=document.createElement('canvas');canvas.id='fChart_'+k;wrap.appendChild(canvas);cont.appendChild(wrap);
     setTimeout(function(cid,lbs,vs,col){return function(){
       var ctx=G(cid);if(!ctx||typeof Chart==='undefined')return;
-      new Chart(ctx.getContext('2d'),{type:'line',data:{labels:lbs,datasets:[{data:vs,borderColor:col,backgroundColor:col.replace(')',',0.1)').replace('rgb','rgba'),tension:.3,fill:true,pointRadius:4,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#2a2a2a'}},y:{min:1,max:10,ticks:{color:'#888',font:{size:9}},grid:{color:'#2a2a2a'}}}}});
-    };}(canvas.id,labels,vals,COLORS[k]),80);
+      new Chart(ctx.getContext('2d'),{type:'line',data:{labels:lbs,datasets:[{data:vs,borderColor:col,backgroundColor:col+'22',tension:.3,fill:true,pointRadius:4,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:9},maxTicksLimit:8},grid:{color:'#2a2a2a'}},y:{min:0,max:10,ticks:{color:'#888',font:{size:9}},grid:{color:'#2a2a2a'}}}}});
+    };}(canvas.id,labels,vals,color),80);
   });
 }
 
@@ -4082,315 +4109,292 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ EXERCISE LIBRARY PRELOAD ══════════════════════════════════════════════════
 (function preloadExLib(){
-  var FLAG='skinny_exlib_v3';
+  var FLAG='skinny_exlib_v4';
   if(localStorage.getItem(FLAG))return;
   var EX=[
-    // ── PECHO ─────────────────────────────────────────────────────────────
-    {name:'Press de banca plano',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Deltoides anterior',equipment:'Barra + Banco'},
-    {name:'Press de banca inclinado',muscleGroup:'Pecho',muscles:'Pectoral mayor (porción clavicular), Tríceps',equipment:'Mancuernas / Barra + Banco inclinado'},
-    {name:'Press de banca declinado',muscleGroup:'Pecho',muscles:'Pectoral mayor (porción esternal inferior), Tríceps',equipment:'Barra + Banco declinado'},
-    {name:'Press con mancuernas plano',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Deltoides anterior',equipment:'Mancuernas + Banco'},
-    {name:'Aperturas con mancuernas plano',muscleGroup:'Pecho',muscles:'Pectoral mayor, Bíceps (cab. larga)',equipment:'Mancuernas + Banco'},
-    {name:'Aperturas en polea cruzada',muscleGroup:'Pecho',muscles:'Pectoral mayor (todas las porciones)',equipment:'Poleas cruzadas'},
-    {name:'Fondos en paralelas (pecho)',muscleGroup:'Pecho',muscles:'Pectoral mayor (inferior), Tríceps',equipment:'Paralelas'},
-    {name:'Pull-over con mancuerna',muscleGroup:'Pecho',muscles:'Pectoral mayor, Dorsal ancho, Serratos',equipment:'Mancuerna + Banco'},
-    {name:'Press en máquina Smith plano',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps',equipment:'Máquina Smith'},
-    {name:'Flexiones (push-ups)',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Deltoides anterior',equipment:'Sin material'},
-    {name:'Flexiones con pies elevados',muscleGroup:'Pecho',muscles:'Pectoral mayor (clavicular), Tríceps',equipment:'Banco / silla'},
-    {name:'Press en máquina de pecho (chest press)',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps',equipment:'Máquina'},
-    {name:'Aperturas inclinadas con mancuernas',muscleGroup:'Pecho',muscles:'Pectoral mayor (clavicular)',equipment:'Mancuernas + Banco inclinado'},
-    {name:'Cable Fly en polea alta',muscleGroup:'Pecho',muscles:'Pectoral mayor (inferior)',equipment:'Poleas'},
-    {name:'Cable Fly en polea baja',muscleGroup:'Pecho',muscles:'Pectoral mayor (clavicular)',equipment:'Poleas'},
-    {name:'Press con banda elástica',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps',equipment:'Banda elástica'},
-    {name:'Press en máquina Pec Deck',muscleGroup:'Pecho',muscles:'Pectoral mayor, Coracobraquial',equipment:'Máquina Pec Deck'},
-    {name:'Press con pelota medicinal (pase)',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Core',equipment:'Pelota medicinal'},
-    {name:'Press landmine (press de pecho unilateral)',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Core',equipment:'Barra + soporte'},
-    {name:'Press de banca con agarre neutro',muscleGroup:'Pecho',muscles:'Pectoral mayor, Tríceps, Deltoides',equipment:'Mancuernas + Banco'},
-    // ── ESPALDA ──────────────────────────────────────────────────────────
-    {name:'Peso muerto convencional',muscleGroup:'Espalda',muscles:'Dorsal, Trapecios, Erectores, Glúteos, Isquiotibiales',equipment:'Barra'},
-    {name:'Dominadas (pull-ups)',muscleGroup:'Espalda',muscles:'Dorsal ancho, Bíceps, Romboides',equipment:'Barra dominadas'},
-    {name:'Remo con barra',muscleGroup:'Espalda',muscles:'Dorsal ancho, Romboides, Trapecios, Bíceps',equipment:'Barra'},
-    {name:'Remo en polea baja (cable)',muscleGroup:'Espalda',muscles:'Dorsal ancho, Romboides, Bíceps',equipment:'Polea baja'},
-    {name:'Jalón al pecho en polea',muscleGroup:'Espalda',muscles:'Dorsal ancho, Bíceps, Romboides',equipment:'Polea alta'},
-    {name:'Jalón con agarre neutro',muscleGroup:'Espalda',muscles:'Dorsal ancho, Bíceps',equipment:'Polea alta'},
-    {name:'Remo con mancuerna unilateral',muscleGroup:'Espalda',muscles:'Dorsal ancho, Romboides, Bíceps',equipment:'Mancuerna + Banco'},
-    {name:'Remo Pendlay',muscleGroup:'Espalda',muscles:'Dorsal, Romboides, Trapecios',equipment:'Barra'},
-    {name:'Pullover en polea',muscleGroup:'Espalda',muscles:'Dorsal ancho, Serrato anterior',equipment:'Polea alta'},
-    {name:'Hiperextensiones en banco',muscleGroup:'Espalda',muscles:'Erectores espinales, Glúteos, Isquiotibiales',equipment:'Banco romano'},
-    {name:'Face Pull',muscleGroup:'Espalda',muscles:'Romboides, Deltoides posterior, Rotadores externos',equipment:'Polea alta'},
-    {name:'Remo en máquina',muscleGroup:'Espalda',muscles:'Dorsal, Romboides, Bíceps',equipment:'Máquina'},
-    {name:'Jalón en máquina',muscleGroup:'Espalda',muscles:'Dorsal ancho, Bíceps',equipment:'Máquina'},
-    {name:'Remo invertido (inverted row)',muscleGroup:'Espalda',muscles:'Dorsal, Romboides, Bíceps',equipment:'Barra / TRX'},
-    {name:'Encogimientos con barra (shrugs)',muscleGroup:'Espalda',muscles:'Trapecios',equipment:'Barra'},
-    {name:'Jalón con agarre prono estrecho',muscleGroup:'Espalda',muscles:'Dorsal ancho (porción baja), Bíceps',equipment:'Polea alta'},
-    {name:'Good Morning',muscleGroup:'Espalda',muscles:'Erectores espinales, Isquiotibiales, Glúteos',equipment:'Barra'},
-    {name:'Remo T-bar',muscleGroup:'Espalda',muscles:'Dorsal, Romboides, Trapecios',equipment:'T-bar o barra + soporte'},
-    {name:'Peso muerto sumo',muscleGroup:'Espalda',muscles:'Glúteos, Isquiotibiales, Erectores, Aductores',equipment:'Barra'},
-    {name:'Peso muerto rumano',muscleGroup:'Espalda',muscles:'Isquiotibiales, Glúteos, Erectores',equipment:'Barra'},
-    // ── HOMBROS ──────────────────────────────────────────────────────────
-    {name:'Press militar con barra',muscleGroup:'Hombros',muscles:'Deltoides (todas las porciones), Tríceps, Trapecios',equipment:'Barra'},
-    {name:'Press con mancuernas sentado',muscleGroup:'Hombros',muscles:'Deltoides (todas), Tríceps',equipment:'Mancuernas + Banco'},
-    {name:'Elevaciones laterales con mancuernas',muscleGroup:'Hombros',muscles:'Deltoides medial',equipment:'Mancuernas'},
-    {name:'Elevaciones frontales con mancuernas',muscleGroup:'Hombros',muscles:'Deltoides anterior',equipment:'Mancuernas'},
-    {name:'Pájaros / Elevaciones posteriores',muscleGroup:'Hombros',muscles:'Deltoides posterior, Romboides',equipment:'Mancuernas / Polea'},
-    {name:'Press Arnold',muscleGroup:'Hombros',muscles:'Deltoides (todas), Tríceps, Rotadores',equipment:'Mancuernas'},
-    {name:'Face Pull con polea',muscleGroup:'Hombros',muscles:'Deltoides posterior, Rotadores externos, Trapecios',equipment:'Polea alta'},
-    {name:'Elevaciones laterales en polea baja',muscleGroup:'Hombros',muscles:'Deltoides medial',equipment:'Polea baja'},
-    {name:'Press en máquina de hombros',muscleGroup:'Hombros',muscles:'Deltoides, Tríceps',equipment:'Máquina'},
-    {name:'Upright row (remo al cuello)',muscleGroup:'Hombros',muscles:'Deltoides, Trapecios',equipment:'Barra / Mancuernas'},
-    {name:'Cuban press',muscleGroup:'Hombros',muscles:'Rotadores externos, Deltoides posterior',equipment:'Mancuernas'},
-    {name:'Bus driver',muscleGroup:'Hombros',muscles:'Deltoides anterior, Rotadores',equipment:'Disco'},
-    {name:'W-raise con mancuernas',muscleGroup:'Hombros',muscles:'Deltoides posterior, Romboides, Rotadores',equipment:'Mancuernas'},
-    {name:'Band pull-apart',muscleGroup:'Hombros',muscles:'Deltoides posterior, Romboides',equipment:'Banda elástica'},
-    {name:'Press Z con barra (landmine press)',muscleGroup:'Hombros',muscles:'Deltoides anterior, Tríceps',equipment:'Barra'},
-    {name:'Elevaciones laterales con banda',muscleGroup:'Hombros',muscles:'Deltoides medial',equipment:'Banda elástica'},
-    {name:'Handstand push-up (pino)',muscleGroup:'Hombros',muscles:'Deltoides, Tríceps, Core',equipment:'Sin material'},
-    {name:'Push press',muscleGroup:'Hombros',muscles:'Deltoides, Tríceps, Piernas (impulso)',equipment:'Barra'},
-    {name:'Thruster',muscleGroup:'Hombros',muscles:'Deltoides, Cuádriceps, Glúteos, Tríceps',equipment:'Barra / Mancuernas'},
-    {name:'Elevaciones laterales 21s',muscleGroup:'Hombros',muscles:'Deltoides medial',equipment:'Mancuernas'},
-    // ── BÍCEPS ───────────────────────────────────────────────────────────
-    {name:'Curl con barra recta',muscleGroup:'Bíceps',muscles:'Bíceps braquial, Braquial anterior',equipment:'Barra'},
-    {name:'Curl con mancuernas alterno',muscleGroup:'Bíceps',muscles:'Bíceps braquial, Braquioradial',equipment:'Mancuernas'},
-    {name:'Curl en banco Scott (predicador)',muscleGroup:'Bíceps',muscles:'Bíceps (cabeza corta), Braquial',equipment:'Banco predicador + barra/mancuerna'},
-    {name:'Curl martillo',muscleGroup:'Bíceps',muscles:'Braquioradial, Bíceps, Braquial',equipment:'Mancuernas'},
-    {name:'Curl en polea baja',muscleGroup:'Bíceps',muscles:'Bíceps braquial',equipment:'Polea baja'},
-    {name:'Curl concentrado',muscleGroup:'Bíceps',muscles:'Bíceps braquial (pico)',equipment:'Mancuerna'},
-    {name:'Curl con barra Z',muscleGroup:'Bíceps',muscles:'Bíceps braquial, Braquial',equipment:'Barra EZ'},
-    {name:'Curl 21s con barra',muscleGroup:'Bíceps',muscles:'Bíceps braquial (arco completo)',equipment:'Barra'},
-    {name:'Curl araña (spider curl)',muscleGroup:'Bíceps',muscles:'Bíceps braquial (cabeza larga)',equipment:'Banco inclinado + barra/mancuernas'},
-    {name:'Curl con barra en banco inclinado',muscleGroup:'Bíceps',muscles:'Bíceps (cabeza larga), Braquial',equipment:'Banco inclinado + mancuernas'},
-    {name:'Curl Zottman',muscleGroup:'Bíceps',muscles:'Bíceps, Braquioradial, Braquial',equipment:'Mancuernas'},
-    {name:'Curl inverso (reverse curl)',muscleGroup:'Bíceps',muscles:'Braquioradial, Bíceps, Extensores del antebrazo',equipment:'Barra / Mancuernas'},
-    {name:'Curl con polea alta (cara)',muscleGroup:'Bíceps',muscles:'Bíceps braquial',equipment:'Polea alta'},
-    {name:'Curl con banda elástica',muscleGroup:'Bíceps',muscles:'Bíceps braquial',equipment:'Banda elástica'},
-    {name:'Chin-up (dominada supina)',muscleGroup:'Bíceps',muscles:'Bíceps, Dorsal ancho',equipment:'Barra dominadas'},
-    {name:'Curl en polea alta bilateral',muscleGroup:'Bíceps',muscles:'Bíceps (posición pico)',equipment:'Poleas altas'},
-    {name:'Curl bayesian (polea trasera)',muscleGroup:'Bíceps',muscles:'Bíceps (cabeza larga, estiramiento completo)',equipment:'Polea baja trasera'},
-    {name:'Curl con TRX',muscleGroup:'Bíceps',muscles:'Bíceps, Braquial',equipment:'TRX'},
-    {name:'Drag curl',muscleGroup:'Bíceps',muscles:'Bíceps (cabeza larga)',equipment:'Barra'},
-    {name:'Curl con kettlebell',muscleGroup:'Bíceps',muscles:'Bíceps, Braquial',equipment:'Kettlebell'},
-    // ── TRÍCEPS ──────────────────────────────────────────────────────────
-    {name:'Press francés con barra',muscleGroup:'Tríceps',muscles:'Tríceps braquial (cabeza larga)',equipment:'Barra EZ / Recta + Banco'},
-    {name:'Fondos en paralelas (tríceps)',muscleGroup:'Tríceps',muscles:'Tríceps (todas las cabezas)',equipment:'Paralelas'},
-    {name:'Press de banca agarre cerrado',muscleGroup:'Tríceps',muscles:'Tríceps, Pectoral (aducción), Deltoides anterior',equipment:'Barra + Banco'},
-    {name:'Extensión de tríceps en polea alta',muscleGroup:'Tríceps',muscles:'Tríceps (todas las cabezas)',equipment:'Polea alta'},
-    {name:'Extensión sobre la cabeza en polea',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Polea baja'},
-    {name:'Extensión sobre la cabeza con mancuerna',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Mancuerna'},
-    {name:'Patadas de tríceps (kickbacks)',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza lateral y medial)',equipment:'Mancuerna'},
-    {name:'Push-down con cuerda',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza lateral)',equipment:'Polea alta + cuerda'},
-    {name:'Skull crusher (rompe cráneos)',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Barra EZ + Banco'},
-    {name:'Dips en banco (bench dips)',muscleGroup:'Tríceps',muscles:'Tríceps, Deltoides anterior',equipment:'Banco'},
-    {name:'Extensión unilateral en polea',muscleGroup:'Tríceps',muscles:'Tríceps',equipment:'Polea alta'},
-    {name:'Flexiones con agarre diamante',muscleGroup:'Tríceps',muscles:'Tríceps, Pectoral',equipment:'Sin material'},
-    {name:'Press con mancuernas agarre neutro cerrado',muscleGroup:'Tríceps',muscles:'Tríceps, Pectoral',equipment:'Mancuernas + Banco'},
-    {name:'Press JM',muscleGroup:'Tríceps',muscles:'Tríceps (todas las cabezas)',equipment:'Barra + Banco'},
-    {name:'Extensión con banda elástica',muscleGroup:'Tríceps',muscles:'Tríceps',equipment:'Banda elástica'},
-    {name:'Push-down con barra recta',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza lateral y medial)',equipment:'Polea alta'},
-    {name:'Extensión de tríceps en máquina',muscleGroup:'Tríceps',muscles:'Tríceps (todas las cabezas)',equipment:'Máquina'},
-    {name:'Rolling extension (DB)',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Mancuernas + Banco'},
-    {name:'Press california (modified skull crusher)',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Barra EZ + Banco'},
-    {name:'Extensión inclinada sobre la cabeza',muscleGroup:'Tríceps',muscles:'Tríceps (cabeza larga)',equipment:'Polea baja'},
-    // ── PIERNAS/CUÁDRICEPS ────────────────────────────────────────────────
-    {name:'Sentadilla con barra (back squat)',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Core',equipment:'Barra + Rack'},
-    {name:'Sentadilla frontal (front squat)',muscleGroup:'Piernas',muscles:'Cuádriceps (énfasis), Glúteos, Core',equipment:'Barra + Rack'},
-    {name:'Prensa de piernas',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Isquiotibiales',equipment:'Máquina prensa'},
-    {name:'Extensión de cuádriceps en máquina',muscleGroup:'Piernas',muscles:'Cuádriceps (recto femoral, vastos)',equipment:'Máquina extensora'},
-    {name:'Zancadas con mancuernas',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Isquiotibiales',equipment:'Mancuernas'},
-    {name:'Sentadilla búlgara (RFESS)',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Estabilizadores',equipment:'Mancuernas + Banco'},
-    {name:'Hack squat en máquina',muscleGroup:'Piernas',muscles:'Cuádriceps (vasto medial y lateral)',equipment:'Máquina hack squat'},
-    {name:'Sentadilla goblet',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Core',equipment:'Kettlebell / Mancuerna'},
-    {name:'Leg press a una pierna',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Máquina prensa'},
-    {name:'Sissy squat',muscleGroup:'Piernas',muscles:'Cuádriceps (recto femoral)',equipment:'Sin material / Máquina'},
-    {name:'Sentadilla sumo',muscleGroup:'Piernas',muscles:'Aductores, Glúteos, Cuádriceps',equipment:'Barra / Mancuerna'},
-    {name:'Step-up con mancuernas',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Cajón + Mancuernas'},
-    {name:'Zancada inversa',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Sin material / Mancuernas'},
-    {name:'Sentadilla en máquina Smith',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Máquina Smith'},
-    {name:'Sentadilla overhead',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Hombros, Core',equipment:'Barra'},
-    {name:'Pistol squat (sentadilla unilateral)',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Estabilizadores',equipment:'Sin material'},
-    {name:'Prensa de piernas unilateral',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Máquina prensa'},
-    {name:'Sentadilla con bandas',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Banda elástica'},
-    {name:'Wall squat (sentadilla en pared)',muscleGroup:'Piernas',muscles:'Cuádriceps',equipment:'Pared'},
-    {name:'Split squat',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos',equipment:'Sin material / Barra'},
-    // ── GLÚTEOS ──────────────────────────────────────────────────────────
-    {name:'Hip thrust con barra',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Isquiotibiales, Core',equipment:'Barra + Banco'},
-    {name:'Peso muerto rumano (RDL)',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Isquiotibiales',equipment:'Barra / Mancuernas'},
-    {name:'Patada de glúteo en máquina',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Máquina / Polea baja'},
-    {name:'Abducción de cadera en máquina',muscleGroup:'Glúteos',muscles:'Glúteo medio y menor',equipment:'Máquina'},
-    {name:'Frog pump',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Sin material'},
-    {name:'Sentadilla sumo profunda',muscleGroup:'Glúteos',muscles:'Glúteos, Aductores, Cuádriceps',equipment:'Barra / Mancuerna'},
-    {name:'Good morning con barra',muscleGroup:'Glúteos',muscles:'Glúteos, Isquiotibiales, Erectores',equipment:'Barra'},
-    {name:'Cable kickback',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Polea baja'},
-    {name:'Zancada lateral',muscleGroup:'Glúteos',muscles:'Glúteo medio, Aductores',equipment:'Sin material / Mancuerna'},
-    {name:'Hip thrust unilateral',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Banco'},
-    {name:'Monster walk con banda',muscleGroup:'Glúteos',muscles:'Glúteo medio',equipment:'Banda elástica'},
-    {name:'Romanian deadlift unilateral',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Isquiotibiales',equipment:'Mancuerna / Barra'},
-    {name:'Sentadilla lateral con banda',muscleGroup:'Glúteos',muscles:'Glúteo medio',equipment:'Banda elástica'},
-    {name:'Nordcuad inverso (reverse nordics)',muscleGroup:'Glúteos',muscles:'Isquiotibiales, Glúteo mayor',equipment:'Sin material / Apoyo'},
-    {name:'45° hip extension en banco',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Isquiotibiales',equipment:'Banco 45°'},
-    {name:'Puente de glúteo bilateral',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Core',equipment:'Sin material'},
-    {name:'Donkey kicks',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Sin material / Polea'},
-    {name:'Abducción tumbado con banda',muscleGroup:'Glúteos',muscles:'Glúteo medio',equipment:'Banda elástica'},
-    {name:'Hip thrust en máquina',muscleGroup:'Glúteos',muscles:'Glúteo mayor',equipment:'Máquina'},
-    {name:'Single-leg press (glúteo)',muscleGroup:'Glúteos',muscles:'Glúteo mayor, Cuádriceps',equipment:'Máquina prensa'},
-    // ── ISQUIOTIBIALES ────────────────────────────────────────────────────
-    {name:'Curl femoral tumbado',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales (todas las cabezas)',equipment:'Máquina'},
-    {name:'Curl femoral sentado',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales',equipment:'Máquina'},
-    {name:'Curl femoral en polea',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales',equipment:'Polea baja'},
-    {name:'Nordic curl',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales (excéntrico)',equipment:'Sin material / Apoyo'},
-    {name:'Peso muerto con piernas rígidas (SLDL)',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Glúteos, Erectores',equipment:'Barra'},
-    {name:'Glute-ham raise (GHR)',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Glúteos',equipment:'Máquina GHR'},
-    {name:'Good morning con barra',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Erectores, Glúteos',equipment:'Barra'},
-    {name:'Curl con fitball',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Core',equipment:'Fitball'},
-    {name:'Hip hinge con banda elástica',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales, Glúteos',equipment:'Banda elástica'},
-    {name:'Curl femoral con banda (decúbito)',muscleGroup:'Isquiotibiales',muscles:'Isquiotibiales',equipment:'Banda elástica'},
-    // ── PANTORRILLAS ─────────────────────────────────────────────────────
-    {name:'Elevación de talones de pie',muscleGroup:'Pantorrillas',muscles:'Gastrocnemio, Sóleo',equipment:'Sin material / Mancuernas'},
-    {name:'Elevación de talones sentado',muscleGroup:'Pantorrillas',muscles:'Sóleo',equipment:'Máquina / Mancuernas'},
-    {name:'Elevación en leg press',muscleGroup:'Pantorrillas',muscles:'Gastrocnemio, Sóleo',equipment:'Máquina prensa'},
-    {name:'Saltos a la comba',muscleGroup:'Pantorrillas',muscles:'Gastrocnemio, Sóleo, Tibial anterior',equipment:'Comba'},
-    {name:'Elevación unilateral en escalón',muscleGroup:'Pantorrillas',muscles:'Gastrocnemio',equipment:'Escalón'},
-    // ── ABDOMINALES / CORE ────────────────────────────────────────────────
-    {name:'Crunch abdominal',muscleGroup:'Core',muscles:'Recto abdominal',equipment:'Sin material'},
-    {name:'Plancha frontal (plank)',muscleGroup:'Core',muscles:'Core completo, Glúteos, Cuádriceps',equipment:'Sin material'},
-    {name:'Plancha lateral',muscleGroup:'Core',muscles:'Oblicuos, Core lateral',equipment:'Sin material'},
-    {name:'Rueda abdominal (ab wheel)',muscleGroup:'Core',muscles:'Recto abdominal, Oblicuos, Core',equipment:'Rueda abdominal'},
-    {name:'Leg raise tumbado',muscleGroup:'Core',muscles:'Recto abdominal (porción inferior)',equipment:'Sin material'},
-    {name:'Dragon flag',muscleGroup:'Core',muscles:'Recto abdominal (completo)',equipment:'Banco'},
-    {name:'Dead bug',muscleGroup:'Core',muscles:'Recto abdominal, Oblicuos, Multífidos',equipment:'Sin material'},
-    {name:'Pallof press',muscleGroup:'Core',muscles:'Core anti-rotación, Oblicuos',equipment:'Polea'},
-    {name:'Russian twist',muscleGroup:'Core',muscles:'Oblicuos, Recto abdominal',equipment:'Sin material / Disco'},
-    {name:'Hollow body hold',muscleGroup:'Core',muscles:'Recto abdominal, Flexores de cadera',equipment:'Sin material'},
-    {name:'V-up',muscleGroup:'Core',muscles:'Recto abdominal, Flexores de cadera',equipment:'Sin material'},
-    {name:'Hanging leg raise (en barra)',muscleGroup:'Core',muscles:'Recto abdominal inferior, Flexores de cadera',equipment:'Barra dominadas'},
-    {name:'Ab rollout en barra (barbell rollout)',muscleGroup:'Core',muscles:'Core completo, Dorsales, Hombros',equipment:'Barra'},
-    {name:'Stirring the pot (fitball)',muscleGroup:'Core',muscles:'Core completo',equipment:'Fitball'},
-    {name:'Crunch en cable (cuerda)',muscleGroup:'Core',muscles:'Recto abdominal',equipment:'Polea alta + cuerda'},
-    {name:'L-sit',muscleGroup:'Core',muscles:'Core, Flexores de cadera, Cuádriceps, Tríceps',equipment:'Paralelas / Suelo'},
-    {name:'Sit-up',muscleGroup:'Core',muscles:'Recto abdominal, Flexores de cadera',equipment:'Sin material'},
-    {name:'Mountain climber',muscleGroup:'Core',muscles:'Core, Flexores de cadera, Hombros',equipment:'Sin material'},
-    {name:'Vacío abdominal (stomach vacuum)',muscleGroup:'Core',muscles:'Transverso abdominal',equipment:'Sin material'},
-    {name:'Crunch bicicleta',muscleGroup:'Core',muscles:'Recto abdominal, Oblicuos',equipment:'Sin material'}
+    // ── PECHO (20) ────────────────────────────────────────────────────────
+    {n:'Press de banca plano con barra',g:'Pecho',m:'Pectoral mayor, Tríceps, Deltoides anterior',e:'Barra + Banco'},
+    {n:'Press de banca inclinado con barra',g:'Pecho',m:'Pectoral mayor (clavicular), Tríceps',e:'Barra + Banco inclinado'},
+    {n:'Press de banca declinado con barra',g:'Pecho',m:'Pectoral mayor (inferior), Tríceps',e:'Barra + Banco declinado'},
+    {n:'Press con mancuernas plano',g:'Pecho',m:'Pectoral mayor, Tríceps, Deltoides anterior',e:'Mancuernas + Banco'},
+    {n:'Press con mancuernas inclinado',g:'Pecho',m:'Pectoral mayor (clavicular), Tríceps',e:'Mancuernas + Banco inclinado'},
+    {n:'Aperturas con mancuernas plano',g:'Pecho',m:'Pectoral mayor, Bíceps (cab. larga)',e:'Mancuernas + Banco'},
+    {n:'Aperturas con mancuernas inclinado',g:'Pecho',m:'Pectoral mayor (clavicular)',e:'Mancuernas + Banco inclinado'},
+    {n:'Aperturas en polea cruzada (cruce)',g:'Pecho',m:'Pectoral mayor (todas las porciones)',e:'Poleas'},
+    {n:'Cable Fly en polea alta',g:'Pecho',m:'Pectoral mayor (inferior)',e:'Poleas'},
+    {n:'Cable Fly en polea baja',g:'Pecho',m:'Pectoral mayor (clavicular)',e:'Poleas'},
+    {n:'Fondos en paralelas (pecho)',g:'Pecho',m:'Pectoral mayor (inferior), Tríceps',e:'Paralelas'},
+    {n:'Pull-over con mancuerna',g:'Pecho',m:'Pectoral mayor, Dorsal ancho, Serratos',e:'Mancuerna + Banco'},
+    {n:'Press en máquina Pec Deck',g:'Pecho',m:'Pectoral mayor, Coracobraquial',e:'Máquina Pec Deck'},
+    {n:'Press en máquina de pecho',g:'Pecho',m:'Pectoral mayor, Tríceps',e:'Máquina'},
+    {n:'Press en máquina Smith plano',g:'Pecho',m:'Pectoral mayor, Tríceps',e:'Máquina Smith'},
+    {n:'Flexiones (push-ups)',g:'Pecho',m:'Pectoral mayor, Tríceps, Deltoides anterior',e:'Sin material'},
+    {n:'Flexiones con pies elevados',g:'Pecho',m:'Pectoral mayor (clavicular), Tríceps',e:'Banco o silla'},
+    {n:'Press landmine (unilateral)',g:'Pecho',m:'Pectoral mayor, Tríceps, Core',e:'Barra + soporte'},
+    {n:'Press con bandas elásticas',g:'Pecho',m:'Pectoral mayor, Tríceps',e:'Bandas elásticas'},
+    {n:'Press con agarre neutro (mancuernas)',g:'Pecho',m:'Pectoral mayor, Tríceps, Deltoides',e:'Mancuernas + Banco'},
+    // ── ESPALDA (20) ─────────────────────────────────────────────────────
+    {n:'Peso muerto convencional',g:'Espalda',m:'Dorsal, Trapecios, Erectores, Glúteos, Isquiotibiales',e:'Barra'},
+    {n:'Peso muerto sumo',g:'Espalda',m:'Glúteos, Isquiotibiales, Erectores, Aductores',e:'Barra'},
+    {n:'Dominadas (pull-ups) pronadas',g:'Espalda',m:'Dorsal ancho, Bíceps, Romboides',e:'Barra de dominadas'},
+    {n:'Chin-up (dominadas supinas)',g:'Espalda',m:'Bíceps, Dorsal ancho',e:'Barra de dominadas'},
+    {n:'Remo con barra prono',g:'Espalda',m:'Dorsal ancho, Romboides, Trapecios, Bíceps',e:'Barra'},
+    {n:'Remo Pendlay',g:'Espalda',m:'Dorsal, Romboides, Trapecios',e:'Barra'},
+    {n:'Remo T-bar',g:'Espalda',m:'Dorsal, Romboides, Trapecios',e:'T-bar o barra + soporte'},
+    {n:'Remo con mancuerna unilateral',g:'Espalda',m:'Dorsal ancho, Romboides, Bíceps',e:'Mancuerna + Banco'},
+    {n:'Remo en polea baja (cable)',g:'Espalda',m:'Dorsal ancho, Romboides, Bíceps',e:'Polea baja'},
+    {n:'Jalón al pecho en polea (prono)',g:'Espalda',m:'Dorsal ancho, Bíceps, Romboides',e:'Polea alta'},
+    {n:'Jalón con agarre neutro',g:'Espalda',m:'Dorsal ancho, Bíceps',e:'Polea alta'},
+    {n:'Jalón con agarre supino estrecho',g:'Espalda',m:'Dorsal ancho (porción baja), Bíceps',e:'Polea alta'},
+    {n:'Pullover en polea',g:'Espalda',m:'Dorsal ancho, Serrato anterior',e:'Polea alta'},
+    {n:'Face Pull con cuerda',g:'Espalda',m:'Romboides, Deltoides posterior, Rotadores externos',e:'Polea alta'},
+    {n:'Remo invertido (inverted row)',g:'Espalda',m:'Dorsal, Romboides, Bíceps',e:'Barra o TRX'},
+    {n:'Hiperextensiones en banco romano',g:'Espalda',m:'Erectores espinales, Glúteos, Isquiotibiales',e:'Banco romano'},
+    {n:'Good Morning con barra',g:'Espalda',m:'Erectores espinales, Isquiotibiales, Glúteos',e:'Barra'},
+    {n:'Remo en máquina',g:'Espalda',m:'Dorsal, Romboides, Bíceps',e:'Máquina'},
+    {n:'Encogimientos con barra (shrugs)',g:'Espalda',m:'Trapecios superiores',e:'Barra'},
+    {n:'Encogimientos con mancuernas',g:'Espalda',m:'Trapecios superiores',e:'Mancuernas'},
+    // ── HOMBROS (20) ─────────────────────────────────────────────────────
+    {n:'Press militar con barra de pie',g:'Hombros',m:'Deltoides (todas), Tríceps, Trapecios',e:'Barra'},
+    {n:'Press militar con barra sentado',g:'Hombros',m:'Deltoides (todas), Tríceps',e:'Barra + Banco'},
+    {n:'Press con mancuernas sentado',g:'Hombros',m:'Deltoides (todas), Tríceps',e:'Mancuernas + Banco'},
+    {n:'Press Arnold',g:'Hombros',m:'Deltoides (todas), Tríceps, Rotadores',e:'Mancuernas'},
+    {n:'Push press con barra',g:'Hombros',m:'Deltoides, Tríceps, Piernas (impulso)',e:'Barra'},
+    {n:'Elevaciones laterales con mancuernas',g:'Hombros',m:'Deltoides medial',e:'Mancuernas'},
+    {n:'Elevaciones laterales en polea baja',g:'Hombros',m:'Deltoides medial',e:'Polea baja'},
+    {n:'Elevaciones laterales con banda',g:'Hombros',m:'Deltoides medial',e:'Bandas elásticas'},
+    {n:'Elevaciones frontales con mancuernas',g:'Hombros',m:'Deltoides anterior',e:'Mancuernas'},
+    {n:'Elevaciones frontales con disco',g:'Hombros',m:'Deltoides anterior',e:'Disco'},
+    {n:'Pájaros (elevaciones posteriores) con mancuernas',g:'Hombros',m:'Deltoides posterior, Romboides',e:'Mancuernas'},
+    {n:'Pájaros en polea alta',g:'Hombros',m:'Deltoides posterior, Romboides',e:'Poleas'},
+    {n:'Face Pull polea cuerda',g:'Hombros',m:'Deltoides posterior, Rotadores externos, Trapecios',e:'Polea alta'},
+    {n:'Remo al cuello (upright row)',g:'Hombros',m:'Deltoides, Trapecios',e:'Barra o Mancuernas'},
+    {n:'Cuban press con mancuernas',g:'Hombros',m:'Rotadores externos, Deltoides posterior',e:'Mancuernas'},
+    {n:'W-raise con mancuernas',g:'Hombros',m:'Deltoides posterior, Romboides, Rotadores',e:'Mancuernas'},
+    {n:'Band pull-apart',g:'Hombros',m:'Deltoides posterior, Romboides',e:'Bandas elásticas'},
+    {n:'Press en máquina de hombros',g:'Hombros',m:'Deltoides, Tríceps',e:'Máquina'},
+    {n:'Elevaciones laterales 21s',g:'Hombros',m:'Deltoides medial',e:'Mancuernas'},
+    {n:'Handstand push-up (pino)',g:'Hombros',m:'Deltoides, Tríceps, Core',e:'Sin material'},
+    // ── BÍCEPS (20) ──────────────────────────────────────────────────────
+    {n:'Curl con barra recta',g:'Bíceps',m:'Bíceps braquial, Braquial anterior',e:'Barra'},
+    {n:'Curl con barra Z (EZ)',g:'Bíceps',m:'Bíceps braquial, Braquial',e:'Barra EZ'},
+    {n:'Curl con mancuernas alterno',g:'Bíceps',m:'Bíceps braquial, Braquioradial',e:'Mancuernas'},
+    {n:'Curl con mancuernas simultáneo',g:'Bíceps',m:'Bíceps braquial',e:'Mancuernas'},
+    {n:'Curl martillo con mancuernas',g:'Bíceps',m:'Braquioradial, Bíceps, Braquial',e:'Mancuernas'},
+    {n:'Curl martillo en polea',g:'Bíceps',m:'Braquioradial, Bíceps',e:'Polea baja'},
+    {n:'Curl en banco Scott con barra EZ',g:'Bíceps',m:'Bíceps (cabeza corta), Braquial',e:'Banco predicador + Barra EZ'},
+    {n:'Curl concentrado con mancuerna',g:'Bíceps',m:'Bíceps braquial (pico)',e:'Mancuerna'},
+    {n:'Curl araña (spider curl)',g:'Bíceps',m:'Bíceps braquial (cabeza larga)',e:'Banco inclinado + Barra o Mancuernas'},
+    {n:'Curl en banco inclinado',g:'Bíceps',m:'Bíceps (cabeza larga), Braquial',e:'Banco inclinado + Mancuernas'},
+    {n:'Curl Zottman',g:'Bíceps',m:'Bíceps, Braquioradial, Braquial',e:'Mancuernas'},
+    {n:'Curl inverso (reverse curl)',g:'Bíceps',m:'Braquioradial, Bíceps, Extensores antebrazo',e:'Barra o Mancuernas'},
+    {n:'Curl en polea alta (cara)',g:'Bíceps',m:'Bíceps braquial',e:'Polea alta'},
+    {n:'Curl bayesian en polea baja',g:'Bíceps',m:'Bíceps (cabeza larga)',e:'Polea baja'},
+    {n:'Curl en polea bilateral',g:'Bíceps',m:'Bíceps braquial',e:'Poleas'},
+    {n:'Drag curl con barra',g:'Bíceps',m:'Bíceps (cabeza larga)',e:'Barra'},
+    {n:'Curl 21s con barra',g:'Bíceps',m:'Bíceps braquial (arco completo)',e:'Barra'},
+    {n:'Curl con banda elástica',g:'Bíceps',m:'Bíceps braquial',e:'Bandas elásticas'},
+    {n:'Curl con TRX',g:'Bíceps',m:'Bíceps, Braquial',e:'TRX'},
+    {n:'Curl con kettlebell',g:'Bíceps',m:'Bíceps, Braquial',e:'Kettlebell'},
+    // ── TRÍCEPS (20) ─────────────────────────────────────────────────────
+    {n:'Press francés con barra EZ',g:'Tríceps',m:'Tríceps (cabeza larga)',e:'Barra EZ + Banco'},
+    {n:'Skull crusher con barra recta',g:'Tríceps',m:'Tríceps braquial (cabeza larga)',e:'Barra + Banco'},
+    {n:'Press california con barra EZ',g:'Tríceps',m:'Tríceps (cabeza larga)',e:'Barra EZ + Banco'},
+    {n:'Press JM',g:'Tríceps',m:'Tríceps (todas las cabezas)',e:'Barra + Banco'},
+    {n:'Press de banca agarre cerrado',g:'Tríceps',m:'Tríceps, Pectoral, Deltoides anterior',e:'Barra + Banco'},
+    {n:'Fondos en paralelas (tríceps)',g:'Tríceps',m:'Tríceps (todas las cabezas)',e:'Paralelas'},
+    {n:'Dips en banco (bench dips)',g:'Tríceps',m:'Tríceps, Deltoides anterior',e:'Banco'},
+    {n:'Push-down con cuerda en polea',g:'Tríceps',m:'Tríceps (cabeza lateral)',e:'Polea alta'},
+    {n:'Push-down con barra recta en polea',g:'Tríceps',m:'Tríceps (cabeza lateral y medial)',e:'Polea alta'},
+    {n:'Extensión de tríceps sobre la cabeza con mancuerna',g:'Tríceps',m:'Tríceps (cabeza larga)',e:'Mancuerna'},
+    {n:'Extensión de tríceps sobre la cabeza en polea',g:'Tríceps',m:'Tríceps (cabeza larga)',e:'Polea baja'},
+    {n:'Extensión unilateral en polea alta',g:'Tríceps',m:'Tríceps',e:'Polea alta'},
+    {n:'Patadas de tríceps (kickbacks)',g:'Tríceps',m:'Tríceps (cabeza lateral y medial)',e:'Mancuerna'},
+    {n:'Rolling extension con mancuernas',g:'Tríceps',m:'Tríceps (cabeza larga)',e:'Mancuernas + Banco'},
+    {n:'Extensión inclinada sobre la cabeza en polea',g:'Tríceps',m:'Tríceps (cabeza larga)',e:'Polea baja'},
+    {n:'Extensión de tríceps en máquina',g:'Tríceps',m:'Tríceps (todas las cabezas)',e:'Máquina'},
+    {n:'Flexiones diamante',g:'Tríceps',m:'Tríceps, Pectoral',e:'Sin material'},
+    {n:'Extensión con banda elástica',g:'Tríceps',m:'Tríceps',e:'Bandas elásticas'},
+    {n:'Press con mancuernas agarre neutro cerrado',g:'Tríceps',m:'Tríceps, Pectoral',e:'Mancuernas + Banco'},
+    {n:'Kickback en polea baja',g:'Tríceps',m:'Tríceps (cabeza larga)',e:'Polea baja'},
+    // ── PIERNAS / CUÁDRICEPS (20) ─────────────────────────────────────────
+    {n:'Sentadilla con barra (back squat)',g:'Piernas',m:'Cuádriceps, Glúteos, Isquiotibiales, Core',e:'Barra + Rack'},
+    {n:'Sentadilla frontal (front squat)',g:'Piernas',m:'Cuádriceps (énfasis), Glúteos, Core',e:'Barra + Rack'},
+    {n:'Sentadilla goblet',g:'Piernas',m:'Cuádriceps, Glúteos, Core',e:'Kettlebell o Mancuerna'},
+    {n:'Sentadilla búlgara (RFESS)',g:'Piernas',m:'Cuádriceps, Glúteos, Estabilizadores',e:'Mancuernas + Banco'},
+    {n:'Sentadilla sumo con barra',g:'Piernas',m:'Aductores, Glúteos, Cuádriceps',e:'Barra'},
+    {n:'Sentadilla en máquina Smith',g:'Piernas',m:'Cuádriceps, Glúteos',e:'Máquina Smith'},
+    {n:'Sentadilla con bandas',g:'Piernas',m:'Cuádriceps, Glúteos',e:'Bandas elásticas'},
+    {n:'Pistol squat (sentadilla unilateral)',g:'Piernas',m:'Cuádriceps, Glúteos, Estabilizadores',e:'Sin material'},
+    {n:'Hack squat en máquina',g:'Piernas',m:'Cuádriceps (vasto medial y lateral)',e:'Máquina hack squat'},
+    {n:'Prensa de piernas bilateral',g:'Piernas',m:'Cuádriceps, Glúteos, Isquiotibiales',e:'Máquina prensa'},
+    {n:'Prensa de piernas unilateral',g:'Piernas',m:'Cuádriceps, Glúteos',e:'Máquina prensa'},
+    {n:'Extensión de cuádriceps en máquina',g:'Piernas',m:'Cuádriceps (recto femoral, vastos)',e:'Máquina extensora'},
+    {n:'Zancadas con mancuernas (caminando)',g:'Piernas',m:'Cuádriceps, Glúteos, Isquiotibiales',e:'Mancuernas'},
+    {n:'Zancada inversa con mancuernas',g:'Piernas',m:'Cuádriceps, Glúteos',e:'Mancuernas'},
+    {n:'Step-up en cajón con mancuernas',g:'Piernas',m:'Cuádriceps, Glúteos',e:'Cajón + Mancuernas'},
+    {n:'Sissy squat',g:'Piernas',m:'Cuádriceps (recto femoral)',e:'Sin material o Máquina'},
+    {n:'Split squat con barra',g:'Piernas',m:'Cuádriceps, Glúteos',e:'Barra'},
+    {n:'Sentadilla overhead con barra',g:'Piernas',m:'Cuádriceps, Glúteos, Hombros, Core',e:'Barra'},
+    {n:'Wall squat (sentadilla en pared)',g:'Piernas',m:'Cuádriceps',e:'Sin material'},
+    {n:'Extensión de pierna con banda',g:'Piernas',m:'Cuádriceps',e:'Bandas elásticas'},
+    // ── GLÚTEOS (20) ─────────────────────────────────────────────────────
+    {n:'Hip thrust con barra',g:'Glúteos',m:'Glúteo mayor, Isquiotibiales, Core',e:'Barra + Banco'},
+    {n:'Hip thrust unilateral',g:'Glúteos',m:'Glúteo mayor',e:'Banco'},
+    {n:'Hip thrust en máquina',g:'Glúteos',m:'Glúteo mayor',e:'Máquina'},
+    {n:'Puente de glúteo bilateral',g:'Glúteos',m:'Glúteo mayor, Core',e:'Sin material'},
+    {n:'Frog pump',g:'Glúteos',m:'Glúteo mayor',e:'Sin material'},
+    {n:'Peso muerto rumano bilateral',g:'Glúteos',m:'Glúteo mayor, Isquiotibiales',e:'Barra o Mancuernas'},
+    {n:'Peso muerto rumano unilateral',g:'Glúteos',m:'Glúteo mayor, Isquiotibiales, Estabilizadores',e:'Mancuerna o Barra'},
+    {n:'Good morning con barra',g:'Glúteos',m:'Glúteos, Isquiotibiales, Erectores',e:'Barra'},
+    {n:'Patada de glúteo en máquina',g:'Glúteos',m:'Glúteo mayor',e:'Máquina o Polea baja'},
+    {n:'Cable kickback en polea baja',g:'Glúteos',m:'Glúteo mayor',e:'Polea baja'},
+    {n:'Donkey kicks en suelo',g:'Glúteos',m:'Glúteo mayor',e:'Sin material'},
+    {n:'Abducción de cadera en máquina',g:'Glúteos',m:'Glúteo medio y menor',e:'Máquina'},
+    {n:'Zancada lateral con mancuerna',g:'Glúteos',m:'Glúteo medio, Aductores',e:'Mancuerna'},
+    {n:'Monster walk con banda',g:'Glúteos',m:'Glúteo medio',e:'Bandas elásticas'},
+    {n:'Abducción tumbado con banda',g:'Glúteos',m:'Glúteo medio',e:'Bandas elásticas'},
+    {n:'Single-leg press (glúteo)',g:'Glúteos',m:'Glúteo mayor, Cuádriceps',e:'Máquina prensa'},
+    {n:'45° hip extension en banco',g:'Glúteos',m:'Glúteo mayor, Isquiotibiales',e:'Banco 45°'},
+    {n:'Sentadilla sumo profunda con kettlebell',g:'Glúteos',m:'Glúteos, Aductores, Cuádriceps',e:'Kettlebell'},
+    {n:'Sentadilla lateral con banda',g:'Glúteos',m:'Glúteo medio',e:'Bandas elásticas'},
+    {n:'Reverse nordics',g:'Glúteos',m:'Isquiotibiales, Glúteo mayor',e:'Sin material'},
+    // ── ISQUIOTIBIALES (15) ───────────────────────────────────────────────
+    {n:'Curl femoral tumbado en máquina',g:'Isquiotibiales',m:'Isquiotibiales (todas las cabezas)',e:'Máquina'},
+    {n:'Curl femoral sentado en máquina',g:'Isquiotibiales',m:'Isquiotibiales',e:'Máquina'},
+    {n:'Curl femoral en polea baja',g:'Isquiotibiales',m:'Isquiotibiales',e:'Polea baja'},
+    {n:'Nordic curl',g:'Isquiotibiales',m:'Isquiotibiales (excéntrico)',e:'Sin material o Apoyo fijo'},
+    {n:'Peso muerto con piernas rígidas (SLDL)',g:'Isquiotibiales',m:'Isquiotibiales, Glúteos, Erectores',e:'Barra'},
+    {n:'Glute-ham raise (GHR)',g:'Isquiotibiales',m:'Isquiotibiales, Glúteos',e:'Máquina GHR'},
+    {n:'Curl con fitball',g:'Isquiotibiales',m:'Isquiotibiales, Core',e:'Fitball'},
+    {n:'Hip hinge con banda elástica',g:'Isquiotibiales',m:'Isquiotibiales, Glúteos',e:'Bandas elásticas'},
+    {n:'Curl femoral con banda (decúbito)',g:'Isquiotibiales',m:'Isquiotibiales',e:'Bandas elásticas'},
+    {n:'Peso muerto rumano con barra (énfasis isquio)',g:'Isquiotibiales',m:'Isquiotibiales, Glúteos, Erectores',e:'Barra'},
+    {n:'Sentadilla hack con barra (isquio)',g:'Isquiotibiales',m:'Isquiotibiales, Glúteos',e:'Barra'},
+    {n:'Curl en polea alta (de pie)',g:'Isquiotibiales',m:'Isquiotibiales',e:'Polea alta'},
+    {n:'Buenos días con banda',g:'Isquiotibiales',m:'Isquiotibiales, Glúteos, Erectores',e:'Bandas elásticas'},
+    {n:'Step-up con mancuernas (énfasis isquio)',g:'Isquiotibiales',m:'Isquiotibiales, Glúteos',e:'Cajón + Mancuernas'},
+    {n:'Zancada con paso largo (énfasis isquio)',g:'Isquiotibiales',m:'Isquiotibiales, Glúteos',e:'Sin material o Mancuernas'},
+    // ── GEMELOS (10) ─────────────────────────────────────────────────────
+    {n:'Elevación de talones de pie con barra',g:'Gemelos',m:'Gastrocnemio, Sóleo',e:'Barra + Rack'},
+    {n:'Elevación de talones de pie con mancuernas',g:'Gemelos',m:'Gastrocnemio, Sóleo',e:'Mancuernas'},
+    {n:'Elevación de talones sentado en máquina',g:'Gemelos',m:'Sóleo (énfasis)',e:'Máquina'},
+    {n:'Elevación de talones en prensa de piernas',g:'Gemelos',m:'Gastrocnemio, Sóleo',e:'Máquina prensa'},
+    {n:'Elevación unilateral en escalón',g:'Gemelos',m:'Gastrocnemio',e:'Escalón'},
+    {n:'Saltos a la comba',g:'Gemelos',m:'Gastrocnemio, Sóleo, Tibial anterior',e:'Comba'},
+    {n:'Elevación de talones con banda',g:'Gemelos',m:'Gastrocnemio, Sóleo',e:'Bandas elásticas'},
+    {n:'Elevación de talones en máquina (de pie)',g:'Gemelos',m:'Gastrocnemio, Sóleo',e:'Máquina gemelos'},
+    {n:'Elevación de punta de pies (tibial)',g:'Gemelos',m:'Tibial anterior',e:'Sin material'},
+    {n:'Saltos de cajón (box jumps)',g:'Gemelos',m:'Gemelos, Cuádriceps, Glúteos',e:'Cajón pliométrico'},
+    // ── CORE / ABDOMINALES (20) ───────────────────────────────────────────
+    {n:'Crunch abdominal clásico',g:'Core',m:'Recto abdominal',e:'Sin material'},
+    {n:'Crunch bicicleta',g:'Core',m:'Recto abdominal, Oblicuos',e:'Sin material'},
+    {n:'Crunch en cable con cuerda',g:'Core',m:'Recto abdominal',e:'Polea alta'},
+    {n:'Plancha frontal (plank)',g:'Core',m:'Core completo, Glúteos, Cuádriceps',e:'Sin material'},
+    {n:'Plancha lateral',g:'Core',m:'Oblicuos, Core lateral',e:'Sin material'},
+    {n:'Rueda abdominal (ab wheel)',g:'Core',m:'Recto abdominal, Oblicuos, Core',e:'Rueda abdominal'},
+    {n:'Barbell rollout',g:'Core',m:'Core completo, Dorsales, Hombros',e:'Barra'},
+    {n:'Leg raise tumbado',g:'Core',m:'Recto abdominal (porción inferior)',e:'Sin material'},
+    {n:'Hanging leg raise en barra',g:'Core',m:'Recto abdominal inferior, Flexores de cadera',e:'Barra de dominadas'},
+    {n:'Dragon flag',g:'Core',m:'Recto abdominal (completo)',e:'Banco'},
+    {n:'Dead bug',g:'Core',m:'Recto abdominal, Oblicuos, Multífidos',e:'Sin material'},
+    {n:'Pallof press con polea',g:'Core',m:'Core anti-rotación, Oblicuos',e:'Polea'},
+    {n:'Russian twist con disco',g:'Core',m:'Oblicuos, Recto abdominal',e:'Disco'},
+    {n:'Hollow body hold',g:'Core',m:'Recto abdominal, Flexores de cadera',e:'Sin material'},
+    {n:'V-up',g:'Core',m:'Recto abdominal, Flexores de cadera',e:'Sin material'},
+    {n:'L-sit en paralelas',g:'Core',m:'Core, Flexores de cadera, Cuádriceps, Tríceps',e:'Paralelas'},
+    {n:'Vacío abdominal (stomach vacuum)',g:'Core',m:'Transverso abdominal',e:'Sin material'},
+    {n:'Stirring the pot en fitball',g:'Core',m:'Core completo',e:'Fitball'},
+    {n:'Sit-up clásico',g:'Core',m:'Recto abdominal, Flexores de cadera',e:'Sin material'},
+    {n:'Mountain climber',g:'Core',m:'Core, Flexores de cadera, Hombros',e:'Sin material'},
+  ,
+    // ── FULL BODY / FUNCIONAL (15) ────────────────────────────────────────
+    {n:'Burpees',g:'Full Body',m:'Cuerpo completo, Cardiovascular',e:'Sin material'},
+    {n:'Kettlebell swing bilateral',g:'Full Body',m:'Glúteos, Isquiotibiales, Core, Hombros',e:'Kettlebell'},
+    {n:'Kettlebell swing unilateral',g:'Full Body',m:'Glúteos, Isquiotibiales, Core',e:'Kettlebell'},
+    {n:'Turkish get-up',g:'Full Body',m:'Hombros, Core, Glúteos, Piernas',e:'Kettlebell o Mancuerna'},
+    {n:'Clean con barra',g:'Full Body',m:'Piernas, Espalda, Hombros, Core',e:'Barra'},
+    {n:'Thruster con barra',g:'Full Body',m:'Deltoides, Cuádriceps, Glúteos, Tríceps',e:'Barra'},
+    {n:'Thruster con mancuernas',g:'Full Body',m:'Deltoides, Cuádriceps, Glúteos, Tríceps',e:'Mancuernas'},
+    {n:'Battle ropes ondas',g:'Full Body',m:'Hombros, Core, Brazos, Cardiovascular',e:'Battle ropes'},
+    {n:'Box jump (salto al cajón)',g:'Full Body',m:'Cuádriceps, Glúteos, Gemelos',e:'Cajón pliométrico'},
+    {n:'Broad jump (salto de longitud)',g:'Full Body',m:'Cuádriceps, Glúteos, Core',e:'Sin material'},
+    {n:'Farmer carry bilateral',g:'Full Body',m:'Trapecios, Core, Antebrazo, Glúteos',e:'Mancuernas o Kettlebells'},
+    {n:'Suitcase carry unilateral',g:'Full Body',m:'Core anti-lateral, Trapecios',e:'Mancuerna o Kettlebell'},
+    {n:'Bear crawl',g:'Full Body',m:'Core, Hombros, Cuádriceps',e:'Sin material'},
+    {n:'Slam con balón medicinal',g:'Full Body',m:'Core, Hombros, Espalda',e:'Balón medicinal'},
+    {n:'Wall ball',g:'Full Body',m:'Cuádriceps, Glúteos, Hombros, Core',e:'Balón medicinal + Pared'}
   ];
-
   EX.forEach(function(ex){
     var existingNames=Object.values(D.exLib||{}).map(function(e){return (e.name||'').toLowerCase();});
-    if(existingNames.indexOf((ex.name||'').toLowerCase())>=0)return;
+    if(existingNames.indexOf((ex.n||'').toLowerCase())>=0)return;
     var id=uid();
-    var entry={id:id,name:ex.name,muscleGroup:ex.muscleGroup,equipment:ex.equipment||'',notes:ex.muscles||''};
+    var entry={id:id,name:ex.n,muscleGroup:ex.g,equipment:ex.e||'',notes:ex.m||''};
     D.exLib[id]=entry;saveFS('exLib',id,entry);
   });
   localStorage.setItem(FLAG,'1');
-  console.log('✅ Biblioteca de ejercicios cargada: '+EX.length+' ejercicios');
+  console.log('\u2705 Biblioteca de ejercicios cargada: '+EX.length+' ejercicios');
 })();
 
-// Click outside any .mol modal to close it
-document.addEventListener('click',function(e){
-  var mols=document.querySelectorAll('.mol');
-  mols.forEach(function(mol){
-    if(mol.style.display!=='flex'&&mol.style.display!=='block')return;
-    if(e.target===mol){mol.style.display='none';}
-  });
-});
-// Click outside any .col overlay to close it
-document.addEventListener('click',function(e){
-  var cols=document.querySelectorAll('.col');
-  cols.forEach(function(col){
-    if(col.style.display!=='flex'&&col.style.display!=='block')return;
-    if(e.target===col){col.style.display='none';}
-  });
-});
-// Click outside dish-cfg-overlay to close it
-document.addEventListener('click',function(e){
-  var d=G('modDCfg');
-  if(d&&(d.style.display==='flex'||d.style.display==='block')&&e.target===d){d.style.display='none';}
-});
-
-// ══ CARDIO ACTIVITY PRELOAD ═══════════════════════════════════════════════════
+// ══ CARDIO ACTIVITY PRELOAD ══════════════════════════════════════════════════════════
 (function preloadCardioActivities(){
   var FLAG='skinny_cardio_v1';
   if(localStorage.getItem(FLAG))return;
   var ACTS=[
     {name:'Correr (cinta)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Gemelos, Core',equipment:'Cinta de correr'},
     {name:'Correr (exterior)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Gemelos',equipment:'Sin material'},
-    {name:'Correr (intervals)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Sistema cardiovascular',equipment:'Sin material / Cinta'},
-    {name:'Ciclismo Indoor (spinning)',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Gemelos',equipment:'Bicicleta estática / Spinning'},
+    {name:'Ciclismo Indoor (spinning)',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Gemelos',equipment:'Bicicleta estática'},
     {name:'Ciclismo exterior',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Core',equipment:'Bicicleta'},
-    {name:'Barre',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Core, Estabilizadores',equipment:'Barra de ballet / Silla'},
+    {name:'Barre',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Core, Estabilizadores',equipment:'Barra de ballet'},
     {name:'Body Pump',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Barra con discos'},
-    {name:'Zumba',muscleGroup:'Cardio',muscles:'Caderas, Core, Piernas, Hombros',equipment:'Sin material'},
+    {name:'Zumba',muscleGroup:'Cardio',muscles:'Caderas, Core, Piernas',equipment:'Sin material'},
     {name:'Body Combat',muscleGroup:'Cardio',muscles:'Core, Brazos, Piernas',equipment:'Sin material'},
-    {name:'Body Balance',muscleGroup:'Full Body',muscles:'Core, Flexibilidad, Equilibrio',equipment:'Sin material'},
-    {name:'Body Step',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Gemelos',equipment:'Step'},
-    {name:'GAP (Glúteos Abdomen Piernas)',muscleGroup:'Piernas',muscles:'Glúteos, Core, Cuádriceps, Isquiotibiales',equipment:'Sin material / Mancuernas'},
-    {name:'HIIT',muscleGroup:'Full Body',muscles:'Cuerpo completo, Sistema cardiovascular',equipment:'Sin material'},
-    {name:'Tabata',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Sin material'},
-    {name:'Circuit Training',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Varía'},
-    {name:'Natación (crol)',muscleGroup:'Cardio',muscles:'Dorsales, Hombros, Core, Tríceps, Piernas',equipment:'Piscina'},
-    {name:'Natación (braza)',muscleGroup:'Cardio',muscles:'Pecho, Hombros, Rodillas, Core',equipment:'Piscina'},
-    {name:'Natación (espalda)',muscleGroup:'Cardio',muscles:'Dorsales, Hombros, Core',equipment:'Piscina'},
-    {name:'Natación (mariposa)',muscleGroup:'Cardio',muscles:'Dorsales, Hombros, Pecho, Core',equipment:'Piscina'},
-    {name:'Aquagym',muscleGroup:'Cardio',muscles:'Cuerpo completo',equipment:'Piscina / Mancuernas de agua'},
-    {name:'Senderismo (hiking)',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Gemelos',equipment:'Sin material / Bastones'},
-    {name:'Senderismo de montaña',muscleGroup:'Cardio',muscles:'Piernas, Glúteos, Core, Resistencia',equipment:'Sin material / Bastones'},
-    {name:'Yoga (Hatha)',muscleGroup:'Full Body',muscles:'Flexibilidad, Core, Estabilizadores',equipment:'Esterilla'},
-    {name:'Yoga (Vinyasa)',muscleGroup:'Full Body',muscles:'Core, Hombros, Cadera, Flexibilidad',equipment:'Esterilla'},
-    {name:'Yoga (Ashtanga)',muscleGroup:'Full Body',muscles:'Core, Hombros, Flexibilidad, Fuerza',equipment:'Esterilla'},
-    {name:'Yoga (Hot/Bikram)',muscleGroup:'Full Body',muscles:'Flexibilidad, Core, Respiración',equipment:'Esterilla'},
+    {name:'Spinning',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales',equipment:'Bicicleta spinning'},
+    {name:'Natación (crol)',muscleGroup:'Cardio',muscles:'Dorsales, Hombros, Core, Tríceps',equipment:'Piscina'},
+    {name:'Senderismo',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Gemelos',equipment:'Sin material'},
+    {name:'Yoga',muscleGroup:'Full Body',muscles:'Flexibilidad, Core, Estabilizadores',equipment:'Esterilla'},
     {name:'Pilates (suelo)',muscleGroup:'Core',muscles:'Core, Transverso abdominal, Estabilizadores',equipment:'Esterilla'},
-    {name:'Pilates (reformer)',muscleGroup:'Full Body',muscles:'Core, Glúteos, Espalda, Hombros',equipment:'Reformer'},
-    {name:'Boxeo (sacos)',muscleGroup:'Full Body',muscles:'Hombros, Core, Brazos, Piernas',equipment:'Saco / Guantes'},
-    {name:'Boxeo (sparring)',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Guantes / Protecciones'},
-    {name:'Kickboxing',muscleGroup:'Full Body',muscles:'Piernas, Core, Brazos',equipment:'Sin material / Guantes'},
-    {name:'CrossFit WOD',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Varía (barra, kettlebell, etc.)'},
-    {name:'Escalada en roca',muscleGroup:'Full Body',muscles:'Antebrazos, Espalda, Core, Hombros, Piernas',equipment:'Pies de gato / Arnés'},
-    {name:'Escalada en rocódromo',muscleGroup:'Full Body',muscles:'Antebrazos, Dorsales, Core, Hombros',equipment:'Pies de gato'},
-    {name:'Remo en máquina (ergómetro)',muscleGroup:'Full Body',muscles:'Espalda, Piernas, Brazos, Core',equipment:'Máquina de remo'},
-    {name:'Remo en agua',muscleGroup:'Full Body',muscles:'Espalda, Hombros, Bíceps, Core, Piernas',equipment:'Remo / Kayak'},
-    {name:'Elíptica',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales, Hombros',equipment:'Máquina elíptica'},
-    {name:'Escaladora (StairMaster)',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Gemelos',equipment:'Escaladora'},
-    {name:'Caminata rápida',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Gemelos',equipment:'Sin material'},
-    {name:'Caminata nórdica',muscleGroup:'Full Body',muscles:'Piernas, Core, Brazos, Hombros',equipment:'Bastones nórdicos'},
-    {name:'Baile (salsa)',muscleGroup:'Cardio',muscles:'Caderas, Piernas, Core',equipment:'Sin material'},
-    {name:'Baile (bachata)',muscleGroup:'Cardio',muscles:'Caderas, Piernas, Core',equipment:'Sin material'},
-    {name:'Baile (hip hop)',muscleGroup:'Cardio',muscles:'Piernas, Core, Coordinación',equipment:'Sin material'},
-    {name:'Baile (flamenco)',muscleGroup:'Cardio',muscles:'Piernas, Core, Brazos',equipment:'Sin material / Zapatos de baile'},
-    {name:'Patinaje (inline)',muscleGroup:'Cardio',muscles:'Glúteos, Abductores, Cuádriceps, Gemelos',equipment:'Patines'},
-    {name:'Patinaje sobre hielo',muscleGroup:'Cardio',muscles:'Glúteos, Abductores, Core, Piernas',equipment:'Patines de hielo'},
-    {name:'Esquí alpino',muscleGroup:'Piernas',muscles:'Cuádriceps, Glúteos, Core, Isquiotibiales',equipment:'Esquís / Botas'},
-    {name:'Snowboard',muscleGroup:'Full Body',muscles:'Core, Piernas, Equilibrio',equipment:'Snowboard / Botas'},
-    {name:'Surf',muscleGroup:'Full Body',muscles:'Core, Hombros, Dorsales, Equilibrio',equipment:'Tabla de surf'},
-    {name:'Paddle surf (SUP)',muscleGroup:'Full Body',muscles:'Core, Hombros, Dorsales, Piernas',equipment:'Tabla SUP + remo'},
-    {name:'Tenis',muscleGroup:'Full Body',muscles:'Hombro dominante, Core, Piernas, Muñeca',equipment:'Raqueta'},
-    {name:'Pádel',muscleGroup:'Full Body',muscles:'Hombros, Core, Piernas, Muñeca',equipment:'Pala de pádel'},
-    {name:'Bádminton',muscleGroup:'Cardio',muscles:'Hombros, Core, Piernas, Muñeca',equipment:'Raqueta'},
-    {name:'Fútbol',muscleGroup:'Cardio',muscles:'Piernas, Core, Coordinación',equipment:'Sin material / Balón'},
-    {name:'Baloncesto',muscleGroup:'Full Body',muscles:'Piernas, Core, Brazos',equipment:'Sin material / Balón'},
-    {name:'Voleibol',muscleGroup:'Full Body',muscles:'Hombros, Core, Piernas',equipment:'Sin material / Balón'},
-    {name:'Artes marciales (karate)',muscleGroup:'Full Body',muscles:'Core, Piernas, Brazos, Flexibilidad',equipment:'Sin material / Kimono'},
-    {name:'Artes marciales (judo)',muscleGroup:'Full Body',muscles:'Core, Espalda, Piernas, Agarre',equipment:'Tatami / Judogui'},
-    {name:'Taekwondo',muscleGroup:'Full Body',muscles:'Piernas, Core, Coordinación',equipment:'Sin material / Protecciones'},
-    {name:'Jump rope / Comba',muscleGroup:'Cardio',muscles:'Gemelos, Core, Coordinación, Hombros',equipment:'Comba'},
-    {name:'Batalla de cuerdas (Battle ropes)',muscleGroup:'Full Body',muscles:'Hombros, Core, Brazos, Cardiovascular',equipment:'Battle ropes'},
-    {name:'TRX cardiovascular',muscleGroup:'Full Body',muscles:'Core, Hombros, Piernas',equipment:'TRX'},
-    {name:'Kettlebell Swing',muscleGroup:'Full Body',muscles:'Glúteos, Isquiotibiales, Core, Hombros',equipment:'Kettlebell'},
-    {name:'Jumping jacks',muscleGroup:'Cardio',muscles:'Piernas, Core, Hombros',equipment:'Sin material'},
-    {name:'Burpees',muscleGroup:'Full Body',muscles:'Cuerpo completo, Cardiovascular',equipment:'Sin material'},
-    {name:'Mountain climbers',muscleGroup:'Cardio',muscles:'Core, Hombros, Piernas',equipment:'Sin material'},
-    {name:'Step aeróbico',muscleGroup:'Cardio',muscles:'Glúteos, Cuádriceps, Gemelos',equipment:'Step'},
-    {name:'Pole dance (fitness)',muscleGroup:'Full Body',muscles:'Hombros, Core, Brazos, Piernas',equipment:'Barra vertical'},
-    {name:'Bicicleta de carga (cargo bike)',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos',equipment:'Bicicleta de carga'},
-    {name:'Natación con aletas',muscleGroup:'Cardio',muscles:'Gemelos, Cuádriceps, Core',equipment:'Piscina + aletas'},
-    {name:'Golf (18 hoyos a pie)',muscleGroup:'Cardio',muscles:'Core, Caderas, Hombros',equipment:'Palos de golf'},
-    {name:'Voleibol playa',muscleGroup:'Full Body',muscles:'Piernas, Hombros, Core',equipment:'Sin material / Red'},
+    {name:'Boxeo',muscleGroup:'Full Body',muscles:'Hombros, Core, Brazos, Piernas',equipment:'Guantes'},
+    {name:'CrossFit WOD',muscleGroup:'Full Body',muscles:'Cuerpo completo',equipment:'Varía'},
+    {name:'Escalada',muscleGroup:'Full Body',muscles:'Antebrazos, Espalda, Core, Hombros',equipment:'Pies de gato'},
+    {name:'Remo (ergómetro)',muscleGroup:'Full Body',muscles:'Espalda, Piernas, Brazos, Core',equipment:'Máquina de remo'},
+    {name:'Elíptica',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Isquiotibiales',equipment:'Máquina elíptica'},
+    {name:'Caminata',muscleGroup:'Cardio',muscles:'Cuádriceps, Glúteos, Gemelos',equipment:'Sin material'},
+    {name:'Baile',muscleGroup:'Cardio',muscles:'Caderas, Piernas, Core, Coordinación',equipment:'Sin material'}
   ];
-  ACTS.forEach(function(ex){
+  ACTS.forEach(function(act){
+    var existingNames=Object.values(D.exLib||{}).map(function(e){return (e.name||'').toLowerCase();});
+    if(existingNames.indexOf((act.name||'').toLowerCase())>=0)return;
     var id=uid();
-    var entry={id:id,name:ex.name,muscleGroup:ex.muscleGroup,equipment:ex.equipment,notes:ex.muscles};
+    var entry={id:id,name:act.name,muscleGroup:act.muscleGroup,equipment:act.equipment||'',notes:act.muscles||''};
     D.exLib[id]=entry;saveFS('exLib',id,entry);
   });
   localStorage.setItem(FLAG,'1');
-  console.log('✅ Actividades cardio cargadas: '+ACTS.length);
 })();
+
+
+// ══ DEDUPLICAR EJERCICIOS (ejecuta una vez) ═══════════════════════════════════
+(function deduplicateExLib(){
+  if(!D.exLib)return;
+  var seen={};
+  var toDelete=[];
+  Object.values(D.exLib).forEach(function(ex){
+    var key=(ex.name||'').toLowerCase().trim();
+    if(seen[key]){
+      toDelete.push(ex.id);
+    }else{
+      seen[key]=true;
+    }
+  });
+  if(toDelete.length>0){
+    toDelete.forEach(function(id){
+      delete D.exLib[id];
+      delFS('exLib',id);
+    });
+    console.log('🧹 Ejercicios duplicados eliminados: '+toDelete.length);
+  }
+})();
+
 renderCal();
 });
 </script>
