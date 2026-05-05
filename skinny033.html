@@ -4909,23 +4909,38 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
     {n:'Slam con balón medicinal',g:'Full Body',m:'Core, Hombros, Espalda',e:'Balón medicinal'},
     {n:'Wall ball',g:'Full Body',m:'Cuádriceps, Glúteos, Hombros, Core',e:'Balón medicinal + Pared'}
   ];
-  var _existingNames=Object.values(D.exLib||{}).map(function(e){return (e.name||'').toLowerCase();});
-  EX.forEach(function(ex){
-    var nm=(ex.n||'').toLowerCase();
-    if(_existingNames.indexOf(nm)>=0)return;
-    var id=uid();
-    var entry={id:id,name:ex.n,muscleGroup:ex.g,equipment:ex.e||'',notes:ex.m||''};
-    D.exLib[id]=entry;saveFS('exLib',id,entry);
-    _existingNames.push(nm);
-  });
-  localStorage.setItem(FLAG,'1');
-  console.log('\u2705 Biblioteca de ejercicios cargada: '+EX.length+' ejercicios');
+  function _doLoad(){
+    var existing=Object.values(D.exLib||{}).map(function(e){return (e.name||'').toLowerCase();});
+    var added=0;
+    EX.forEach(function(ex){
+      var nm=(ex.n||'').toLowerCase();
+      if(existing.indexOf(nm)>=0)return;
+      var id=uid();
+      var entry={id:id,name:ex.n,muscleGroup:ex.g,equipment:ex.e||'',notes:ex.m||''};
+      D.exLib[id]=entry;saveFS('exLib',id,entry);
+      existing.push(nm);added++;
+    });
+    localStorage.setItem(FLAG,'1');
+    if(useFS&&db){db.collection('_app_config').doc('exlib_v7').set({done:true}).catch(function(){});}
+  }
+  if(useFS&&db){
+    // Check Firebase: if already loaded globally, just mark local and skip
+    db.collection('_app_config').doc('exlib_v7').get().then(function(doc){
+      if(doc.exists&&doc.data()&&doc.data().done){localStorage.setItem(FLAG,'1');return;}
+      // Wait 4s for Firebase to populate D.exLib before checking duplicates
+      setTimeout(_doLoad,4000);
+    }).catch(function(){setTimeout(_doLoad,4000);});
+  }else{
+    setTimeout(_doLoad,500);
+  }
 })();
 
 // ══ CARDIO ACTIVITY PRELOAD ══════════════════════════════════════════════════════════
 (function preloadCardioActivities(){
   var FLAG='skinny_cardio_v3';
   if(localStorage.getItem(FLAG))return;
+  // Skip if Firebase says cardio already loaded
+  if(useFS&&db){db.collection('_app_config').doc('cardio_loaded').get().then(function(doc){if(doc.exists){localStorage.setItem(FLAG,'1');}}).catch(function(){});}
   var ACTS=[
     {name:'Correr (cinta)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Gemelos, Core',equipment:'Cinta de correr'},
     {name:'Correr (exterior)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Gemelos',equipment:'Sin material'},
@@ -4973,8 +4988,6 @@ setTimeout(function(){
 
 // ══ DEDUP EJERCICIOS — una vez por sesión ═════════════════════════════════════
 function runExLibDedup(){
-  if(sessionStorage.getItem('exdedup_done'))return;
-  sessionStorage.setItem('exdedup_done','1');
   if(!D.exLib)return;
   var byName={};
   Object.values(D.exLib).forEach(function(ex){
@@ -4987,11 +5000,13 @@ function runExLibDedup(){
     ids.sort();ids.slice(1).forEach(function(id){toDelete.push(id);});
   });
   if(!toDelete.length)return;
+  // Found duplicates — delete them all at once
   toDelete.forEach(function(id){
     delete D.exLib[id];
     if(useFS&&db){db.collection(pfx('exLib')).doc(id).delete().catch(function(){});}
   });
   lsSave();
+  renderLib();
 }
 renderCal();
 });
