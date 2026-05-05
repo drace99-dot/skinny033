@@ -1298,16 +1298,7 @@ function getAdminCreds(){
   var c=null;try{c=JSON.parse(localStorage.getItem('s033_admin')||'null');}catch(e){}
   return c||{username:'a',password:'a'};
 }
-// Sync admin creds from Firebase
-function syncAdminCredsFromFS(){
-  if(!useFS||!db)return;
-  db.collection('_app_config').doc('admin').get().then(function(doc){
-    if(doc.exists&&doc.data()&&doc.data().username){
-      try{localStorage.setItem('s033_admin',JSON.stringify({username:doc.data().username,password:doc.data().password}));}catch(e){}
-    }
-  }).catch(function(){});
-}
-syncAdminCredsFromFS();
+// Admin creds synced via onSnapshot in syncConfigFromFS()
 function saveAdminCreds(u,p){
   try{localStorage.setItem('s033_admin',JSON.stringify({username:u,password:p}));}catch(e){}
   if(useFS&&db){db.collection('_app_config').doc('admin').set({username:u,password:p}).catch(function(){});}
@@ -1321,21 +1312,26 @@ function getProfiles(){
   }
   return stored;
 }
-// Sync profiles from Firebase on load (so new devices get latest profiles)
-function syncProfilesFromFS(){
+// Real-time sync: profiles and admin creds via onSnapshot
+function syncConfigFromFS(){
   if(!useFS||!db)return;
-  db.collection('_app_config').doc('profiles').get().then(function(doc){
+  // Profiles — live updates
+  db.collection('_app_config').doc('profiles').onSnapshot(function(doc){
     if(doc.exists&&doc.data()&&doc.data().list){
-      var fsProfiles=doc.data().list;
-      // Merge: local + remote, dedup by username
-      var local=[];try{local=JSON.parse(localStorage.getItem('s033_profiles')||'[]');}catch(e){}
-      var merged=JSON.parse(JSON.stringify(fsProfiles));
-      local.forEach(function(lp){if(!merged.some(function(m){return m.username===lp.username;})){merged.push(lp);}});
-      try{localStorage.setItem('s033_profiles',JSON.stringify(merged));}catch(e){}
+      try{localStorage.setItem('s033_profiles',JSON.stringify(doc.data().list));}catch(e){}
+      // If admin switch bar is visible, refresh it
+      if(isAdminSession)renderAdminSwitchBar();
+      if(isAdminSession)renderAdminPanel();
     }
-  }).catch(function(){});
+  },function(){});
+  // Admin creds — live updates
+  db.collection('_app_config').doc('admin').onSnapshot(function(doc){
+    if(doc.exists&&doc.data()&&doc.data().username){
+      try{localStorage.setItem('s033_admin',JSON.stringify({username:doc.data().username,password:doc.data().password}));}catch(e){}
+    }
+  },function(){});
 }
-syncProfilesFromFS();
+syncConfigFromFS();
 function saveProfiles(profiles){
   try{localStorage.setItem('s033_profiles',JSON.stringify(profiles));}catch(e){}
   // Also sync to Firebase so other devices can log in
@@ -1346,24 +1342,61 @@ function resetD(){return {workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{
 
 G('loading').style.display='none';G('login').style.display='flex';
 
+function _enterProfile(found){
+  currentProfile=found;isAdminSession=false;
+  G('login').style.display='none';G('app').style.display='flex';
+  var navLogo=document.querySelector('.nav-logo');if(navLogo)navLogo.textContent='S033 · '+found.name;
+  D=resetD();subData();
+}
+
 function doLogin(){
   var u=G('lu').value.trim(),p=G('lp').value;
-  // Admin check
-  var _adm=getAdminCreds();if(u===_adm.username&&p===_adm.password){
-    G('login').style.display='none';renderAdminPanel();G('adminPanel').style.display='flex';return;
+  if(!u||!p)return;
+  G('lerr').textContent='';
+  var lerr=G('lerr');
+
+  // Step 1: check Firebase for admin creds live
+  function tryAdminAndProfiles(adminCreds,profiles){
+    // Admin check
+    if(u===adminCreds.username&&p===adminCreds.password){
+      G('login').style.display='none';renderAdminPanel();G('adminPanel').style.display='flex';return true;
+    }
+    // Profile check
+    var found=null;
+    for(var i=0;i<profiles.length;i++){if(profiles[i].username===u&&profiles[i].password===p){found=profiles[i];break;}}
+    if(found){_enterProfile(found);return true;}
+    return false;
   }
-  // Profile check
-  var profiles=getProfiles();
-  var found=null;
-  for(var i=0;i<profiles.length;i++){if(profiles[i].username===u&&profiles[i].password===p){found=profiles[i];break;}}
-  if(found){
-    currentProfile=found;isAdminSession=false;
-    G('login').style.display='none';G('app').style.display='flex';
-    // Show profile name in nav
-    var navLogo=document.querySelector('.nav-logo');if(navLogo)navLogo.textContent='S033 · '+found.name;
-    D=resetD();subData();
-  } else {
-    G('lerr').textContent='Credenciales incorrectas';setTimeout(function(){G('lerr').textContent='';},2500);
+
+  // First try local (instant UX)
+  var localAdm=getAdminCreds();
+  var localProfiles=getProfiles();
+  if(tryAdminAndProfiles(localAdm,localProfiles))return;
+
+  // Not found locally — try Firebase (handles new device / updated creds)
+  if(useFS&&db){
+    lerr.textContent='Verificando...';
+    var adminProm=db.collection('_app_config').doc('admin').get();
+    var profProm=db.collection('_app_config').doc('profiles').get();
+    Promise.all([adminProm,profProm]).then(function(results){
+      var adminDoc=results[0],profDoc=results[1];
+      var fsAdmin=adminDoc.exists&&adminDoc.data()?adminDoc.data():{username:'a',password:'a'};
+      var fsProfiles=profDoc.exists&&profDoc.data()&&profDoc.data().list?profDoc.data().list:[];
+      // Update localStorage cache
+      try{localStorage.setItem('s033_admin',JSON.stringify(fsAdmin));}catch(e){}
+      try{localStorage.setItem('s033_profiles',JSON.stringify(fsProfiles));}catch(e){}
+      lerr.textContent='';
+      if(!tryAdminAndProfiles(fsAdmin,fsProfiles)){
+        lerr.textContent='Credenciales incorrectas';
+        setTimeout(function(){lerr.textContent='';},2500);
+      }
+    }).catch(function(){
+      lerr.textContent='Error de conexión';
+      setTimeout(function(){lerr.textContent='';},2500);
+    });
+  }else{
+    lerr.textContent='Credenciales incorrectas';
+    setTimeout(function(){lerr.textContent='';},2500);
   }
 }
 G('btnLogin').onclick=doLogin;G('lp').onkeydown=function(e){if(e.key==='Enter')doLogin();};G('lu').onkeydown=function(e){if(e.key==='Enter')doLogin();};
@@ -1419,6 +1452,7 @@ function renderAdminSwitchBar(){
 }
 
 function renderAdminPanel(){
+  // Refresh from Firebase before rendering
   var list=G('adminProfileList');list.innerHTML='';
   // Admin credentials section
   var adm=getAdminCreds();
