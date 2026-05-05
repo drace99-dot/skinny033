@@ -1273,7 +1273,7 @@ function subData(){
     ss('local');renderCal();renderLib();renderProf();return;
   }
   ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl','supLogs','habitDefs','habitLogs','ssLogs','pantry','formLogs','changeLog'].forEach(function(col){
-    var u=db.collection(pfx(col)).onSnapshot(function(snap){D[col]={};snap.forEach(function(doc){D[col][doc.id]=doc.data();});refreshUI(col);ss('ok');},function(){ss('off');});
+    var u=db.collection(pfx(col)).onSnapshot(function(snap){D[col]={};snap.forEach(function(doc){D[col][doc.id]=doc.data();});if(col==='exLib'){runExLibDedup();}refreshUI(col);ss('ok');},function(){ss('off');});
     unsubs.push(u);
   });
   var u2=db.collection(pfx('bodyLogs')).onSnapshot(function(snap){D.bodyLogs=[];snap.forEach(function(doc){D.bodyLogs.push(doc.data());});D.bodyLogs.sort(function(a,b){return a.date<b.date?-1:1;});renderProf();ss('ok');},function(){ss('off');});
@@ -2858,46 +2858,161 @@ function renderLibPlantillas(cont){
 
 var exFilterMus='',exFilterEquip='';
 function renderLibEjercicios(cont){
-  var tb=mk('div','lib-toolbar');tb.appendChild(mk('div','lib-title','Biblioteca de Ejercicios'));
-  var btn=mk('button','bsave','+ Nuevo Ejercicio');btn.onclick=function(){openExModal(null);};tb.appendChild(btn);cont.appendChild(tb);
+  var selectedIds={};
+
+  var tb=mk('div','lib-toolbar');
+  tb.appendChild(mk('div','lib-title','Biblioteca de Ejercicios'));
+  var tbBtns=mk('div','');tbBtns.style.cssText='display:flex;gap:6px;flex-wrap:wrap';
+  var btnNew=mk('button','bsave','+ Nuevo');btnNew.onclick=function(){openExModal(null);};
+  tbBtns.appendChild(btnNew);
+  tb.appendChild(tbBtns);cont.appendChild(tb);
+
   // Search
-  var srRow=mk('div','lib-search-row');var sr=document.createElement('input');sr.type='text';sr.className='lib-search';sr.placeholder='Buscar ejercicio...';sr.id='srEjercicios';
-  sr.oninput=function(){libTrainSearch=this.value;filterExList();};srRow.appendChild(sr);cont.appendChild(srRow);
+  var srRow=mk('div','lib-search-row');
+  var sr=document.createElement('input');sr.type='text';sr.className='lib-search';
+  sr.placeholder='Buscar ejercicio...';sr.id='srEjercicios';
+  sr.oninput=function(){libTrainSearch=this.value;filterExList();};
+  srRow.appendChild(sr);cont.appendChild(srRow);
+
   // Filter dropdowns
   var allMusOpts=['','Pecho','Espalda','Hombros','Bíceps','Tríceps','Piernas','Glúteos','Isquiotibiales','Core','Gemelos','Cardio','Full Body'];
   var allEquipOpts=['','Barra','Mancuernas','Máquina','Polea','Peso corporal','Kettlebell','Bandas','TRX','Smith','Sin material'];
   var fRow=mk('div','filter-bar');
-  // Muscle dropdown
   var musGrp=mk('div','filter-group');musGrp.appendChild(mk('div','filter-lbl','Grupo Muscular'));
   var musSel=document.createElement('select');musSel.className='filter-sel'+(exFilterMus?' active':'');
   allMusOpts.forEach(function(m){var op=document.createElement('option');op.value=m;op.textContent=m||'Todos los grupos';if(exFilterMus===m)op.selected=true;musSel.appendChild(op);});
   musSel.onchange=function(){exFilterMus=this.value;this.className='filter-sel'+(this.value?' active':'');filterExList();};
   musGrp.appendChild(musSel);fRow.appendChild(musGrp);
-  // Equipment dropdown
   var eqGrp=mk('div','filter-group');eqGrp.appendChild(mk('div','filter-lbl','Material'));
   var eqSel=document.createElement('select');eqSel.className='filter-sel'+(exFilterEquip?' active':'');
   allEquipOpts.forEach(function(e){var op=document.createElement('option');op.value=e;op.textContent=e||'Todo el material';if(exFilterEquip===e)op.selected=true;eqSel.appendChild(op);});
   eqSel.onchange=function(){exFilterEquip=this.value;this.className='filter-sel'+(this.value?' active':'');filterExList();};
   eqGrp.appendChild(eqSel);fRow.appendChild(eqGrp);
   cont.appendChild(fRow);
+
+  // Selection action bar
+  var selBar=mk('div','');
+  selBar.id='exSelBar';
+  selBar.style.cssText='display:none;padding:8px 14px;background:rgba(192,57,43,.1);border:1px solid var(--red);margin-bottom:8px;display:none;align-items:center;justify-content:space-between';
+  var selInfo=mk('span','');selInfo.id='exSelCount';selInfo.style.cssText='font-size:10px;color:var(--white)';
+  var selActs=mk('div','');selActs.style.cssText='display:flex;gap:6px';
+  var btnDelSel=mk('button','lib-btn del','✕ Eliminar seleccionados');
+  btnDelSel.onclick=function(){
+    var ids=Object.keys(selectedIds).filter(function(k){return selectedIds[k];});
+    if(!ids.length)return;
+    confirm2('Eliminar','¿Eliminar '+ids.length+' ejercicio'+(ids.length>1?'s':'')+' seleccionado'+(ids.length>1?'s':'')+'?','danger',function(){
+      var delKey='s033_exlib_deleted';
+      var deletedIds={};try{deletedIds=JSON.parse(localStorage.getItem(delKey)||'{}');}catch(e){}
+      ids.forEach(function(id){
+        delete D.exLib[id];
+        delFS('exLib',id);
+        deletedIds[id]=Date.now();
+      });
+      try{localStorage.setItem(delKey,JSON.stringify(deletedIds));}catch(e){}
+      lsSave();
+      selectedIds={};
+      renderLib();
+    });
+  };
+  var btnSelAll=mk('button','lib-btn','Seleccionar visibles');
+  btnSelAll.onclick=function(){
+    document.querySelectorAll('#listEjercicios [data-exid]').forEach(function(row){
+      if(row.style.display!=='none'){
+        var id=row.getAttribute('data-exid');
+        selectedIds[id]=true;
+        row.style.background='rgba(192,57,43,.08)';
+        row.style.borderColor='var(--red)';
+      }
+    });
+    updateSelBar();
+  };
+  var btnDeselAll=mk('button','lib-btn','Quitar selección');
+  btnDeselAll.onclick=function(){
+    selectedIds={};
+    document.querySelectorAll('#listEjercicios [data-exid]').forEach(function(row){
+      row.style.background='';row.style.borderColor='';
+    });
+    updateSelBar();
+  };
+  selActs.appendChild(btnSelAll);selActs.appendChild(btnDeselAll);selActs.appendChild(btnDelSel);
+  selBar.appendChild(selInfo);selBar.appendChild(selActs);
+  cont.appendChild(selBar);
+
+  function updateSelBar(){
+    var ids=Object.keys(selectedIds).filter(function(k){return selectedIds[k];});
+    if(ids.length>0){
+      selBar.style.display='flex';
+      selInfo.textContent=ids.length+' ejercicio'+(ids.length>1?'s':'')+' seleccionado'+(ids.length>1?'s':'');
+    }else{
+      selBar.style.display='none';
+    }
+  }
+
   // List
   var listDiv=mk('div');listDiv.id='listEjercicios';
   var items=Object.values(D.exLib);
-  if(!items.length){var em=mk('div','empty-state','No hay ejercicios en la biblioteca');em.id='emptyEjercicios';cont.appendChild(em);cont.appendChild(listDiv);return;}
+  if(!items.length){
+    var em=mk('div','empty-state','No hay ejercicios en la biblioteca');em.id='emptyEjercicios';
+    cont.appendChild(em);cont.appendChild(listDiv);return;
+  }
   items.sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
+
   items.forEach(function(item){
-    var row=mk('div','lib-item');row.setAttribute('data-name',item.name||'');row.setAttribute('data-mus',item.muscleGroup||'');row.setAttribute('data-equip',item.equipment||'');
-    row.style.cursor='pointer';
-    row.onclick=function(e){if(e.target.tagName==='BUTTON'||e.target.closest('button'))return;showExDetail(item);};
+    var row=mk('div','lib-item');
+    row.setAttribute('data-name',item.name||'');
+    row.setAttribute('data-mus',item.muscleGroup||'');
+    row.setAttribute('data-equip',item.equipment||'');
+    row.setAttribute('data-exid',item.id);
+    row.style.cssText='cursor:pointer;transition:background .15s,border-color .15s';
+
+    // Click: toggle selection if any selected, else open detail
+    row.onclick=function(e){
+      if(e.target.tagName==='BUTTON'||e.target.closest('button'))return;
+      var anySelected=Object.keys(selectedIds).some(function(k){return selectedIds[k];});
+      if(anySelected){
+        // Toggle this row
+        if(selectedIds[item.id]){
+          delete selectedIds[item.id];
+          row.style.background='';row.style.borderColor='';
+        }else{
+          selectedIds[item.id]=true;
+          row.style.background='rgba(192,57,43,.08)';row.style.borderColor='var(--red)';
+        }
+        updateSelBar();
+      }else{
+        showExDetail(item);
+      }
+    };
+    // Long press to start selection
+    var pressTimer=null;
+    row.addEventListener('pointerdown',function(){pressTimer=setTimeout(function(){selectedIds[item.id]=true;row.style.background='rgba(192,57,43,.08)';row.style.borderColor='var(--red)';updateSelBar();},500);});
+    row.addEventListener('pointerup',function(){clearTimeout(pressTimer);});
+    row.addEventListener('pointercancel',function(){clearTimeout(pressTimer);});
+
     var info=mk('div','lib-item-info');
     info.appendChild(mk('div','lib-item-name',item.name));
-    var meta=[item.muscleGroup,item.equipment].filter(Boolean).join(' · ')+(item.notes?' · '+item.notes.slice(0,30):'');
+    var meta=[item.muscleGroup,item.equipment].filter(Boolean).join(' · ')+(item.notes?' · '+item.notes.slice(0,35):'');
     info.appendChild(mk('div','lib-item-meta',meta||'Sin categoría'));
     var acts=mk('div','lib-item-acts');
-    var be=mk('button','lib-btn','✎');be.onclick=function(){openExModal(item);};
-    var bd=mk('button','lib-btn del','✕');bd.onclick=function(){confirm2('Eliminar','¿Eliminar "'+item.name+'"?','danger',function(){delFS('exLib',item.id);});};
-    acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);listDiv.appendChild(row);
+    var be=mk('button','lib-btn','✎');be.onclick=function(e){e.stopPropagation();openExModal(item);};
+    var bd=mk('button','lib-btn del','✕');
+    bd.onclick=function(e){
+      e.stopPropagation();
+      confirm2('Eliminar','¿Eliminar "'+item.name+'"?','danger',function(){
+        var delKey='s033_exlib_deleted';
+        var dIds={};try{dIds=JSON.parse(localStorage.getItem(delKey)||'{}');}catch(e2){}
+        dIds[item.id]=Date.now();
+        try{localStorage.setItem(delKey,JSON.stringify(dIds));}catch(e2){}
+        delete D.exLib[item.id];
+        delFS('exLib',item.id);
+        lsSave();renderLib();
+      });
+    };
+    acts.appendChild(be);acts.appendChild(bd);
+    row.appendChild(info);row.appendChild(acts);
+    listDiv.appendChild(row);
   });
+
   var em2=mk('div','empty-state','Sin resultados');em2.id='emptyEjercicios';em2.style.display='none';
   cont.appendChild(listDiv);cont.appendChild(em2);
   filterExList();
@@ -4794,34 +4909,41 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 
 // ══ DEDUPLICAR EJERCICIOS ════════════════════════════════════════════════════
-(function deduplicateExLib(){
+function runExLibDedup(){
   if(!D.exLib)return;
   var delKey='s033_exlib_deleted';
   var deletedIds={};try{deletedIds=JSON.parse(localStorage.getItem(delKey)||'{}');}catch(e){}
-  // Kill any IDs previously deleted
-  Object.keys(deletedIds).forEach(function(id){if(D.exLib[id]){delete D.exLib[id];}});
-  // Sort by name — keep first occurrence only
-  var entries=Object.values(D.exLib).sort(function(a,b){
-    var na=(a.name||'').toLowerCase(),nb=(b.name||'').toLowerCase();
-    return na<nb?-1:na>nb?1:0;
-  });
-  var seen={};var toDelete=[];
-  entries.forEach(function(ex){
-    var k=(ex.name||'').toLowerCase().trim();
-    if(!k)return;
-    if(seen[k]){toDelete.push(ex.id);}else{seen[k]=ex.id;}
-  });
-  if(toDelete.length){
-    toDelete.forEach(function(id){
+  // Remove previously deleted IDs that Firebase brought back
+  var changed=false;
+  Object.keys(deletedIds).forEach(function(id){
+    if(D.exLib[id]){
       delete D.exLib[id];
-      // Delete from Firebase directly too
+      if(useFS&&db){try{db.collection(pfx('exLib')).doc(id).delete().catch(function(){});}catch(e){}}
+      changed=true;
+    }
+  });
+  // Dedup by name — keep alphabetically first ID for each name
+  var byName={};
+  Object.values(D.exLib).forEach(function(ex){
+    var k=(ex.name||'').toLowerCase().trim();if(!k)return;
+    if(!byName[k])byName[k]=[];byName[k].push(ex.id);
+  });
+  Object.values(byName).forEach(function(ids){
+    if(ids.length<=1)return;
+    ids.sort();// keep first alphabetically
+    ids.slice(1).forEach(function(id){
+      delete D.exLib[id];
       if(useFS&&db){try{db.collection(pfx('exLib')).doc(id).delete().catch(function(){});}catch(e){}}
       deletedIds[id]=Date.now();
+      changed=true;
     });
+  });
+  if(changed){
     try{localStorage.setItem(delKey,JSON.stringify(deletedIds));}catch(e){}
     lsSave();
   }
-})();
+}
+runExLibDedup();
 
 // Float panel close button + click-outside to close
 setTimeout(function(){
