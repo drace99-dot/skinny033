@@ -990,6 +990,7 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
       <div style="font-family:var(--serif);font-size:18px;color:var(--gold)" id="wkModeTimer">00:00</div>
       <button class="wbtn" id="wkModePlay">▶</button>
       <button class="btn-out" id="wkModeEnd">Terminar</button>
+      <button class="bsave" id="wkFloatToggle" style="font-size:7px;padding:6px 10px;border-color:var(--gold-dim);color:var(--gold-dim)">&#x1F4CB; Panel</button>
     </div>
   </div>
   <!-- Current exercise banner -->
@@ -1448,8 +1449,11 @@ function renderAdminPanel(){
     if(prof.id!=='goncho'){
       var bDel=mk('button','lib-btn del','✕');
       bDel.onclick=(function(pr){return function(){
-        confirm2('Eliminar perfil','¿Eliminar el perfil "'+pr.name+'"? Los datos no se eliminarán.','danger',function(){
-          var ps=getProfiles().filter(function(x){return x.id!==pr.id;});saveProfiles(ps);renderAdminPanel();
+        confirm2('Eliminar perfil','¿Eliminar "'+pr.name+'" y TODOS sus datos permanentemente?','danger',function(){
+          var ps=getProfiles().filter(function(x){return x.id!==pr.id;});saveProfiles(ps);
+          if(useFS&&db){var pfxD=pr.prefix||'';['workouts','nutrition','habitDefs','habitLogs','ssLogs','formLogs','changeLog','pantry','profile'].forEach(function(col){db.collection(pfxD+col).get().then(function(snap){snap.forEach(function(doc){doc.ref.delete().catch(function(){});});}).catch(function(){});});}
+          try{localStorage.removeItem('s033v3_'+pr.id);}catch(e){}
+          renderAdminPanel();
         });
       };})(prof);
       acts.appendChild(bDel);
@@ -3906,6 +3910,7 @@ var fatigueAnswers={};
 
 function startWorkoutMode(item,key){
   wkModeItem=JSON.parse(JSON.stringify(item));wkModeKey=key;
+  if(!wkModeItem.completed){(wkModeItem.exercises||[]).forEach(function(ex){(ex.series||[]).forEach(function(s){s.done=false;});});}
   wkTimerSec=0;wkRunning=false;fatigueAnswers={};
   G('wkModeName').textContent=item.name;G('wkModeTimer').textContent='00:00';G('wkModePlay').textContent='▶';
   G('wkRestOverlay').style.display='none';
@@ -4233,6 +4238,11 @@ G('wkModeEnd').onclick=function(){
     finishWorkout();
   });
 };
+G('wkFloatToggle').onclick=function(){
+  var fl=G('wkFloat');if(!fl)return;
+  if(fl.style.display==='flex'||fl.style.display==='block'){fl.style.display='none';}
+  else{clearInterval(wkRestInt);renderWkFloat();}
+};
 
 // ── FATIGUE MODAL ──────────────────────────────────────────────────────────
 var FATIGUE_QS=[
@@ -4515,7 +4525,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ EXERCISE LIBRARY PRELOAD ══════════════════════════════════════════════════
 (function preloadExLib(){
-  var FLAG='skinny_exlib_v4';
+  var FLAG='skinny_exlib_v5';
   if(localStorage.getItem(FLAG))return;
   var EX=[
     // ── PECHO (20) ────────────────────────────────────────────────────────
@@ -4748,7 +4758,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ CARDIO ACTIVITY PRELOAD ══════════════════════════════════════════════════════════
 (function preloadCardioActivities(){
-  var FLAG='skinny_cardio_v1';
+  var FLAG='skinny_cardio_v2';
   if(localStorage.getItem(FLAG))return;
   var ACTS=[
     {name:'Correr (cinta)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Gemelos, Core',equipment:'Cinta de correr'},
