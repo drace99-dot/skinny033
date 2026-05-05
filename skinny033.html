@@ -1258,7 +1258,6 @@ function refreshUI(col){
   if(col==='workouts'||col==='nutrition'||col==='habitDefs'||col==='habitLogs')renderCal();
   if(col==='foodLib'||col==='dishLib'||col==='exLib'||col==='wkTpl'||col==='pantry')renderLib();
   if(col==='bodyLogs'||col==='profile'||col==='ssLogs')renderProf();
-  ss('local');
 }
 function lsSave(){
   var key='s033v3_'+(currentProfile?currentProfile.id:'default');
@@ -1273,10 +1272,23 @@ function subData(){
     ss('local');renderCal();renderLib();renderProf();return;
   }
   ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl','supLogs','habitDefs','habitLogs','ssLogs','pantry','formLogs','changeLog'].forEach(function(col){
-    var u=db.collection(pfx(col)).onSnapshot(function(snap){D[col]={};snap.forEach(function(doc){D[col][doc.id]=doc.data();});if(col==='exLib'){runExLibDedup();}refreshUI(col);ss('ok');},function(){ss('off');});
-    unsubs.push(u);
+    (function(c){
+      var u=db.collection(pfx(c)).onSnapshot(function(snap){
+        D[c]={};
+        snap.forEach(function(doc){D[c][doc.id]=doc.data();});
+        if(c==='exLib'){runExLibDedup();}
+        refreshUI(c);
+        ss('ok');
+      },function(err){ss('off');});
+      unsubs.push(u);
+    })(col);
   });
-  var u2=db.collection(pfx('bodyLogs')).onSnapshot(function(snap){D.bodyLogs=[];snap.forEach(function(doc){D.bodyLogs.push(doc.data());});D.bodyLogs.sort(function(a,b){return a.date<b.date?-1:1;});renderProf();ss('ok');},function(){ss('off');});
+  var u2=db.collection(pfx('bodyLogs')).onSnapshot(function(snap){
+    D.bodyLogs=[];
+    snap.forEach(function(doc){D.bodyLogs.push(doc.data());});
+    D.bodyLogs.sort(function(a,b){return a.date<b.date?-1:1;});
+    renderProf();ss('ok');
+  },function(){ss('off');});
   unsubs.push(u2);
   db.collection(pfx('profile')).doc('main').get().then(function(doc){if(doc.exists)Object.assign(D.profile,doc.data());renderProf();}).catch(function(){});
   var u3=db.collection(pfx('profile')).doc('main').onSnapshot(function(doc){if(doc.exists)Object.assign(D.profile,doc.data());renderProf();});
