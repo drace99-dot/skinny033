@@ -1248,18 +1248,49 @@ function getAdminCreds(){
   var c=null;try{c=JSON.parse(localStorage.getItem('s033_admin')||'null');}catch(e){}
   return c||{username:'a',password:'a'};
 }
-function saveAdminCreds(u,p){try{localStorage.setItem('s033_admin',JSON.stringify({username:u,password:p}));}catch(e){}}
+// Sync admin creds from Firebase
+function syncAdminCredsFromFS(){
+  if(!useFS||!db)return;
+  db.collection('_app_config').doc('admin').get().then(function(doc){
+    if(doc.exists&&doc.data()&&doc.data().username){
+      try{localStorage.setItem('s033_admin',JSON.stringify({username:doc.data().username,password:doc.data().password}));}catch(e){}
+    }
+  }).catch(function(){});
+}
+syncAdminCredsFromFS();
+function saveAdminCreds(u,p){
+  try{localStorage.setItem('s033_admin',JSON.stringify({username:u,password:p}));}catch(e){}
+  if(useFS&&db){db.collection('_app_config').doc('admin').set({username:u,password:p}).catch(function(){});}
+}
 
 function getProfiles(){
   var stored=null;try{stored=JSON.parse(localStorage.getItem('s033_profiles')||'null');}catch(e){}
   if(!stored){
-    // First time: save defaults so they persist
     saveProfiles(JSON.parse(JSON.stringify(BUILTIN_PROFILES)));
     return JSON.parse(JSON.stringify(BUILTIN_PROFILES));
   }
   return stored;
 }
-function saveProfiles(profiles){try{localStorage.setItem('s033_profiles',JSON.stringify(profiles));}catch(e){}}
+// Sync profiles from Firebase on load (so new devices get latest profiles)
+function syncProfilesFromFS(){
+  if(!useFS||!db)return;
+  db.collection('_app_config').doc('profiles').get().then(function(doc){
+    if(doc.exists&&doc.data()&&doc.data().list){
+      var fsProfiles=doc.data().list;
+      // Merge: local + remote, dedup by username
+      var local=[];try{local=JSON.parse(localStorage.getItem('s033_profiles')||'[]');}catch(e){}
+      var merged=JSON.parse(JSON.stringify(fsProfiles));
+      local.forEach(function(lp){if(!merged.some(function(m){return m.username===lp.username;})){merged.push(lp);}});
+      try{localStorage.setItem('s033_profiles',JSON.stringify(merged));}catch(e){}
+    }
+  }).catch(function(){});
+}
+syncProfilesFromFS();
+function saveProfiles(profiles){
+  try{localStorage.setItem('s033_profiles',JSON.stringify(profiles));}catch(e){}
+  // Also sync to Firebase so other devices can log in
+  if(useFS&&db){db.collection('_app_config').doc('profiles').set({list:profiles}).catch(function(){});}
+}
 
 function resetD(){return {workouts:{},nutrition:{},foodLib:{},dishLib:{},exLib:{},wkTpl:{},supLogs:{},habitDefs:{},habitLogs:{},ssLogs:{},pantry:{},formLogs:{},changeLog:{},profile:{weight:'',height:'',age:'',gender:'m',activity:'1.55',goalKcal:'',goalProt:'',goalCarbs:'',goalFat:'',supGoals:{}},bodyLogs:[]};}
 
@@ -1571,7 +1602,7 @@ function _buildDayCol(d,wOff,dayIdx){
   col.appendChild(head);
   wItems.forEach(function(item){col.appendChild(makeWorkoutCard(item,key));});
   if(nItems.length>0){col.appendChild(makeNutritionSummaryCard(nItems,key,dayIdx7));}
-  habits.forEach(function(hab){col.appendChild(makeHabitChip(hab,dateStr));});
+  if(habits.length>0){col.appendChild(makeHabitSummaryCard(habits,dateStr,key));}
   var addRow=mk('div');addRow.style.cssText='display:flex;gap:3px;margin-top:2px';
   var abW=mk('button','dadd','+ Entreno');abW.style.cssText='flex:1;font-size:7px';
   abW.onclick=(function(ds,wO){return function(){editId=null;editKey=null;_openModWDate(ds);};})(dateStr,wOff);
@@ -1713,6 +1744,91 @@ function makeNutritionSummaryCard(items,key,dayIdx){
     renderCal();
   });
   card.appendChild(header);card.appendChild(kcalDiv);card.appendChild(macRow);card.appendChild(ndg);return card;
+}
+
+function makeHabitSummaryCard(habits,dateStr,key){
+  var doneCount=habits.filter(function(h){return isHabitDone(h.id,dateStr);}).length;
+  var allDone=doneCount===habits.length;
+  var card=mk('div','nut-summary-card'+(allDone?' done':''));
+  card.style.borderColor='var(--blue)';
+  card.onclick=function(e){if(_dragActive||e.target.tagName==='BUTTON'||e.target.closest('button'))return;openDayHabits(habits,dateStr);};
+  // Drag handle
+  var dh=mk('button','cdrag-btn','⠿');dh.title='Arrastrar hábitos a otro día';
+  dh.style.cssText='display:block;width:100%;text-align:center;padding:1px 0;margin-top:4px;font-size:11px;background:none;border:none;cursor:grab;color:var(--dark5);touch-action:none;-webkit-user-select:none;user-select:none';
+  var header=mk('div','nut-sum-hdr');
+  header.innerHTML='<span style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);opacity:.8">HÁBITOS</span><span style="font-size:10px;color:'+(allDone?'var(--green)':'var(--white3)')+'">'+doneCount+'/'+habits.length+(allDone?' ✓':'')+' completados</span>';
+  var chips=mk('div','');chips.style.cssText='display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;padding:0 2px';
+  habits.forEach(function(h){
+    var done=isHabitDone(h.id,dateStr);
+    var chip=mk('span','');chip.style.cssText='font-size:9px;padding:2px 5px;border-radius:0;border:1px solid '+(done?'var(--green)':'rgba(255,255,255,.15)')+';color:'+(done?'var(--green)':'var(--white4)')+';background:'+(done?'rgba(39,174,96,.1)':'transparent');
+    chip.textContent=(h.emoji||'')+(done?' ✓':' ○');
+    chips.appendChild(chip);
+  });
+  card.appendChild(header);card.appendChild(chips);card.appendChild(dh);
+  calDragStart(dh,card,'',function(srcKey,newKey,newDayIdx,srcDateStr2,newDateStr){
+    var srcDate=srcDateStr2||dateStr;var tgtDate=newDateStr;
+    if(!tgtDate||tgtDate===srcDate)return;
+    habits.forEach(function(h){
+      var srcDone=isHabitDone(h.id,srcDate);
+      var kSrc=getHabitLogKey(h.id,srcDate);
+      var kTgt=getHabitLogKey(h.id,tgtDate);
+      if(!D.habitLogs)D.habitLogs={};
+      if(srcDone){D.habitLogs[kSrc]={id:kSrc,habitId:h.id,date:srcDate,done:false};saveFS('habitLogs',kSrc,D.habitLogs[kSrc]);}
+      D.habitLogs[kTgt]={id:kTgt,habitId:h.id,date:tgtDate,done:true};saveFS('habitLogs',kTgt,D.habitLogs[kTgt]);
+    });renderCal();
+  });
+  return card;
+}
+
+function openDayHabits(habits,dateStr){
+  // Build a simple modal-like overlay
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:800;display:flex;align-items:center;justify-content:center;padding:20px';
+  var box=document.createElement('div');
+  box.style.cssText='background:var(--dark);border:1px solid var(--dark4);padding:0;width:100%;max-width:400px;max-height:80vh;overflow-y:auto';
+  // Header
+  var hdr=document.createElement('div');
+  hdr.style.cssText='padding:14px 16px;border-bottom:1px solid var(--dark4);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--dark);z-index:1';
+  var d=new Date(dateStr+'T00:00:00');
+  hdr.innerHTML='<div style="font-family:var(--serif);font-size:15px;color:var(--gold)">'+d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'})+'</div>';
+  var bClose=document.createElement('button');bClose.className='mclose';bClose.textContent='✕';bClose.onclick=function(){overlay.remove();};
+  hdr.appendChild(bClose);box.appendChild(hdr);
+  // Habit list
+  var body=document.createElement('div');body.style.cssText='padding:10px';
+  function rebuildHabits(){
+    body.innerHTML='';
+    habits.forEach(function(h){
+      var done=isHabitDone(h.id,dateStr);
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;padding:12px 10px;border-bottom:1px solid var(--dark4);cursor:pointer;transition:background .15s';
+      row.onmouseenter=function(){this.style.background='rgba(255,255,255,.03)';};
+      row.onmouseleave=function(){this.style.background='transparent';};
+      var chk=document.createElement('div');
+      chk.style.cssText='width:22px;height:22px;border:2px solid '+(done?h.color:'var(--dark4)')+';background:'+(done?h.color:'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s';
+      chk.innerHTML=done?'<span style="color:var(--black);font-size:12px;font-weight:700">✓</span>':'';
+      var info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
+      var nm=document.createElement('div');nm.style.cssText='font-size:12px;color:'+(done?'var(--white)':'var(--white3)');nm.textContent=(h.emoji||'')+' '+h.name;
+      var meta=document.createElement('div');meta.style.cssText='font-size:9px;color:var(--white4);margin-top:2px';meta.textContent=h.description||'';
+      info.appendChild(nm);if(h.description)info.appendChild(meta);
+      // Admin controls
+      if(isAdminSession){
+        var acts=document.createElement('div');acts.style.cssText='display:flex;gap:4px;flex-shrink:0';
+        var be=document.createElement('button');be.className='lib-btn';be.textContent='✎';be.onclick=function(e){e.stopPropagation();overlay.remove();openHabitModal(h);};
+        var bd=document.createElement('button');bd.className='lib-btn del';bd.textContent='✕';
+        bd.onclick=function(e){e.stopPropagation();confirm2('Eliminar hábito','¿Eliminar este hábito?','danger',function(){delete D.habitDefs[h.id];delFS('habitDefs',h.id);habits=habits.filter(function(x){return x.id!==h.id;});rebuildHabits();renderCal();});};
+        acts.appendChild(be);acts.appendChild(bd);row.appendChild(info);row.appendChild(acts);
+      }else{row.appendChild(info);}
+      row.insertBefore(chk,row.firstChild);
+      row.onclick=function(e){if(e.target.tagName==='BUTTON'||e.target.closest('button'))return;toggleHabit(h.id,dateStr);rebuildHabits();renderCal();};
+      body.appendChild(row);
+    });
+    // Empty state
+    if(!habits.length){body.innerHTML='<div class="empty-state">Sin hábitos registrados</div>';}
+  }
+  rebuildHabits();
+  box.appendChild(body);overlay.appendChild(box);
+  overlay.onclick=function(e){if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
 }
 
 function makeHabitChip(hab,dateStr){
@@ -2031,6 +2147,25 @@ function renderExs(){
     // Visual connector if this exercise is part of a superserie with the next
     if(ex.supersetNext&&ei<exercises.length-1){
       var link=mk('div','superset-link','⚡ SUPERSERIE — descanso solo al final del grupo');
+      // Duplicate superserie button
+      var bDupSS=mk('button','');bDupSS.style.cssText='float:right;background:none;border:1px solid var(--gold-dim);color:var(--gold-dim);font-size:7px;padding:2px 7px;cursor:pointer;font-family:var(--sans);margin-top:-2px';
+      bDupSS.textContent='⧉ Duplicar biserie/superserie';
+      bDupSS.onclick=(function(startIdx){return function(){
+        // Find the full group starting from startIdx
+        var grp=[];var gi=startIdx;
+        while(gi<exercises.length){grp.push(gi);if(!exercises[gi].supersetNext)break;gi++;}
+        // Clone all exercises in group
+        var clones=grp.map(function(idx){
+          var clone=JSON.parse(JSON.stringify(exercises[idx]));
+          clone.id=uid();
+          return clone;
+        });
+        // Insert after the group
+        var insertAt=grp[grp.length-1]+1;
+        exercises.splice.apply(exercises,[insertAt,0].concat(clones));
+        renderExs();
+      };})(ei);
+      link.appendChild(bDupSS);
       cont.appendChild(link);
     }
   });
@@ -2365,10 +2500,13 @@ G('tSelX').onclick=function(){closeM('modTSel');};
 
 // ══ LIBRARY SECTION ══════════════════════════════════════
 G('stLA').onclick=function(){libTab='foods';G('stLA').classList.add('active');G('stLE').classList.remove('active');libFoodSearch='';renderLib();};
-G('stLE').onclick=function(){libTab='training';G('stLE').classList.add('active');G('stLA').classList.remove('active');libTrainSearch='';renderLib();};
+G('stLE').onclick=function(){if(!isAdminSession)return;libTab='training';G('stLE').classList.add('active');G('stLA').classList.remove('active');libTrainSearch='';renderLib();};
 
 function renderLib(){
   var cont=G('libContent');cont.innerHTML='';
+  // Training library only for admin
+  var tabEl=G('stLE');if(tabEl)tabEl.style.display=isAdminSession?'':'none';
+  if(!isAdminSession&&libTab==='training'){libTab='foods';}
   if(libTab==='foods')renderLibFoods(cont);else renderLibTraining(cont);
 }
 
@@ -4325,12 +4463,16 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
     {n:'Slam con balón medicinal',g:'Full Body',m:'Core, Hombros, Espalda',e:'Balón medicinal'},
     {n:'Wall ball',g:'Full Body',m:'Cuádriceps, Glúteos, Hombros, Core',e:'Balón medicinal + Pared'}
   ];
+  var _delIds2={};try{_delIds2=JSON.parse(localStorage.getItem('s033_exlib_deleted')||'{}');}catch(e){}
+  var _existingNames=Object.values(D.exLib||{}).map(function(e){return (e.name||'').toLowerCase();});
   EX.forEach(function(ex){
-    var existingNames=Object.values(D.exLib||{}).map(function(e){return (e.name||'').toLowerCase();});
-    if(existingNames.indexOf((ex.n||'').toLowerCase())>=0)return;
+    var nm=(ex.n||'').toLowerCase();
+    if(_existingNames.indexOf(nm)>=0)return;
     var id=uid();
+    if(_delIds2[id])return;
     var entry={id:id,name:ex.n,muscleGroup:ex.g,equipment:ex.e||'',notes:ex.m||''};
     D.exLib[id]=entry;saveFS('exLib',id,entry);
+    _existingNames.push(nm);
   });
   localStorage.setItem(FLAG,'1');
   console.log('\u2705 Biblioteca de ejercicios cargada: '+EX.length+' ejercicios');
@@ -4373,26 +4515,32 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 })();
 
 
-// ══ DEDUPLICAR EJERCICIOS (ejecuta una vez) ═══════════════════════════════════
+// ══ DEDUPLICAR EJERCICIOS ════════════════════════════════════════════════════
 (function deduplicateExLib(){
   if(!D.exLib)return;
-  var seen={};
-  var toDelete=[];
-  Object.values(D.exLib).forEach(function(ex){
-    var key=(ex.name||'').toLowerCase().trim();
-    if(seen[key]){
-      toDelete.push(ex.id);
-    }else{
-      seen[key]=true;
-    }
+  // Load deleted IDs from localStorage so they never come back
+  var delKey='s033_exlib_deleted';
+  var deletedIds={};
+  try{deletedIds=JSON.parse(localStorage.getItem(delKey)||'{}');}catch(e){}
+  // Remove any previously deleted IDs that crept back
+  Object.keys(deletedIds).forEach(function(id){
+    if(D.exLib[id]){delete D.exLib[id];}
+  });
+  // Now deduplicate by name
+  var seen={};var toDelete=[];
+  Object.values(D.exLib).sort(function(a,b){return (a.name||'').localeCompare(b.name||'');}).forEach(function(ex){
+    var k=(ex.name||'').toLowerCase().trim();
+    if(seen[k]){toDelete.push(ex.id);}else{seen[k]=true;}
   });
   if(toDelete.length>0){
     toDelete.forEach(function(id){
       delete D.exLib[id];
       delFS('exLib',id);
+      deletedIds[id]=1;
     });
-    console.log('🧹 Ejercicios duplicados eliminados: '+toDelete.length);
+    try{localStorage.setItem(delKey,JSON.stringify(deletedIds));}catch(e){}
   }
+  // Also guard the preload: mark all current names as existing so preload won't re-add
 })();
 
 renderCal();
