@@ -1283,7 +1283,7 @@ function subData(){
       var u=db.collection(pfx(c)).onSnapshot(function(snap){
         D[c]={};
         snap.forEach(function(doc){D[c][doc.id]=doc.data();});
-        if(c==='exLib'){runExLibDedup();}
+        
         refreshUI(c);
         ss('ok');
       },function(err){ss('off');});
@@ -4693,7 +4693,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ EXERCISE LIBRARY PRELOAD ══════════════════════════════════════════════════
 (function preloadExLib(){
-  var FLAG='skinny_exlib_v5';
+  var FLAG='skinny_exlib_v6';
   if(localStorage.getItem(FLAG))return;
   var EX=[
     // ── PECHO (20) ────────────────────────────────────────────────────────
@@ -4909,13 +4909,11 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
     {n:'Slam con balón medicinal',g:'Full Body',m:'Core, Hombros, Espalda',e:'Balón medicinal'},
     {n:'Wall ball',g:'Full Body',m:'Cuádriceps, Glúteos, Hombros, Core',e:'Balón medicinal + Pared'}
   ];
-  var _delIds2={};try{_delIds2=JSON.parse(localStorage.getItem('s033_exlib_deleted')||'{}');}catch(e){}
   var _existingNames=Object.values(D.exLib||{}).map(function(e){return (e.name||'').toLowerCase();});
   EX.forEach(function(ex){
     var nm=(ex.n||'').toLowerCase();
     if(_existingNames.indexOf(nm)>=0)return;
     var id=uid();
-    if(_delIds2[id])return;
     var entry={id:id,name:ex.n,muscleGroup:ex.g,equipment:ex.e||'',notes:ex.m||''};
     D.exLib[id]=entry;saveFS('exLib',id,entry);
     _existingNames.push(nm);
@@ -4962,41 +4960,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 
 // ══ DEDUPLICAR EJERCICIOS ════════════════════════════════════════════════════
-function runExLibDedup(){
-  if(!D.exLib)return;
-  var delKey='s033_exlib_deleted';
-  var deletedIds={};try{deletedIds=JSON.parse(localStorage.getItem(delKey)||'{}');}catch(e){}
-  // Remove previously deleted IDs that Firebase brought back
-  var changed=false;
-  Object.keys(deletedIds).forEach(function(id){
-    if(D.exLib[id]){
-      delete D.exLib[id];
-      if(useFS&&db){try{db.collection(pfx('exLib')).doc(id).delete().catch(function(){});}catch(e){}}
-      changed=true;
-    }
-  });
-  // Dedup by name — keep alphabetically first ID for each name
-  var byName={};
-  Object.values(D.exLib).forEach(function(ex){
-    var k=(ex.name||'').toLowerCase().trim();if(!k)return;
-    if(!byName[k])byName[k]=[];byName[k].push(ex.id);
-  });
-  Object.values(byName).forEach(function(ids){
-    if(ids.length<=1)return;
-    ids.sort();// keep first alphabetically
-    ids.slice(1).forEach(function(id){
-      delete D.exLib[id];
-      if(useFS&&db){try{db.collection(pfx('exLib')).doc(id).delete().catch(function(){});}catch(e){}}
-      deletedIds[id]=Date.now();
-      changed=true;
-    });
-  });
-  if(changed){
-    try{localStorage.setItem(delKey,JSON.stringify(deletedIds));}catch(e){}
-    lsSave();
-  }
-}
-runExLibDedup();
+
 
 // Float panel close button + click-outside to close
 setTimeout(function(){
