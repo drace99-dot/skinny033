@@ -4693,7 +4693,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ EXERCISE LIBRARY PRELOAD ══════════════════════════════════════════════════
 (function preloadExLib(){
-  var FLAG='skinny_exlib_v6';
+  var FLAG='skinny_exlib_v7';
   if(localStorage.getItem(FLAG))return;
   var EX=[
     // ── PECHO (20) ────────────────────────────────────────────────────────
@@ -4924,7 +4924,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ CARDIO ACTIVITY PRELOAD ══════════════════════════════════════════════════════════
 (function preloadCardioActivities(){
-  var FLAG='skinny_cardio_v2';
+  var FLAG='skinny_cardio_v3';
   if(localStorage.getItem(FLAG))return;
   var ACTS=[
     {name:'Correr (cinta)',muscleGroup:'Cardio',muscles:'Cuádriceps, Isquiotibiales, Glúteos, Gemelos, Core',equipment:'Cinta de correr'},
@@ -4970,6 +4970,37 @@ setTimeout(function(){
   var fl=G('wkFloat');
   if(fl)fl.addEventListener('click',function(e){if(e.target===fl){fl.style.display='none';clearInterval(wkRestInt);}});
 },500);
+
+// ══ ONE-TIME DUPLICATE CLEANUP (runs once per device, then never again) ══════
+(function oneTimeExCleanup(){
+  var done_key='s033_exclean_done_v1';
+  if(localStorage.getItem(done_key))return;
+  // Wait for Firebase to load exLib data first
+  setTimeout(function(){
+    if(!D.exLib||!useFS||!db)return;
+    var byName={};
+    Object.values(D.exLib).forEach(function(ex){
+      var k=(ex.name||'').toLowerCase().trim();
+      if(!k)return;
+      if(!byName[k])byName[k]=[];
+      byName[k].push(ex.id);
+    });
+    var toDelete=[];
+    Object.values(byName).forEach(function(ids){
+      if(ids.length<=1)return;
+      ids.sort();
+      ids.slice(1).forEach(function(id){toDelete.push(id);});
+    });
+    if(toDelete.length>0){
+      toDelete.forEach(function(id){
+        delete D.exLib[id];
+        db.collection(pfx('exLib')).doc(id).delete().catch(function(){});
+      });
+      lsSave();
+    }
+    localStorage.setItem(done_key,'1');
+  },3000);
+})();
 renderCal();
 });
 </script>
