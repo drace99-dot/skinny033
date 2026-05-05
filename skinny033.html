@@ -4695,7 +4695,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ FIREBASE EXERCISE MIGRATION — runs once, cleans duplicates ═══════════════
 (function exMigration(){
-  var MIG_KEY='s033_exmig_v1';
+  var MIG_KEY='s033_exmig_v2';
   if(localStorage.getItem(MIG_KEY))return;
   if(!useFS||!db){localStorage.setItem(MIG_KEY,'1');return;}
   // Wait 5s for Firebase to fully load exLib
@@ -4730,7 +4730,7 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
         localStorage.setItem(MIG_KEY,'1');
       }
     }).catch(function(){});
-  },5000);
+  },8000);
 })();
 
 
