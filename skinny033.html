@@ -1240,14 +1240,18 @@ function saveFS(col,key,data){
     // Persist changeLog to localStorage
     try{var _lk='s033v3_'+(currentProfile?currentProfile.id:'default');var _d=JSON.parse(localStorage.getItem(_lk)||'{}');_d.changeLog=D.changeLog;localStorage.setItem(_lk,JSON.stringify(_d));}catch(e){}
   }
-  if(useFS&&db){ss("sync");db.collection(pfx(col)).doc(key).set(data).then(function(){ss("ok");}).catch(function(){ss("off");});}
-  else{lsSave();ss("local");}
+  if(useFS&&db){
+    ss("sync");
+    db.collection(pfx(col)).doc(key).set(data).then(function(){ss("ok");lsSave();}).catch(function(e){ss("off");lsSave();});
+  }else{lsSave();ss("local");}
 }
 function delFS(col,key){
   if(col==='bodyLogs'){D.bodyLogs=D.bodyLogs.filter(function(x){return x.id!==key;});}
   else{delete D[col][key];}
-  if(useFS&&db){ss('sync');db.collection(pfx(col)).doc(key).delete().then(function(){ss('ok');}).catch(function(){ss('off');});}
-  else{lsSave();}
+  if(useFS&&db){
+    ss('sync');
+    db.collection(pfx(col)).doc(key).delete().then(function(){ss('ok');lsSave();}).catch(function(){ss('off');lsSave();});
+  }else{lsSave();}
   refreshUI(col);
 }
 function saveProfile(){
@@ -1271,6 +1275,9 @@ function subData(){
     if(ls){D.workouts=ls.workouts||{};D.nutrition=ls.nutrition||{};D.foodLib=ls.foodLib||{};D.dishLib=ls.dishLib||{};D.exLib=ls.exLib||{};D.wkTpl=ls.wkTpl||{};D.supLogs=ls.supLogs||{};D.habitDefs=ls.habitDefs||{};D.habitLogs=ls.habitLogs||{};D.ssLogs=ls.ssLogs||{};D.pantry=ls.pantry||{};D.formLogs=ls.formLogs||{};D.changeLog=ls.changeLog||{};D.profile=ls.profile||D.profile;D.bodyLogs=ls.bodyLogs||[];}
     ss('local');renderCal();renderLib();renderProf();return;
   }
+  // Pre-load from localStorage immediately so UI shows data while Firebase loads
+  var _lsPre=null;try{_lsPre=JSON.parse(localStorage.getItem(lsKey)||'null');}catch(e){}
+  if(_lsPre){D.workouts=_lsPre.workouts||{};D.nutrition=_lsPre.nutrition||{};D.foodLib=_lsPre.foodLib||{};D.dishLib=_lsPre.dishLib||{};D.exLib=_lsPre.exLib||{};D.wkTpl=_lsPre.wkTpl||{};D.supLogs=_lsPre.supLogs||{};D.habitDefs=_lsPre.habitDefs||{};D.habitLogs=_lsPre.habitLogs||{};D.ssLogs=_lsPre.ssLogs||{};D.pantry=_lsPre.pantry||{};D.formLogs=_lsPre.formLogs||{};D.changeLog=_lsPre.changeLog||{};D.profile=_lsPre.profile||D.profile;D.bodyLogs=_lsPre.bodyLogs||[];renderCal();renderLib();renderProf();}
   ['workouts','nutrition','foodLib','dishLib','exLib','wkTpl','supLogs','habitDefs','habitLogs','ssLogs','pantry','formLogs','changeLog'].forEach(function(col){
     (function(c){
       var u=db.collection(pfx(c)).onSnapshot(function(snap){
