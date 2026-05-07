@@ -1514,9 +1514,19 @@ function renderAdminSwitchBar(){
     bar.appendChild(btn);
   });
   // PDF export button
-  var bPdf=mk('button','admin-switch-btn','📄 PDF');bPdf.style.cssText='border-color:#27ae60;color:#27ae60;flex-shrink:0';
-  bPdf.title='Exportar perfil actual como PDF';
-  bPdf.onclick=function(){exportProfilePDF();};
+  var bPdf=mk('button','admin-switch-btn','Descargar PDF');
+  bPdf.style.cssText='border-color:#27ae60;color:#27ae60;flex-shrink:0;font-size:8px';
+  bPdf.title='Descargar informe PDF del perfil actual';
+  bPdf.onclick=function(){
+    var html=buildPDFHtml();
+    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;
+    a.download=(currentProfile?currentProfile.name:'informe')+'_skinny033.html';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},3000);
+  };
   bar.appendChild(bPdf);
   // Back to admin panel button
   var bAdmin=mk('button','admin-switch-btn','⚙ Admin');bAdmin.style.cssText='border-color:var(--gold-dim);color:var(--gold-dim);flex-shrink:0';
@@ -2608,14 +2618,29 @@ function openModW(item){
   var cd=item&&item.cardio;
   G('wCardioStart').value=cd&&cd.start||'';
   G('wCardioEnd').value=cd&&cd.end||'';
-  G('wCardioDurH').value=cd?(cd.durH||0):'';
-  G('wCardioDurM').value=cd?(cd.durM||0):'';
+  G('wCardioDurH').value=cd?(cd.durH||item.durH||0):'';
+  G('wCardioDurM').value=cd?(cd.durM||item.durM||0):'';
   G('wCardioDist').value=cd?(cd.dist||''):'';
+  if(G('wCardioFcMedia'))G('wCardioFcMedia').value=cd?(cd.fcMedia||''):'';
+  if(G('wCardioFcMax'))G('wCardioFcMax').value=cd?(cd.fcMax||''):'';
   G('wCardioRpe').value=cd?(cd.rpe||''):'';
   G('wCardioNotes').value=cd?(cd.notes||''):'';
+  // Restore intervals and cardio type
+  _cardioIntervals=cd&&cd.intervals?JSON.parse(JSON.stringify(cd.intervals)):[];
+  _cardioType=cd&&cd.tipo||'continuo';
+  // Set cardio type buttons
+  setTimeout(function(){
+    document.querySelectorAll('.cardio-type-btn').forEach(function(btn){
+      btn.classList.toggle('active',btn.getAttribute('data-ctype')===_cardioType);
+    });
+    var showIntervals=(_cardioType==='intervalos'||_cardioType==='hiit');
+    var wrap=G('wCardioIntervalsWrap');if(wrap)wrap.style.display=showIntervals?'block':'none';
+    if(_cardioIntervals.length>0){if(wrap)wrap.style.display='block';renderCardioIntervals();}
+  },100);
   var isCardio=item&&CARDIO_TYPES.indexOf(item.name||item.type||'')>=0||false;
   G('wCardioFields').style.display=isCardio?'block':'none';
   G('wExBtns').style.display=isCardio?'none':'flex';
+  if(item&&item.name)G('wType').value=item.name;
   renderExs();G('modW').style.display='flex';
 }
 var CARDIO_TYPES=['Correr','Ciclismo indoor','Ciclismo exterior','Barre','Body Pump','Zumba','Spinning','Natación','Senderismo','Yoga','Pilates','Boxeo','CrossFit','Escalada','Remo','Elíptica','Caminata','Baile','Cardio'];
@@ -4603,6 +4628,12 @@ function showExDetail(item){
   // Technique
   var techKey=(item.name||'').toLowerCase().trim();
   var technique=EX_TECHNIQUE&&EX_TECHNIQUE[techKey];
+  // Fuzzy match: try partial key match
+  if(!technique&&EX_TECHNIQUE){
+    Object.keys(EX_TECHNIQUE).forEach(function(k){
+      if(!technique&&(k.indexOf(techKey)>=0||techKey.indexOf(k)>=0)){technique=EX_TECHNIQUE[k];}
+    });
+  }
   if(technique){
     var tw=mk('div','');tw.style.cssText='background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold);padding:14px;margin-top:4px;margin-bottom:12px';
     tw.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px">Técnica de ejecución</div><div style="font-size:12px;color:var(--white3);line-height:1.8;white-space:pre-line">'+technique+'</div>';
@@ -4897,17 +4928,34 @@ function renderActivityFloat(body){
     });
     intvBlock.appendChild(resFields);
     body.appendChild(intvBlock);
-    // Next interval info
-    if(_actCurIntervalIdx+1<intervals.length){
+    // Done button FIRST
+    var isLast=(_actCurIntervalIdx===intervals.length-1);
+    var doneIntBtn=mk('button','wk-float-done',isLast?'✓ TERMINAR ACTIVIDAD':'✓ COMPLETAR INTERVALO '+(_actCurIntervalIdx+1));
+    if(isLast)doneIntBtn.style.background='rgba(39,174,96,.25)';
+    doneIntBtn.onclick=function(){
+      if(isLast){
+        // Record last interval and go straight to summary
+        if(!_actIntervalResults[_actCurIntervalIdx])_actIntervalResults[_actCurIntervalIdx]={};
+        var lapStart=_actIntervalResults.slice(0,_actCurIntervalIdx).reduce(function(s,r){return s+(parseInt(r.durSec)||0);},0);
+        _actIntervalResults[_actCurIntervalIdx].durSec=_actTimerSec-lapStart;
+        clearInterval(_actTimerInt);_actTimerRunning=false;
+        _actCurIntervalIdx++;
+        var bd2=G('wkFloatBody');if(bd2){bd2.innerHTML='';_showActivitySummary(bd2);}
+      }else{completeCurrentInterval(body);}
+    };
+    body.appendChild(doneIntBtn);
+    // Next interval preview BELOW the button
+    if(!isLast){
       var nx=intervals[_actCurIntervalIdx+1];
-      var nxDiv=mk('div','');nxDiv.style.cssText='padding:6px 10px;background:var(--dark2);border:1px solid var(--dark4);font-size:9px;color:var(--white4);margin-bottom:10px';
-      nxDiv.innerHTML='<span style="color:var(--gold-dim);letter-spacing:1px;text-transform:uppercase;font-size:7px">A continuación: </span>'+(typeLabels[nx.tipo]||nx.tipo)+(nx.tiempo?' · '+fmtSec(parseInt(nx.tiempo))||'':'');
+      var nxDiv=mk('div','');
+      nxDiv.style.cssText='padding:8px 12px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);font-size:10px;color:var(--white3);margin-top:8px';
+      nxDiv.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:3px">A continuación</div>'+
+        '<div>'+(nx.tipo==='trabajo'?'Trabajo':nx.tipo==='descanso'?'Descanso':'Desc. activo')+
+        (nx.tiempo?' · '+fmtSec(parseInt(nx.tiempo)):'')+
+        (nx.dist?' · '+nx.dist+'m':'')+
+        (nx.vel?' · '+nx.vel+' km/h':'')+'</div>';
       body.appendChild(nxDiv);
     }
-    // Done button for this interval
-    var doneIntBtn=mk('button','wk-float-done','✓ COMPLETAR INTERVALO '+ (_actCurIntervalIdx+1));
-    doneIntBtn.onclick=function(){completeCurrentInterval(body);};
-    body.appendChild(doneIntBtn);
   }else{
     // Free session: lap button + FC
     var bLap=mk('button','act-timer-btn','⏱ Vuelta');
@@ -4958,40 +5006,18 @@ function renderActivityFloat(body){
   body.appendChild(finBtn);
 }
 
-function completeCurrentInterval(body){
+function completeCurrentInterval(){
   var intervals=(wkModeItem.cardio&&wkModeItem.cardio.intervals)||[];
-  var curIntv=intervals[_actCurIntervalIdx];
   if(!_actIntervalResults[_actCurIntervalIdx])_actIntervalResults[_actCurIntervalIdx]={};
-  _actIntervalResults[_actCurIntervalIdx].durSec=_actTimerSec;
+  var lapStart=_actIntervalResults.slice(0,_actCurIntervalIdx).reduce(function(s,r){return s+(parseInt(r.durSec)||0);},0);
+  _actIntervalResults[_actCurIntervalIdx].durSec=_actTimerSec-lapStart;
   clearInterval(_actTimerInt);_actTimerRunning=false;
-  // Check if rest
-  var nextIntv=intervals[_actCurIntervalIdx+1];
-  var restSec=parseInt((curIntv&&curIntv.descanso))||0;
   _actCurIntervalIdx++;
-  if(restSec>0&&nextIntv){
-    // Show rest countdown inside float
-    var bd=G('wkFloatBody');if(!bd)return;bd.innerHTML='';
-    var fex=G('wkFloatEx');if(fex)fex.textContent='Descanso';
-    var fser=G('wkFloatSer');if(fser)fser.textContent='Próximo: Intervalo '+(_actCurIntervalIdx+1);
-    var restWrap=mk('div','wk-float-rest');
-    restWrap.appendChild(mk('div','wk-float-rest-label','Descanso entre intervalos'));
-    var countEl=mk('div','wk-float-rest-count',String(restSec));restWrap.appendChild(countEl);
-    var typeLabels={trabajo:'[Trabajo]',descanso:'[Descanso]',descanso_activo:'🚶 Descanso activo'};
-    var nxDiv=mk('div','wk-float-rest-next');
-    nxDiv.innerHTML='<div class="wk-float-rest-next-lbl">A continuación</div><div style="font-size:11px;color:var(--white)">'+(typeLabels[nextIntv.tipo]||nextIntv.tipo)+(nextIntv.tiempo?' · '+fmtSec(parseInt(nextIntv.tiempo))||'':'')+'</div>';
-    restWrap.appendChild(nxDiv);
-    var acts=mk('div','wk-float-rest-actions');
-    var bSkip=mk('button','bcanc','Saltar');bSkip.onclick=function(){clearInterval(_actRestInt);renderActivityFloat(bd);};
-    var bAdd=mk('button','bsave b','+30s');bAdd.onclick=function(){_actRestSec+=30;countEl.textContent=String(_actRestSec);};
-    acts.appendChild(bSkip);acts.appendChild(bAdd);restWrap.appendChild(acts);bd.appendChild(restWrap);
-    _actRestSec=restSec;
-    _actRestInt=setInterval(function(){
-      _actRestSec--;countEl.textContent=String(_actRestSec);
-      if(_actRestSec<=0){clearInterval(_actRestInt);if(navigator.vibrate)navigator.vibrate([200,100,200]);renderActivityFloat(bd);}
-    },1000);
-  }else{
-    if(body)renderActivityFloat(body);
-  }
+  // Vibrate and go directly to next interval (no rest screen)
+  if(navigator.vibrate)navigator.vibrate([200,100,200]);
+  var bd=G('wkFloatBody');if(!bd)return;
+  bd.innerHTML='';
+  renderActivityFloat(bd);
 }
 
 function renderWkFloat(){
@@ -5321,12 +5347,27 @@ G('wkFloatToggle').onclick=function(){
   var fl=G('wkFloat');if(!fl)return;
   if(fl.style.display==='flex'||fl.style.display==='block'){
     fl.style.display='none';
-    G('wkFloatToggle').textContent='📋 Panel';
+    G('wkFloatToggle').textContent='Abrir Panel';
   }else{
     renderWkFloat();
-    G('wkFloatToggle').textContent='✕ Panel';
+    G('wkFloatToggle').textContent='Cerrar Panel';
   }
 };
+if(G('wkFloatClose')){G('wkFloatClose').onclick=function(){var fl=G('wkFloat');if(fl)fl.style.display='none';if(G('wkFloatToggle'))G('wkFloatToggle').textContent='Abrir Panel';};};
+if(G('wkFloatClose')){
+  G('wkFloatClose').onclick=function(){
+    var fl=G('wkFloat');if(fl)fl.style.display='none';
+    if(G('wkFloatToggle'))G('wkFloatToggle').textContent='Abrir Panel';
+  };
+}
+// X closes float and shows workout behind
+if(G('wkFloatClose')){
+  G('wkFloatClose').onclick=function(){
+    var fl=G('wkFloat');if(fl)fl.style.display='none';
+    G('wkFloatToggle').textContent='Abrir Panel';
+    // wkMode is visible behind - user can see and interact with the workout
+  };
+}
 
 // ── FATIGUE MODAL ──────────────────────────────────────────────────────────
 var FATIGUE_QS=[
