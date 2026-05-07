@@ -16,6 +16,10 @@
 }
 html,body{height:100%;overflow:hidden}
 body{background:var(--black);color:var(--white);font-family:var(--sans);font-size:13px}
+body.light-mode{--black:#f5f5f5;--dark:#ffffff;--dark2:#eeeeee;--dark3:#e0e0e0;--dark4:#cccccc;--dark5:#bbbbbb;--white:#111111;--white3:#333333;--white4:#666666;background:#f5f5f5;color:#111}
+body.light-mode .nav{background:#fff;border-color:#ddd}
+body.light-mode .card{background:#fff;border-color:#ddd}
+body.light-mode .modal,.light-mode .cbox{background:#fff}
 /* LOADING */
 #loading{position:fixed;inset:0;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
 .ll{font-family:var(--serif);font-size:46px;font-weight:300;letter-spacing:8px;color:var(--gold);margin-bottom:4px}
@@ -697,9 +701,11 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
         <div class="fg" style="margin-bottom:8px"><label class="fl">Sensaciones / Notas</label><textarea class="fi-ta" id="wCardioNotes" placeholder="¿Cómo te has sentido?..." style="min-height:60px"></textarea></div>
       </div>
       <div id="wExs"></div>
-      <div id="wExBtns" style="display:flex;gap:6px;margin-bottom:10px">
-        <button class="btnadd-main" id="btnEx" style="flex:1;margin-bottom:0">+ Ejercicio en blanco</button>
-        <button class="btnadd-main" id="btnExLib" style="flex:1;margin-bottom:0;border-color:var(--gold-dim);color:var(--gold-dim)">· Desde biblioteca</button>
+      <div id="wExBtns" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="btnadd-main" id="btnEx" style="flex:1;margin-bottom:0;min-width:120px">+ Ejercicio</button>
+        <button class="btnadd-main" id="btnExLib" style="flex:1;margin-bottom:0;min-width:120px;border-color:var(--gold-dim);color:var(--gold-dim)">· Biblioteca</button>
+        <button class="btnadd-main" id="btnWarmup" style="flex:1;margin-bottom:0;min-width:100px;border-color:#3498db;color:#3498db">🔥 Calentamiento</button>
+        <button class="btnadd-main" id="btnStretch" style="flex:1;margin-bottom:0;min-width:100px;border-color:#27ae60;color:#27ae60">🤸 Estiramientos</button>
       </div>
       <label class="tpl-row">
         <input type="checkbox" class="tpl-check" id="wSaveTpl">
@@ -1223,7 +1229,7 @@ if(useFS){try{firebase.initializeApp({apiKey:"AIzaSyBzKvv-gYbmEOojgno9KPirhKTXlJ
 // ══ STATE ══════════════════════════════════════════════
 var mainTab='cal',calTab='training',libTab='foods',libFoodSub='alimentos',libTrainSub='plantillas',profTab='datos';
 var weekOff=0,atWeekOff=0,editId=null,editKey=null,selDay=0,confirmCb=null;
-var calView='week',calMonthOff=0;
+var calView='day',calMonthOff=0;
 
 // Convert date string to {weekOff, dayIdx} for the key system
 function dateToWD(dateStr){
@@ -1681,16 +1687,45 @@ function buildPDFHtml(){
   html.push('<hr class="section-divider">');
   html.push('<div style="font-size:10px;color:#aaa;text-align:center;margin-top:20px">Generado por Skinny 033 · '+today+'</div>');
   html.push('</body></html>');
-  win.document.write(html.join(''));
-  win.document.close();
-  // Wait for full render then print
-  win.onload=function(){win.focus();setTimeout(function(){win.print();},300);};
-  // Fallback if onload already fired
-  if(win.document.readyState==='complete'){win.focus();setTimeout(function(){win.print();},800);}
+  return html.join('');
 }
 
 // ══ THEME PERSONALIZATION ════════════════════════════════════════════════════
 
+
+// ══ MACRO ANALYSIS ════════════════════════════════════════════════════════════
+function renderMacroChart(cont){
+  var days=getWeekDays(weekOff);
+  var goalKcal=parseFloat(D.profile&&D.profile.goalKcal)||2000;
+  var goalProt=parseFloat(D.profile&&D.profile.goalProt)||150;
+  var goalCarbs=parseFloat(D.profile&&D.profile.goalCarbs)||200;
+  var goalFat=parseFloat(D.profile&&D.profile.goalFat)||70;
+  var labels=[],actKcal=[],actProt=[],actCarbs=[],actFat=[];
+  days.forEach(function(d){
+    var key=gk(weekOff,((d.getDay()+6)%7));
+    var meals=(D.nutrition[key]&&D.nutrition[key].items)||[];
+    var kcal=0,prot=0,carbs=0,fat=0;
+    meals.forEach(function(m){(m.foods||[]).forEach(function(f){kcal+=parseFloat(f.kcal)||0;prot+=parseFloat(f.prot)||0;carbs+=parseFloat(f.carbs)||0;fat+=parseFloat(f.fat)||0;});});
+    labels.push(DAYS[((d.getDay()+6)%7)].slice(0,3));
+    actKcal.push(Math.round(kcal));actProt.push(Math.round(prot));actCarbs.push(Math.round(carbs));actFat.push(Math.round(fat));
+  });
+  var card=mk('div','prof-card');
+  card.innerHTML='<div class="prof-card-title">Macros semanales vs objetivo</div>';
+  var cWrap=mk('div','chart-wrap');var canvas=document.createElement('canvas');canvas.id='macroChart';
+  cWrap.appendChild(canvas);card.appendChild(cWrap);cont.appendChild(card);
+  setTimeout(function(){
+    var ctx=G('macroChart');if(!ctx||typeof Chart==='undefined')return;
+    new Chart(ctx.getContext('2d'),{type:'bar',data:{labels:labels,datasets:[
+      {label:'Kcal reales',data:actKcal,backgroundColor:'rgba(201,168,76,.7)',yAxisID:'y'},
+      {label:'Obj kcal',data:labels.map(function(){return goalKcal;}),type:'line',borderColor:'#C9A84C',borderDash:[5,5],fill:false,pointRadius:0,yAxisID:'y'},
+      {label:'Proteína (g)',data:actProt,backgroundColor:'rgba(41,128,185,.6)',yAxisID:'y2'},
+      {label:'Obj prot',data:labels.map(function(){return goalProt;}),type:'line',borderColor:'#2980b9',borderDash:[5,5],fill:false,pointRadius:0,yAxisID:'y2'}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#888',font:{size:9}}}},scales:{
+      y:{position:'left',ticks:{color:'#888',font:{size:9}},grid:{color:'#2a2a2a'},title:{display:true,text:'Kcal',color:'#888',font:{size:8}}},
+      y2:{position:'right',ticks:{color:'#888',font:{size:9}},grid:{display:false},title:{display:true,text:'Proteína g',color:'#888',font:{size:8}}}
+    }}});
+  },100);
+}
 function renderAdminPanel(){
   // Refresh from Firebase before rendering
   var list=G('adminProfileList');list.innerHTML='';
@@ -2274,7 +2309,7 @@ function openDayMeals(key,dayIdx){
   G('dmTtl').textContent=(d?d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'}):'Comidas')+' — '+items.length+' comida'+(items.length!==1?'s':'');
   var body=G('dmBody');body.innerHTML='';
   if(!items.length){body.innerHTML='<div class="empty-state">Sin comidas este día</div>';}
-  items.forEach(function(meal){
+  items.forEach(function(meal,idx){
     var done=!!meal.completed;
     var totKcal=(meal.foods||[]).reduce(function(a,f){return a+(parseFloat(f.kcal)||0);},0);
     var totProt=(meal.foods||[]).reduce(function(a,f){return a+(parseFloat(f.prot)||0);},0);
@@ -2386,7 +2421,15 @@ function showVW(item,key){
     grp.forEach(function(exIdx){
       var ex=exs[exIdx];
       var div=mk('div','view-ex');
+      var exSType=ex.sectionType||'main';
+      var exSColor={'warmup':'#3498db','stretch':'#27ae60','main':''}[exSType];
       if(isSuperset)div.style.cssText='border-left-color:var(--gold);background:rgba(201,168,76,.03)';
+      else if(exSColor)div.style.borderLeftColor=exSColor;
+      if(exSType!=='main'){
+        var secLblVW=mk('div','');secLblVW.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:'+exSColor+';margin-bottom:4px';
+        secLblVW.textContent=exSType==='warmup'?'Calentamiento':'Estiramientos';
+        div.appendChild(secLblVW);
+      }
       div.appendChild(mk('div','view-ex-name',ex.name||'Ejercicio sin nombre'));
       // Column headers - all in one row
       var hdr=mk('div','view-serie');hdr.style.cssText='margin-bottom:2px';
@@ -2766,6 +2809,24 @@ function renderSer(ei){
 }
 G('btnEx').onclick=function(){exercises.push({name:'',series:[{reps:'',weight:'',rir:'',rpe:'',rest:''}]});renderExs();};
 G('btnExLib').onclick=function(){openExPick();};
+// Warmup section
+G('btnWarmup').onclick=function(){
+  // Add a section header if not already present
+  var hasSection=exercises.some(function(e){return e.sectionType==='warmup';});
+  if(!hasSection){
+    exercises.push({id:uid(),name:'',sectionType:'warmup',sectionLabel:'Calentamiento',series:[{reps:'',weight:'',rir:'',rpe:'',rest:'',type:'warmup'}]});
+    renderExs();
+  }else{
+    // Just add a warmup exercise
+    exercises.push({id:uid(),name:'',sectionType:'warmup',series:[{reps:'',weight:'',rir:'',rpe:'',rest:'',type:'warmup'}]});
+    renderExs();
+  }
+};
+// Stretching section
+G('btnStretch').onclick=function(){
+  exercises.push({id:uid(),name:'',sectionType:'stretch',series:[{reps:'',time:'30',weight:'',rir:'',rpe:'',rest:'',type:'normal'}]});
+  renderExs();
+};
 G('btnLoadTpl').onclick=function(){openTplSel();};
 
 // Exercise picker
@@ -3739,7 +3800,11 @@ function renderProfMain(cont){
     document.querySelectorAll('.prof-panel-btn').forEach(function(b){b.style.borderColor='';});
     subCont.classList.add('open');bProg.style.borderColor='var(--gold-dim)';
     // Render charts after panel is visible
-    setTimeout(function(){renderProfProgreso(subCont.querySelector('.prof-sub-inner'));},80);}
+    setTimeout(function(){
+      var inner=subCont.querySelector('.prof-sub-inner');
+      renderProfProgreso(inner);
+      renderMacroChart(inner);
+    },80);}
   };
   panelBtns.appendChild(bProg);
   // Formularios (admin only)
@@ -3814,7 +3879,14 @@ function applyTheme(colorHex){
 }
 
 function loadSavedTheme(){
-  try{var saved=localStorage.getItem('s033_theme_'+(currentProfile?currentProfile.id:'default'));if(saved)applyTheme(saved);}catch(e){}
+  try{
+    var p=currentProfile?currentProfile.id:'default';
+    var saved=localStorage.getItem('s033_theme_'+p);
+    if(saved)applyTheme(saved);
+    var light=localStorage.getItem('s033_lightmode_'+p);
+    if(light)document.body.classList.add('light-mode');
+    else document.body.classList.remove('light-mode');
+  }catch(e){}
 }
 
 function loadTheme(){loadSavedTheme();}
@@ -4021,6 +4093,24 @@ function renderProfHoy(cont){
   // Theme color picker
   var themeCard=mk('div','prof-card');themeCard.style.marginTop='12px';
   var thHdr=mk('div','');thHdr.style.cssText='font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px';thHdr.textContent='Color de acento personalizado';themeCard.appendChild(thHdr);
+  // Dark/Light mode toggle
+  var isLightMode=document.body.classList.contains('light-mode');
+  var modeRow=mk('div','');modeRow.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:8px 10px;background:var(--dark2);border:1px solid var(--dark4)';
+  var lblDark=mk('span','');lblDark.style.cssText='font-size:9px;color:var(--white3)';lblDark.textContent='Oscuro';
+  var sw=mk('div','');sw.style.cssText='width:42px;height:24px;background:'+(isLightMode?'var(--gold)':'var(--dark4)')+';border-radius:12px;cursor:pointer;position:relative;transition:.2s;flex-shrink:0';
+  var swDot=mk('div','');swDot.style.cssText='width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:'+(isLightMode?'20px':'2px')+';transition:.2s';
+  sw.appendChild(swDot);
+  sw.onclick=(function(s,d){return function(){
+    document.body.classList.toggle('light-mode');
+    var l=document.body.classList.contains('light-mode');
+    s.style.background=l?'var(--gold)':'var(--dark4)';
+    d.style.left=l?'20px':'2px';
+    try{localStorage.setItem('s033_lightmode_'+(currentProfile?currentProfile.id:'default'),l?'1':'');}catch(e){}
+  };})(sw,swDot);
+  var lblLight=mk('span','');lblLight.style.cssText='font-size:9px;color:var(--white3)';lblLight.textContent='Claro';
+  modeRow.appendChild(lblDark);modeRow.appendChild(sw);modeRow.appendChild(lblLight);
+  themeCard.appendChild(modeRow);
+
   var thRow=mk('div','');thRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
   THEMES.forEach(function(t){
     var btn=mk('button','');
@@ -5106,6 +5196,15 @@ function renderWkMode(){
 
 function finishWorkout(){
   clearInterval(wkTimerInt);wkRunning=false;
+  // Check for PRs
+  (wkModeItem&&wkModeItem.exercises||[]).forEach(function(ex){
+    (ex.series||[]).forEach(function(s){
+      if(s.done&&s.weight&&s.reps){
+        var pr=checkAndRecordPR(ex.name,s['_usr_weight']||s.weight,s['_usr_reps']||s.reps);
+        if(pr)setTimeout(function(n,p){return function(){showPRBanner(n,p);};}(ex.name,pr),500);
+      }
+    });
+  });
   // Save progress
   if(wkModeKey&&wkModeItem){
     var key=wkModeKey;
@@ -5425,6 +5524,31 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 
 // ══ EXERCISE LIBRARY PRELOAD ══════════════════════════════════════════════════
 
+
+// ══ PR DETECTION ══════════════════════════════════════════════════════════════
+function checkAndRecordPR(exerciseName,weight,reps){
+  if(!exerciseName||!weight)return null;
+  var key='s033_pr_'+(currentProfile?currentProfile.id:'default');
+  var prs={};try{prs=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
+  var exKey=(exerciseName||'').toLowerCase().trim();
+  var current=prs[exKey]||{weight:0,reps:0,date:''};
+  var w=parseFloat(weight)||0;
+  var r=parseFloat(reps)||0;
+  if(w>current.weight||(w===current.weight&&r>current.reps)){
+    prs[exKey]={weight:w,reps:r,date:todayDateStr()};
+    try{localStorage.setItem(key,JSON.stringify(prs));}catch(e){}
+    return {prev:current,new:{weight:w,reps:r}};
+  }
+  return null;
+}
+
+function showPRBanner(exerciseName,pr){
+  var banner=document.createElement('div');
+  banner.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#C9A84C,#E8C97A);color:#000;padding:10px 20px;font-family:var(--sans);font-size:10px;letter-spacing:2px;text-transform:uppercase;z-index:9999;border-radius:0;text-align:center;animation:fadeIn .3s;box-shadow:0 4px 20px rgba(0,0,0,.5)';
+  banner.innerHTML='🏆 NUEVO PR — '+exerciseName+'<br><span style="font-size:12px;letter-spacing:0">'+pr.new.weight+'kg × '+pr.new.reps+' reps</span>';
+  document.body.appendChild(banner);
+  setTimeout(function(){banner.style.opacity='0';banner.style.transition='opacity .5s';setTimeout(function(){banner.remove();},500);},3000);
+}
 // ══ FIREBASE EXERCISE MIGRATION — runs once, cleans duplicates ═══════════════
 (function exMigration(){
   var MIG_KEY='s033_exmig_v2';
@@ -5559,6 +5683,18 @@ var EX_TECHNIQUE={};
     '4. Empuja hacia arriba hasta extensi\u00F3n sin bloquear los codos.\n'+
     '\u26A0 No bajar demasiado si hay molestia en el hombro.');
 })();
+// Click outside ANY modal to close
+document.addEventListener('click',function(e){
+  document.querySelectorAll('.mol').forEach(function(m){
+    if((m.style.display==='flex'||m.style.display==='block')&&e.target===m)m.style.display='none';
+  });
+  document.querySelectorAll('.col').forEach(function(col){
+    if((col.style.display==='flex'||col.style.display==='block')&&e.target===col)col.style.display='none';
+  });
+  ['modDCfg','modDayMeals'].forEach(function(id){
+    var el=G(id);if(el&&(el.style.display==='flex')&&e.target===el)el.style.display='none';
+  });
+});
 renderCal();
 });
 </script>
