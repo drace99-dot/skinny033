@@ -1524,16 +1524,18 @@ function renderAdminSwitchBar(){
 // ══ PDF EXPORT ════════════════════════════════════════════════════════════════
 function exportProfilePDF(){
   if(!currentProfile)return;
-  var win=window.open('','_blank');
-  if(!win){
-    // Fallback: use data URI
-    var _pdfHtml=buildPDFHtml();
-    var blob=new Blob([_pdfHtml],{type:'text/html'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');a.href=url;a.target='_blank';a.click();
-    setTimeout(function(){URL.revokeObjectURL(url);},5000);
-    return;
-  }
+  var html=buildPDFHtml();
+  // Use blob URL - works without popup permission
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.target='_blank';a.rel='noopener';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},10000);
+  return;}
+function buildPDFHtml(){
+  if(!currentProfile)return'<html><body>Sin datos</body></html>';
   var profileName=currentProfile.name||'Perfil';
   var today=new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
   var html=['<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">',
@@ -1606,7 +1608,17 @@ function exportProfilePDF(){
   html.push('<hr class="section-divider">');
   html.push('<h2>📅 Plan de Entrenamiento y Nutrición</h2>');
   // Collect all dates with data
+  // Re-gather data to ensure we have latest
   var allDates={};
+  var wKeys=Object.keys(D.workouts||{});
+  var nKeys=Object.keys(D.nutrition||{});
+  if(wKeys.length===0&&nKeys.length===0&&!D.bodyLogs.length){
+    html.push('<div style="padding:30px;text-align:center;color:#888">');
+    html.push('<p style="font-size:16px">No hay datos registrados en este perfil todav\u00EDa.</p>');
+    html.push('<p style="font-size:12px">A\u00F1ade entrenamientos, comidas y h\u00E1bitos para verlos aqu\u00ED.</p>');
+    html.push('</div>');
+    return html.join('');
+  }
   Object.keys(D.workouts||{}).forEach(function(key){
     var items=(D.workouts[key]&&D.workouts[key].items)||[];
     items.forEach(function(item){if(item.date)allDates[item.date]=(allDates[item.date]||{workouts:[],meals:[],habitsDate:item.date});(allDates[item.date].workouts=allDates[item.date].workouts||[]).push(item);});
@@ -1616,7 +1628,7 @@ function exportProfilePDF(){
     items.forEach(function(item){if(item.date){if(!allDates[item.date])allDates[item.date]={workouts:[],meals:[],habitsDate:item.date};(allDates[item.date].meals=allDates[item.date].meals||[]).push(item);}});
   });
   var sortedDates=Object.keys(allDates).sort();
-  if(sortedDates.length===0){html.push('<p class="prog-note">Sin datos registrados en el calendario.</p>');}
+  if(sortedDates.length===0){html.push('<div style="padding:20px;color:#888;font-style:italic">Sin datos registrados en el calendario para este perfil.</div>');}
   sortedDates.forEach(function(date){
     var day=allDates[date];
     var d=new Date(date+'T00:00:00');
@@ -1678,28 +1690,6 @@ function exportProfilePDF(){
 }
 
 // ══ THEME PERSONALIZATION ════════════════════════════════════════════════════
-var THEMES={gold:'#C9A84C',azul:'#2980b9',verde:'#27ae60',rojo:'#c0392b',morado:'#8e44ad',rosa:'#e91e8c',naranja:'#e67e22',blanco:'#f0f0f0'};
-
-function applyTheme(color){
-  var root=document.documentElement;
-  // Darken for gold-dim (70% brightness)
-  root.style.setProperty('--gold',color);
-  // Simple dim: reduce opacity via hex
-  var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
-  var dim='rgb('+Math.round(r*.6)+','+Math.round(g*.6)+','+Math.round(b*.6)+')';
-  root.style.setProperty('--gold-dim',dim);
-  var bright='rgb('+Math.min(255,Math.round(r*1.3))+','+Math.min(255,Math.round(g*1.3))+','+Math.min(255,Math.round(b*1.3))+')';
-  root.style.setProperty('--gold2',bright);
-  try{var p=currentProfile?currentProfile.id:'default';localStorage.setItem('s033_theme_'+p,color);}catch(e){}
-}
-
-function loadSavedTheme(){
-  try{
-    var p=currentProfile?currentProfile.id:'default';
-    var saved=localStorage.getItem('s033_theme_'+p);
-    if(saved)applyTheme(saved);
-  }catch(e){}
-}
 
 function renderAdminPanel(){
   // Refresh from Firebase before rendering
@@ -1725,7 +1715,7 @@ function renderAdminPanel(){
     var bLogin=mk('button','lib-btn apply','Entrar');
     bLogin.onclick=(function(pr){return function(){
       currentProfile=pr;isAdminSession=true;G('adminPanel').style.display='none';G('app').style.display='flex';
-      loadSavedTheme();renderAdminSwitchBar();loadTheme();
+      renderAdminSwitchBar();loadSavedTheme();loadTheme();
       var navLogo=document.querySelector('.nav-logo');if(navLogo)navLogo.textContent='S033 · '+pr.name;
       D=resetD();subData();
     };})(prof);
@@ -1945,8 +1935,18 @@ function adjustPantry(foodsList,sign){
   (foodsList||[]).forEach(function(f){
     if(!f.libraryId)return;
     var fid=f.libraryId,g=parseFloat(f.grams)||0;
-    if(!D.pantry[fid])D.pantry[fid]={id:fid,qty:0};
-    D.pantry[fid].qty=Math.max(0,(parseFloat(D.pantry[fid].qty)||0)+sign*g);
+    if(!D.pantry[fid])D.pantry[fid]={id:fid,name:f.name||'',qty:0,shopping:0};
+    var newQty=(parseFloat(D.pantry[fid].qty)||0)+sign*g;
+    if(newQty<0){
+      // Not enough in stock — add deficit to shopping list
+      D.pantry[fid].shopping=Math.abs(newQty)+(parseFloat(D.pantry[fid].shopping)||0);
+      D.pantry[fid].qty=0;
+    }else{
+      D.pantry[fid].qty=newQty;
+      // Clear shopping if we now have enough
+      if(sign>0)D.pantry[fid].shopping=Math.max(0,(parseFloat(D.pantry[fid].shopping)||0)-newQty);
+    }
+    D.pantry[fid].name=f.name||D.pantry[fid].name||'';
     saveFS('pantry',fid,D.pantry[fid]);
   });
 }
@@ -2048,8 +2048,20 @@ function makeWorkoutCard(item,key){
   card.onclick=function(e){if(_dragActive||e.target.tagName==='BUTTON'||e.target.closest('button'))return;showVW(item,key);};
   var tp=mk('div','ctype','Entrenamiento');
   var tt=mk('div','ctit',item.name||'Sin nombre');
-  var ex=(item.exercises||[]).length,ser=(item.exercises||[]).reduce(function(a,e){return a+(e.series||[]).length;},0);
-  var mt=mk('div','cmeta',ex+' ejercicio'+(ex!==1?'s':'')+' · '+ser+' series'+(done?' · ✓':''));
+  var isCardioCard=item.cardio!==undefined||CARDIO_TYPES.indexOf(item.name||'')>=0;
+  var mt;
+  if(isCardioCard&&item.cardio){
+    var cd=item.cardio;var cdParts=[];
+    if(cd.durH||cd.durM)cdParts.push((cd.durH||0)+'h '+(cd.durM||0)+'min');
+    if(cd.dist)cdParts.push(cd.dist+'km');
+    if(cd.tipo&&cd.tipo!=='continuo')cdParts.push(cd.tipo);
+    var iCount=(cd.intervals&&cd.intervals.length)||(cd.intervalResults&&cd.intervalResults.length)||0;
+    if(iCount)cdParts.push(iCount+' series');
+    mt=mk('div','cmeta',(cdParts.length?cdParts.join(' · '):'Actividad')+(done?' · ✓':''));
+  }else{
+    var ex=(item.exercises||[]).length,ser=(item.exercises||[]).reduce(function(a,e){return a+(e.series||[]).length;},0);
+    mt=mk('div','cmeta',ex+' ejercicio'+(ex!==1?'s':'')+' · '+ser+' series'+(done?' · ✓':''));
+  }
   var ac=mk('div','cact');
   // Drag handle button
   var bdg=mk('button','cbtn cdrag-btn','⠿');bdg.title='Arrastrar a otro día';bdg.style.cssText='flex:0 0 auto;width:22px;font-size:13px;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab';
@@ -2280,7 +2292,16 @@ function openDayMeals(key,dayIdx){
     var bdn=mk('button','lib-btn',done?'↺ Pendiente':'✓ Ingerida');
     bdn.onclick=(function(id,k){return function(e){e.stopPropagation();toggleCompleted('nutrition',k,id);openDayMeals(k,dayIdx);};})(meal.id,key);
     var bdel=mk('button','lib-btn del','✕');bdel.onclick=(function(id,k){return function(e){e.stopPropagation();confirm2('Eliminar','¿Eliminar "'+meal.name+'"?','danger',function(){deleteItemDirect('nutrition',id,k);openDayMeals(k,dayIdx);});};})(meal.id,key);
-    acts.appendChild(be);acts.appendChild(bdn);acts.appendChild(bdel);
+    // Move up/down
+    var bUp=mk('button','lib-btn','↑');bUp.title='Subir';bUp.onclick=(function(idx2,k2){return function(e){e.stopPropagation();
+      var items=(D.nutrition[k2]&&D.nutrition[k2].items)||[];
+      if(idx2>0){var tmp=items[idx2];items[idx2]=items[idx2-1];items[idx2-1]=tmp;saveFS('nutrition',k2,{items:items});openDayMeals(k2,dayIdx);}
+    };})(idx,key);
+    var bDown=mk('button','lib-btn','↓');bDown.title='Bajar';bDown.onclick=(function(idx2,k2){return function(e){e.stopPropagation();
+      var items=(D.nutrition[k2]&&D.nutrition[k2].items)||[];
+      if(idx2<items.length-1){var tmp=items[idx2];items[idx2]=items[idx2+1];items[idx2+1]=tmp;saveFS('nutrition',k2,{items:items});openDayMeals(k2,dayIdx);}
+    };})(idx,key);
+    acts.appendChild(bUp);acts.appendChild(bDown);acts.appendChild(bdn);acts.appendChild(bdel);
     row.appendChild(acts);body.appendChild(row);
   });
   G('dmAddNew').onclick=function(){closeM('modDayMeals');selDay=dayIdx;editId=null;editKey=null;openModN(null);};
@@ -2327,7 +2348,7 @@ function showVW(item,key){
     if(intervals.length>0){
       var intHdr=mk('div','');intHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px';intHdr.textContent='Series / Intervalos';
       ci.appendChild(intHdr);
-      var typeLabels={trabajo:'🏃 Trabajo',descanso:'⏸ Descanso',descanso_activo:'🚶 Desc. activo'};
+      var typeLabels={trabajo:'[Trabajo]',descanso:'[Descanso]',descanso_activo:'[Desc.activo]'};
       // Group consecutive identical intervals
       var grouped=[];
       intervals.forEach(function(intv){
@@ -2389,12 +2410,15 @@ function showVW(item,key){
         cell.innerHTML='<div class="vsc-lbl" style="font-size:6px">'+l+'</div>';hdrRow.appendChild(cell);
       });
       div.appendChild(hdrRow);
+      var cumIdx=0;
       serGroups.forEach(function(g,gi){
         var s=g.s;var isWU=g.isWarmup;
         var row=mk('div','view-serie'+(isWU?' sblk-warmup':''));
         if(isWU)row.style.cssText='grid-template-columns:28px repeat(6,1fr);background:rgba(52,152,219,.05);margin-bottom:4px;gap:4px;display:grid';
         var numCell=mk('div','view-serie-cell');numCell.style.cssText=isWU?'background:rgba(52,152,219,.15);border-left:3px solid #3498db':'';
-        numCell.innerHTML='<div class="vsc-val" style="color:'+(isWU?'#3498db':'var(--gold)')+';">'+(isWU?'🔥':(g.count>1?g.count+'×':(gi+1)))+'</div>';
+        var numLabel=isWU?'🔥':(g.count>1?g.count+'×':(cumIdx+1));
+        numCell.innerHTML='<div class="vsc-val" style="color:'+(isWU?'#3498db':'var(--gold)')+'">'+numLabel+'</div>';
+        cumIdx+=g.count;
         row.appendChild(numCell);
         [{v:s.reps||'—'},{v:s.time?s.time+'s':'—'},{v:s.weight||'—'},{v:s.rir||'—'},{v:s.rpe||'—'},{v:s.rest?s.rest+'s':'—'}].forEach(function(f){
           var cell=mk('div','view-serie-cell');cell.innerHTML='<div class="vsc-val">'+f.v+'</div>';row.appendChild(cell);
@@ -2543,7 +2567,7 @@ function renderCardioIntervals(){
     var block=mk('div','interval-block');
     var hdr=mk('div','interval-block-hdr');
     var sel=document.createElement('select');sel.className='fi-sel';sel.style.cssText='padding:4px 8px;font-size:10px;flex:1';
-    [{v:'trabajo',l:'🏃 Trabajo'},{v:'descanso',l:'⏸ Descanso'},{v:'descanso_activo',l:'🚶 Descanso activo'}].forEach(function(opt){
+    [{v:'trabajo',l:'[Trabajo]'},{v:'descanso',l:'[Descanso]'},{v:'descanso_activo',l:'🚶 Descanso activo'}].forEach(function(opt){
       var o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if(intv.tipo===opt.v)o.selected=true;sel.appendChild(o);
     });
     sel.onchange=(function(i){return function(){_cardioIntervals[i].tipo=this.value;renderCardioIntervals();};})(idx);
@@ -3040,7 +3064,11 @@ G('dcfgCnc').onclick=function(){G('modDCfg').style.display='none';};G('dcfgX').o
 
 // ══ TEMPLATE SELECTOR ════════════════════════════════════
 function openTplSel(){
-  var list=G('tSelList');list.innerHTML='';var items=Object.values(D.wkTpl);
+  var list=G('tSelList');list.innerHTML='';
+  var items=Object.values(D.wkTpl).filter(function(t){
+    if(isAdminSession)return true;
+    return !t.ownerId||t.ownerId===(currentProfile&&currentProfile.id);
+  });
   if(!items.length){list.innerHTML='<div style="padding:12px;color:var(--white4);font-size:10px">No hay plantillas guardadas</div>';G('modTSel').style.display='flex';return;}
   items.forEach(function(tpl){var item=mk('div','lib-opt');item.innerHTML='<div style="font-weight:500;color:var(--white)">'+tpl.name+'</div><div class="lib-opt-meta">'+(tpl.exercises?tpl.exercises.length:0)+' ejercicios</div>';item.onclick=function(){exercises=JSON.parse(JSON.stringify(tpl.exercises||[]));if(!G('wNm').value)G('wNm').value=tpl.name;renderExs();closeM('modTSel');};list.appendChild(item);});
   G('modTSel').style.display='flex';
@@ -3270,7 +3298,10 @@ function renderLibPlantillas(cont){
   sr.oninput=function(){libTrainSearch=this.value;applyLibFilter('listPlantillas','emptyPlantillas',this.value);};
   srRow.appendChild(sr);cont.appendChild(srRow);
   var listDiv=mk('div');listDiv.id='listPlantillas';
-  var items=Object.values(D.wkTpl);
+  var items=Object.values(D.wkTpl).filter(function(t){
+    if(isAdminSession)return true;
+    return !t.ownerId||t.ownerId===(currentProfile&&currentProfile.id);
+  });
   if(!items.length){var em=mk('div','empty-state','No hay plantillas guardadas');em.id='emptyPlantillas';cont.appendChild(em);cont.appendChild(listDiv);return;}
   items.forEach(function(item){
     var row=mk('div','lib-item');row.setAttribute('data-name',item.name||'');
@@ -3760,19 +3791,33 @@ var THEMES=[
   {id:'green',name:'Verde',color:'#27ae60'},
   {id:'red',name:'Rojo',color:'#c0392b'},
   {id:'purple',name:'Púrpura',color:'#8e44ad'},
-  {id:'teal',name:'Teal',color:'#16a085'}
+  {id:'teal',name:'Teal',color:'#16a085'},
+  {id:'pink',name:'Rosa',color:'#e91e8c'},
+  {id:'orange',name:'Naranja',color:'#e67e22'}
 ];
 
-function applyTheme(themeId){
-  document.body.className=document.body.className.replace(/theme-\w+/g,'').trim();
-  if(themeId&&themeId!=='classic')document.body.classList.add('theme-'+themeId);
-  try{localStorage.setItem('s033_theme_'+(currentProfile?currentProfile.id:'default'),themeId||'classic');}catch(e){}
+function applyTheme(colorHex){
+  if(!colorHex||typeof colorHex!=='string')return;
+  // Resolve theme name to hex if needed
+  if(colorHex[0]!=='#'){
+    var found=THEMES.filter(function(t){return t.id===colorHex||t.name===colorHex;})[0];
+    colorHex=found?found.color:'#C9A84C';
+  }
+  var root=document.documentElement;
+  root.style.setProperty('--gold',colorHex);
+  var r=parseInt(colorHex.slice(1,3),16)||0;
+  var g=parseInt(colorHex.slice(3,5),16)||0;
+  var b=parseInt(colorHex.slice(5,7),16)||0;
+  root.style.setProperty('--gold-dim','rgb('+Math.round(r*.6)+','+Math.round(g*.6)+','+Math.round(b*.6)+')');
+  root.style.setProperty('--gold2','rgb('+Math.min(255,Math.round(r*1.3))+','+Math.min(255,Math.round(g*1.3))+','+Math.min(255,Math.round(b*1.3))+')');
+  try{localStorage.setItem('s033_theme_'+(currentProfile?currentProfile.id:'default'),colorHex);}catch(e){}
 }
 
-function loadTheme(){
-  var saved=localStorage.getItem('s033_theme_'+(currentProfile?currentProfile.id:'default'))||'classic';
-  applyTheme(saved);
+function loadSavedTheme(){
+  try{var saved=localStorage.getItem('s033_theme_'+(currentProfile?currentProfile.id:'default'));if(saved)applyTheme(saved);}catch(e){}
 }
+
+function loadTheme(){loadSavedTheme();}
 
 function renderThemePicker(cont){
   cont.appendChild(mk('div','prof-card-title','Personalización'));
@@ -3784,7 +3829,7 @@ function renderThemePicker(cont){
     var dot=mk('div','theme-dot'+(currentTheme===t.id?' active':''));
     dot.style.background=t.color;dot.title=t.name;
     dot.onclick=function(){
-      applyTheme(t.id);
+      applyTheme(t.color);
       picker.querySelectorAll('.theme-dot').forEach(function(d){d.classList.remove('active');});
       dot.classList.add('active');
     };
@@ -3977,17 +4022,16 @@ function renderProfHoy(cont){
   var themeCard=mk('div','prof-card');themeCard.style.marginTop='12px';
   var thHdr=mk('div','');thHdr.style.cssText='font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px';thHdr.textContent='Color de acento personalizado';themeCard.appendChild(thHdr);
   var thRow=mk('div','');thRow.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
-  Object.keys(THEMES).forEach(function(name){
-    var col=THEMES[name];
+  THEMES.forEach(function(t){
     var btn=mk('button','');
-    btn.style.cssText='width:36px;height:36px;background:'+col+';border:3px solid transparent;cursor:pointer;border-radius:50%;transition:.2s;flex-shrink:0';
-    btn.title=name.charAt(0).toUpperCase()+name.slice(1);
+    btn.style.cssText='width:36px;height:36px;background:'+t.color+';border:3px solid transparent;cursor:pointer;border-radius:50%;transition:.2s;flex-shrink:0';
+    btn.title=t.name;
     btn.setAttribute('data-theme-btn','1');
-    btn.onclick=(function(c2){return function(){
+    btn.onclick=(function(col,b2){return function(){
       document.querySelectorAll('[data-theme-btn]').forEach(function(b){b.style.borderColor='transparent';});
-      this.style.borderColor='var(--white)';
-      applyTheme(c2);
-    };})(col);
+      b2.style.borderColor='var(--white)';
+      applyTheme(col);
+    };})(t.color,btn);
     thRow.appendChild(btn);
   });
   themeCard.appendChild(thRow);
@@ -4366,15 +4410,50 @@ function showTplDetail(tpl){
 // ── EXERCISE DETAIL VIEW ──────────────────────────────────────
 function showExDetail(item){
   var overlay=mk('div','col');overlay.style.display='flex';
-  var modal=mk('div','cbox');modal.style.cssText='max-width:400px;text-align:left';
+  overlay.onclick=function(e){if(e.target===overlay)document.body.removeChild(overlay);};
+  var modal=mk('div','cbox');modal.style.cssText='max-width:480px;text-align:left;max-height:85vh;overflow-y:auto;padding:20px';
+  // Header
   var title=mk('div','');title.style.cssText='font-family:var(--serif);font-size:20px;color:var(--gold);margin-bottom:14px;letter-spacing:2px';title.textContent=item.name;
   modal.appendChild(title);
-  if(item.muscleGroup||item.equipment){var tags=mk('div','');tags.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px';[item.muscleGroup,item.equipment].filter(Boolean).forEach(function(t){var tg=mk('div','');tg.style.cssText='padding:3px 10px;background:var(--dark3);border:1px solid var(--gold-dim);color:var(--gold-dim);font-size:9px;letter-spacing:1px';tg.textContent=t;tags.appendChild(tg);});modal.appendChild(tags);}
-  if(item.notes){var nd=mk('div','note-display',item.notes);nd.style.marginBottom='10px';modal.appendChild(nd);}
+  // Primary muscle
+  if(item.muscleGroup){
+    var pm=mk('div','');pm.style.cssText='margin-bottom:12px';
+    pm.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:4px">Músculo principal</div><div style="font-size:15px;color:var(--gold);font-weight:600">'+item.muscleGroup+'</div>';
+    modal.appendChild(pm);
+  }
+  // Involved muscles
+  if(item.notes){
+    var im=mk('div','');im.style.cssText='margin-bottom:12px';
+    im.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:4px">Grupos musculares involucrados</div><div style="font-size:12px;color:var(--white3);line-height:1.5">'+item.notes+'</div>';
+    modal.appendChild(im);
+  }
+  // Equipment
+  if(item.equipment){
+    var eq=mk('div','');eq.style.cssText='margin-bottom:12px';
+    eq.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:4px">Material necesario</div><div style="font-size:13px;color:var(--white);font-weight:500">'+item.equipment+'</div>';
+    modal.appendChild(eq);
+  }
+  // YouTube
+  if(item.video){
+    var vw=mk('div','');vw.style.cssText='margin-bottom:12px';
+    var vLink=document.createElement('a');vLink.href=item.video;vLink.target='_blank';vLink.rel='noopener';
+    vLink.style.cssText='display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.4);color:#ff5555;text-decoration:none;font-size:10px;letter-spacing:2px;text-transform:uppercase';
+    vLink.textContent='▶ Ver técnica en YouTube';
+    vw.appendChild(vLink);modal.appendChild(vw);
+  }
+  // Technique
+  var techKey=(item.name||'').toLowerCase().trim();
+  var technique=EX_TECHNIQUE&&EX_TECHNIQUE[techKey];
+  if(technique){
+    var tw=mk('div','');tw.style.cssText='background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold);padding:14px;margin-top:4px;margin-bottom:12px';
+    tw.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px">Técnica de ejecución</div><div style="font-size:12px;color:var(--white3);line-height:1.8;white-space:pre-line">'+technique+'</div>';
+    modal.appendChild(tw);
+  }
   var bRow=mk('div','cbts');
   var bClose=mk('button','bcc','Cerrar');bClose.onclick=function(){document.body.removeChild(overlay);};
   var bEdit=mk('button','bco ok','✎ Editar');bEdit.onclick=function(){document.body.removeChild(overlay);openExModal(item);};
-  bRow.appendChild(bClose);bRow.appendChild(bEdit);modal.appendChild(bRow);overlay.appendChild(modal);document.body.appendChild(overlay);
+  bRow.appendChild(bClose);if(isAdminSession)bRow.appendChild(bEdit);modal.appendChild(bRow);
+  overlay.appendChild(modal);document.body.appendChild(overlay);
 }
 
 // ── STEPS/SLEEP CHARTS (separate + combined) ─────────────────
@@ -4633,7 +4712,7 @@ function renderActivityFloat(body){
     var intvBlock=mk('div','interval-block');
     intvBlock.style.marginBottom='10px';
     var intvHdr=mk('div','interval-block-hdr');
-    var typeLabels={trabajo:'🏃 Trabajo',descanso:'⏸ Descanso',descanso_activo:'🚶 Descanso activo'};
+    var typeLabels={trabajo:'[Trabajo]',descanso:'[Descanso]',descanso_activo:'🚶 Descanso activo'};
     intvHdr.appendChild(mk('div','interval-lbl',(typeLabels[curIntv.tipo]||curIntv.tipo)+' — Intervalo '+(_actCurIntervalIdx+1)));
     if(curIntv.tiempo)intvHdr.appendChild(mk('div','').appendChild&&Object.assign(mk('div',''),{style:'font-size:10px;color:var(--white4)',textContent:'Objetivo: '+fmtSec(parseInt(curIntv.tiempo))||''}));
     intvBlock.appendChild(intvHdr);
@@ -4737,7 +4816,7 @@ function completeCurrentInterval(body){
     var restWrap=mk('div','wk-float-rest');
     restWrap.appendChild(mk('div','wk-float-rest-label','Descanso entre intervalos'));
     var countEl=mk('div','wk-float-rest-count',String(restSec));restWrap.appendChild(countEl);
-    var typeLabels={trabajo:'🏃 Trabajo',descanso:'⏸ Descanso',descanso_activo:'🚶 Descanso activo'};
+    var typeLabels={trabajo:'[Trabajo]',descanso:'[Descanso]',descanso_activo:'🚶 Descanso activo'};
     var nxDiv=mk('div','wk-float-rest-next');
     nxDiv.innerHTML='<div class="wk-float-rest-next-lbl">A continuación</div><div style="font-size:11px;color:var(--white)">'+(typeLabels[nextIntv.tipo]||nextIntv.tipo)+(nextIntv.tiempo?' · '+fmtSec(parseInt(nextIntv.tiempo))||'':'')+'</div>';
     restWrap.appendChild(nxDiv);
@@ -4781,6 +4860,14 @@ function renderWkFloat(){
     else if(isSuperset)block.style.borderLeftColor='var(--gold)';
     var nmDiv=mk('div','wk-float-ex-nm',(isWarmupSer?'🔥 CALENTAMIENTO — ':'')+( ex.name||'Ejercicio '+(ei+1)));
     if(isWarmupSer)nmDiv.style.color='#3498db';
+    // YouTube link for this exercise
+    var exLibItem=Object.values(D.exLib||{}).find(function(e2){return (e2.name||'').toLowerCase()===(ex.name||'').toLowerCase();});
+    if(exLibItem&&exLibItem.video){
+      var vFloatLink=document.createElement('a');vFloatLink.href=exLibItem.video;vFloatLink.target='_blank';vFloatLink.rel='noopener';
+      vFloatLink.style.cssText='display:inline-block;font-size:8px;color:#ff5555;text-decoration:none;margin-bottom:6px;letter-spacing:1px';
+      vFloatLink.textContent='▶ Ver técnica en YouTube';
+      block.appendChild(nmDiv);block.appendChild(vFloatLink);
+    }else{block.appendChild(nmDiv);}
     var serLbl=mk('div','');serLbl.style.cssText='font-size:8px;letter-spacing:2px;color:'+(isWarmupSer?'#3498db':'var(--gold-dim)')+';text-transform:uppercase;margin-bottom:8px';
     serLbl.textContent=(isWarmupSer?'🔥 ':'')+'Serie '+(curSerIdx+1);
     block.appendChild(nmDiv);block.appendChild(serLbl);
@@ -5379,6 +5466,99 @@ G('wkRestAdd30').onclick=function(){wkRestSec+=30;G('wkRestCount').textContent=w
 })();
 
 
+
+// ══ TECHNIQUE DATABASE ═══════════════════════════════════════════════════════
+var EX_TECHNIQUE={};
+(function(){
+  function t(name,text){EX_TECHNIQUE[name.toLowerCase().trim()]=text;}
+  t('press de banca plano con barra',
+    '1. T\u00FAmbate en el banco con los pies apoyados en el suelo.\n'+
+    '2. Agarra la barra algo m\u00E1s ancha que los hombros, agarre prono.\n'+
+    '3. Retrae las esc\u00E1pulas y arquea ligeramente la espalda baja.\n'+
+    '4. Baja la barra de forma controlada hasta el pecho (altura de los pezones).\n'+
+    '5. Empuja la barra hacia arriba y ligeramente hacia atr\u00E1s hasta extender los codos.\n'+
+    '\u26A0 No rebotar la barra. Mantener los pies en el suelo en todo momento.');
+  t('sentadilla con barra (back squat)',
+    '1. Barra en trapecios (high bar) o deltoides posteriores (low bar).\n'+
+    '2. Pies a la anchura de los hombros, puntas ligeramente hacia fuera.\n'+
+    '3. Coge aire, contrae el core y desciende manteniendo el pecho erguido.\n'+
+    '4. Baja hasta que los muslos queden paralelos al suelo o por debajo.\n'+
+    '5. Sube empujando el suelo, rodillas alineadas con los pies.\n'+
+    '\u26A0 No dejar que las rodillas colapsen. Los talones siempre en el suelo.');
+  t('peso muerto convencional',
+    '1. Barra sobre el medio del pie, agarre a la anchura de los hombros.\n'+
+    '2. Caderas arriba, pecho al frente, espalda neutra.\n'+
+    '3. Empuja el suelo con los pies y mantena la barra pegada al cuerpo.\n'+
+    '4. Extiende caderas y rodillas simult\u00E1neamente.\n'+
+    '5. Bloquea arriba apretando gl\u00FAteos. Baja controlado.\n'+
+    '\u26A0 No redondear la espalda baja. La barra debe rozar las piernas.');
+  t('dominadas (pull-ups) pronadas',
+    '1. Agarre prono, manos algo m\u00E1s anchas que los hombros.\n'+
+    '2. Activa las esc\u00E1pulas hacia abajo y atr\u00E1s antes de tirar.\n'+
+    '3. Dobla los codos y lleva el pecho hacia la barra.\n'+
+    '4. El ment\u00F3n debe superar la barra en el punto m\u00E1ximo.\n'+
+    '5. Baja de forma controlada hasta extensi\u00F3n completa.\n'+
+    '\u26A0 Evitar el kipping. Bajar completamente en cada repetici\u00F3n.');
+  t('press militar con barra de pie',
+    '1. Sujeta la barra a la anchura de los hombros, a la altura del cuello.\n'+
+    '2. Activa el core y los gl\u00FAteos para proteger la lumbar.\n'+
+    '3. Empuja la barra verticalmente por encima de la cabeza.\n'+
+    '4. Una vez superes la frente, lleva la cabeza ligeramente hacia delante.\n'+
+    '5. Bloquea los codos arriba y baja de forma controlada.\n'+
+    '\u26A0 No arquear la espalda. Mantener el abdomen contraido.');
+  t('hip thrust con barra',
+    '1. Apoya la espalda alta en un banco, barra sobre las caderas (con almohadilla).\n'+
+    '2. Pies en el suelo a la anchura de los hombros.\n'+
+    '3. Empuja las caderas hacia el techo contrayendo los gl\u00FAteos.\n'+
+    '4. En la parte alta, muslos y torso forman una l\u00EDnea recta.\n'+
+    '5. Aprieta gl\u00FAteos en la cima 1-2 segundos. Baja controlado.\n'+
+    '\u26A0 No hiperextender la lumbar. El movimiento viene de los gl\u00FAteos.');
+  t('elevaciones laterales con mancuernas',
+    '1. De pie, mancuernas a los lados con leve flexi\u00F3n de codo.\n'+
+    '2. Eleva los brazos lateralmente hasta la altura de los hombros.\n'+
+    '3. Las mu\u00F1ecas ligeramente por debajo de los codos (pulgar abajo).\n'+
+    '4. Baja lentamente de forma controlada (2-3 segundos).\n'+
+    '\u26A0 No balancear el tronco. La bajada lenta es clave para el desarrollo.');
+  t('curl con barra recta',
+    '1. De pie, agarre supino a la anchura de los hombros.\n'+
+    '2. Codos pegados a los costados, espalda recta.\n'+
+    '3. Flexiona los codos llevando la barra hacia los hombros.\n'+
+    '4. Aprieta el b\u00EDceps en la parte alta.\n'+
+    '5. Baja de forma controlada hasta extensi\u00F3n casi completa.\n'+
+    '\u26A0 No balancear el torso ni mover los codos hacia delante.');
+  t('press franc\u00E9s con barra ez',
+    '1. T\u00FAmbate en el banco, sujeta la barra EZ sobre la frente.\n'+
+    '2. Los codos apuntan al techo, perpendiculares al suelo.\n'+
+    '3. Baja la barra hacia la frente o ligeramente por detr\u00E1s de la cabeza.\n'+
+    '4. Extiende los codos empujando la barra hacia arriba.\n'+
+    '\u26A0 Mantener los codos fijos. Solo se mueven los antebrazos.');
+  t('plancha frontal (plank)',
+    '1. Apoya los antebrazos y las puntas de los pies en el suelo.\n'+
+    '2. El cuerpo debe formar una l\u00EDnea recta de cabeza a talones.\n'+
+    '3. Activa el abdomen, gl\u00FAteos y cu\u00E1driceps simult\u00E1neamente.\n'+
+    '4. Respira de forma controlada durante todo el ejercicio.\n'+
+    '\u26A0 No elevar ni hundir las caderas. No aguantar la respiraci\u00F3n.');
+  t('remo con barra prono',
+    '1. Inclinado hacia delante unos 45\u00B0, rodillas ligeramente flexionadas.\n'+
+    '2. Agarre prono a la anchura de los hombros.\n'+
+    '3. Retrae las esc\u00E1pulas y tira de la barra hacia el abdomen.\n'+
+    '4. Los codos pasan cerca del cuerpo y apuntan hacia atr\u00E1s.\n'+
+    '5. Baja controladamente hasta extensi\u00F3n casi completa.\n'+
+    '\u26A0 No usar el impulso de la espalda baja. Torso estable.');
+  t('kettlebell swing bilateral',
+    '1. Pies a la anchura de los hombros, kettlebell entre los pies.\n'+
+    '2. Inc\u00EDnate con bisagra de cadera, agarra el kettlebell.\n'+
+    '3. Impulsa las caderas hacia delante de forma explosiva.\n'+
+    '4. El kettlebell sube hasta la altura de los hombros por inercia.\n'+
+    '5. Deja que vuelva entre las piernas y repite.\n'+
+    '\u26A0 El movimiento lo generan las caderas, no los brazos. Espalda neutra.');
+  t('fondos en paralelas (tr\u00EDceps)',
+    '1. S\u00FAjetate en las paralelas con brazos extendidos.\n'+
+    '2. Torso erguido para enfatizar el tr\u00EDceps.\n'+
+    '3. Baja hasta que los codos formen unos 90\u00B0.\n'+
+    '4. Empuja hacia arriba hasta extensi\u00F3n sin bloquear los codos.\n'+
+    '\u26A0 No bajar demasiado si hay molestia en el hombro.');
+})();
 renderCal();
 });
 </script>
