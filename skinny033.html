@@ -2101,14 +2101,17 @@ function makeWorkoutCard(item,key){
   var tt=mk('div','ctit',item.name||'Sin nombre');
   var isCardioCard=item.cardio!==undefined||CARDIO_TYPES.indexOf(item.name||'')>=0;
   var mt;
-  if(isCardioCard&&item.cardio){
-    var cd=item.cardio;var cdParts=[];
-    if(cd.durH||cd.durM)cdParts.push((cd.durH||0)+'h '+(cd.durM||0)+'min');
+  if(isCardioCard){
+    var cd=item.cardio||{};var cdParts=[];
+    // Duration - check both cardio object and direct fields
+    var dH=parseFloat(cd.durH)||parseFloat(item.durH)||0;
+    var dM=parseFloat(cd.durM)||parseFloat(item.durM)||0;
+    if(dH||dM)cdParts.push((dH?dH+'h ':'')+dM+'min');
     if(cd.dist)cdParts.push(cd.dist+'km');
     if(cd.tipo&&cd.tipo!=='continuo')cdParts.push(cd.tipo);
     var iCount=(cd.intervals&&cd.intervals.length)||(cd.intervalResults&&cd.intervalResults.length)||0;
     if(iCount)cdParts.push(iCount+' series');
-    mt=mk('div','cmeta',(cdParts.length?cdParts.join(' · '):'Actividad')+(done?' · ✓':''));
+    mt=mk('div','cmeta',(cdParts.length?cdParts.join(' · '):'Actividad')+(done?' · Realizado':''));
   }else{
     var ex=(item.exercises||[]).length,ser=(item.exercises||[]).reduce(function(a,e){return a+(e.series||[]).length;},0);
     mt=mk('div','cmeta',ex+' ejercicio'+(ex!==1?'s':'')+' · '+ser+' series'+(done?' · ✓':''));
@@ -2949,6 +2952,7 @@ function saveWorkout(){
       var durHv=parseFloat(G('wCardioDurH').value)||0;
       var durMv=parseFloat(G('wCardioDurM').value)||0;
       var durTotal=durHv+durMv/60;
+      newItem.durH=durHv;newItem.durM=durMv;// also at top level for easy access
       newItem.cardio={start:G('wCardioStart').value,end:G('wCardioEnd').value,
         durH:durHv,durM:durMv,dist:distV,
         speed:durTotal>0&&distV>0?(distV/durTotal).toFixed(2):0,
@@ -3080,27 +3084,47 @@ function saveNutrition(){
   var name=G('nNm').value.trim();if(!name)return alert('Añade un nombre');
   var dateStr=G('nDatePick').value||todayDateStr();
   var wd=dateToWD(dateStr);
-  var key=gk(wd.weekOff,wd.dayIdx);
-  var items=(D.nutrition[key]&&D.nutrition[key].items||[]).slice();
-  var _prevCompleted=false;
-  if(editId){var _eit=(D.nutrition[editKey||key]&&D.nutrition[editKey||key].items)||[];var _ef=_eit.find(function(x){return x.id===editId;});if(_ef)_prevCompleted=!!_ef.completed;}
-  var ni={id:editId||uid(),name:name,notes:G('nNotes').value,foods:JSON.parse(JSON.stringify(foods)),date:dateStr,completed:_prevCompleted};
+  var newKey=gk(wd.weekOff,wd.dayIdx);
+
   if(editId){
-    // Restore pantry for the OLD version before overwriting
-    var _oldKey=editKey||key;
-    var _oldItems=(D.nutrition[_oldKey]&&D.nutrition[_oldKey].items)||[];
-    var _oldItem=null;for(var _i=0;_i<_oldItems.length;_i++){if(_oldItems[_i].id===editId){_oldItem=_oldItems[_i];break;}}
-    if(_oldItem&&_oldItem.foods){try{adjustPantry(_oldItem.foods,1);}catch(e){console.warn('pantry restore',e);}}
-    if(editKey&&editKey!==key){var old=(D.nutrition[editKey]&&D.nutrition[editKey].items||[]).filter(function(x){return x.id!==editId;});if(old.length===0)delFS('nutrition',editKey);else saveFS('nutrition',editKey,{items:old});items.push(ni);}
-    else{var idx=-1;for(var i=0;i<items.length;i++){if(items[i].id===editId){idx=i;break;}}if(idx>=0)items[idx]=Object.assign({},items[idx],ni);else items.push(ni);}
-  }else{items.push(ni);}
-  // Deduct pantry for the NEW foods (wrapped in try so it never blocks saving)
-  try{adjustPantry(ni.foods,-1);}catch(e){console.warn('pantry adjust error',e);}
-  saveFS('nutrition',key,{items:items});
-  if(wd.weekOff!==weekOff&&calView==='week'){weekOff=wd.weekOff;}
+    // EDIT MODE: remove from old key, put in new key
+    var srcKey=editKey||newKey;
+    var srcItems=(D.nutrition[srcKey]&&D.nutrition[srcKey].items)||[];
+    var existingItem=srcItems.find(function(x){return x.id===editId;})||{};
+    var updatedItem={id:editId,name:name,notes:G('nNotes').value,
+      foods:JSON.parse(JSON.stringify(foods)),date:dateStr,completed:!!existingItem.completed};
+    if(srcKey===newKey){
+      // Same day: replace in place
+      var newItems=srcItems.map(function(x){return x.id===editId?updatedItem:x;});
+      if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
+      D.nutrition[newKey]={items:newItems};
+      saveFS('nutrition',newKey,{items:newItems});
+    }else{
+      // Date changed: remove from old day, add to new day
+      var filteredOld=srcItems.filter(function(x){return x.id!==editId;});
+      if(!D.nutrition[srcKey])D.nutrition[srcKey]={items:[]};
+      D.nutrition[srcKey]={items:filteredOld};
+      if(filteredOld.length===0)delFS('nutrition',srcKey);
+      else saveFS('nutrition',srcKey,{items:filteredOld});
+      var newDayItems=((D.nutrition[newKey]&&D.nutrition[newKey].items)||[]).concat([updatedItem]);
+      if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
+      D.nutrition[newKey]={items:newDayItems};
+      saveFS('nutrition',newKey,{items:newDayItems});
+    }
+  }else{
+    // NEW item
+    var newItem={id:uid(),name:name,notes:G('nNotes').value,
+      foods:JSON.parse(JSON.stringify(foods)),date:dateStr,completed:false};
+    if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
+    var existingItems=(D.nutrition[newKey].items||[]).slice();
+    existingItems.push(newItem);
+    D.nutrition[newKey]={items:existingItems};
+    saveFS('nutrition',newKey,{items:existingItems});
+    try{adjustPantry(newItem.foods,-1);}catch(e){}
+  }
+  if(wd.weekOff!==weekOff&&calView!=='month'){weekOff=wd.weekOff;}
   editId=null;editKey=null;
-  closeM('modN');
-  renderCal();
+  closeM('modN');renderCal();
 }
 G('nSv').onclick=saveNutrition;G('nCnc').onclick=function(){closeM('modN');};G('nX').onclick=function(){closeM('modN');};
 
@@ -5718,94 +5742,191 @@ function showLoadHistory(exerciseName){
 // ══ TECHNIQUE DATABASE ═══════════════════════════════════════════════════════
 var EX_TECHNIQUE={};
 (function(){
-  function t(name,text){EX_TECHNIQUE[name.toLowerCase().trim()]=text;}
-  t('press de banca plano con barra',
-    '1. T\u00FAmbate en el banco con los pies apoyados en el suelo.\n'+
-    '2. Agarra la barra algo m\u00E1s ancha que los hombros, agarre prono.\n'+
-    '3. Retrae las esc\u00E1pulas y arquea ligeramente la espalda baja.\n'+
-    '4. Baja la barra de forma controlada hasta el pecho (altura de los pezones).\n'+
-    '5. Empuja la barra hacia arriba y ligeramente hacia atr\u00E1s hasta extender los codos.\n'+
-    '\u26A0 No rebotar la barra. Mantener los pies en el suelo en todo momento.');
-  t('sentadilla con barra (back squat)',
-    '1. Barra en trapecios (high bar) o deltoides posteriores (low bar).\n'+
-    '2. Pies a la anchura de los hombros, puntas ligeramente hacia fuera.\n'+
-    '3. Coge aire, contrae el core y desciende manteniendo el pecho erguido.\n'+
-    '4. Baja hasta que los muslos queden paralelos al suelo o por debajo.\n'+
-    '5. Sube empujando el suelo, rodillas alineadas con los pies.\n'+
-    '\u26A0 No dejar que las rodillas colapsen. Los talones siempre en el suelo.');
-  t('peso muerto convencional',
-    '1. Barra sobre el medio del pie, agarre a la anchura de los hombros.\n'+
-    '2. Caderas arriba, pecho al frente, espalda neutra.\n'+
-    '3. Empuja el suelo con los pies y mantena la barra pegada al cuerpo.\n'+
-    '4. Extiende caderas y rodillas simult\u00E1neamente.\n'+
-    '5. Bloquea arriba apretando gl\u00FAteos. Baja controlado.\n'+
-    '\u26A0 No redondear la espalda baja. La barra debe rozar las piernas.');
-  t('dominadas (pull-ups) pronadas',
-    '1. Agarre prono, manos algo m\u00E1s anchas que los hombros.\n'+
-    '2. Activa las esc\u00E1pulas hacia abajo y atr\u00E1s antes de tirar.\n'+
-    '3. Dobla los codos y lleva el pecho hacia la barra.\n'+
-    '4. El ment\u00F3n debe superar la barra en el punto m\u00E1ximo.\n'+
-    '5. Baja de forma controlada hasta extensi\u00F3n completa.\n'+
-    '\u26A0 Evitar el kipping. Bajar completamente en cada repetici\u00F3n.');
-  t('press militar con barra de pie',
-    '1. Sujeta la barra a la anchura de los hombros, a la altura del cuello.\n'+
-    '2. Activa el core y los gl\u00FAteos para proteger la lumbar.\n'+
-    '3. Empuja la barra verticalmente por encima de la cabeza.\n'+
-    '4. Una vez superes la frente, lleva la cabeza ligeramente hacia delante.\n'+
-    '5. Bloquea los codos arriba y baja de forma controlada.\n'+
-    '\u26A0 No arquear la espalda. Mantener el abdomen contraido.');
-  t('hip thrust con barra',
-    '1. Apoya la espalda alta en un banco, barra sobre las caderas (con almohadilla).\n'+
-    '2. Pies en el suelo a la anchura de los hombros.\n'+
-    '3. Empuja las caderas hacia el techo contrayendo los gl\u00FAteos.\n'+
-    '4. En la parte alta, muslos y torso forman una l\u00EDnea recta.\n'+
-    '5. Aprieta gl\u00FAteos en la cima 1-2 segundos. Baja controlado.\n'+
-    '\u26A0 No hiperextender la lumbar. El movimiento viene de los gl\u00FAteos.');
-  t('elevaciones laterales con mancuernas',
-    '1. De pie, mancuernas a los lados con leve flexi\u00F3n de codo.\n'+
-    '2. Eleva los brazos lateralmente hasta la altura de los hombros.\n'+
-    '3. Las mu\u00F1ecas ligeramente por debajo de los codos (pulgar abajo).\n'+
-    '4. Baja lentamente de forma controlada (2-3 segundos).\n'+
-    '\u26A0 No balancear el tronco. La bajada lenta es clave para el desarrollo.');
-  t('curl con barra recta',
-    '1. De pie, agarre supino a la anchura de los hombros.\n'+
-    '2. Codos pegados a los costados, espalda recta.\n'+
-    '3. Flexiona los codos llevando la barra hacia los hombros.\n'+
-    '4. Aprieta el b\u00EDceps en la parte alta.\n'+
-    '5. Baja de forma controlada hasta extensi\u00F3n casi completa.\n'+
-    '\u26A0 No balancear el torso ni mover los codos hacia delante.');
-  t('press franc\u00E9s con barra ez',
-    '1. T\u00FAmbate en el banco, sujeta la barra EZ sobre la frente.\n'+
-    '2. Los codos apuntan al techo, perpendiculares al suelo.\n'+
-    '3. Baja la barra hacia la frente o ligeramente por detr\u00E1s de la cabeza.\n'+
-    '4. Extiende los codos empujando la barra hacia arriba.\n'+
-    '\u26A0 Mantener los codos fijos. Solo se mueven los antebrazos.');
-  t('plancha frontal (plank)',
-    '1. Apoya los antebrazos y las puntas de los pies en el suelo.\n'+
-    '2. El cuerpo debe formar una l\u00EDnea recta de cabeza a talones.\n'+
-    '3. Activa el abdomen, gl\u00FAteos y cu\u00E1driceps simult\u00E1neamente.\n'+
-    '4. Respira de forma controlada durante todo el ejercicio.\n'+
-    '\u26A0 No elevar ni hundir las caderas. No aguantar la respiraci\u00F3n.');
-  t('remo con barra prono',
-    '1. Inclinado hacia delante unos 45\u00B0, rodillas ligeramente flexionadas.\n'+
-    '2. Agarre prono a la anchura de los hombros.\n'+
-    '3. Retrae las esc\u00E1pulas y tira de la barra hacia el abdomen.\n'+
-    '4. Los codos pasan cerca del cuerpo y apuntan hacia atr\u00E1s.\n'+
-    '5. Baja controladamente hasta extensi\u00F3n casi completa.\n'+
-    '\u26A0 No usar el impulso de la espalda baja. Torso estable.');
-  t('kettlebell swing bilateral',
-    '1. Pies a la anchura de los hombros, kettlebell entre los pies.\n'+
-    '2. Inc\u00EDnate con bisagra de cadera, agarra el kettlebell.\n'+
-    '3. Impulsa las caderas hacia delante de forma explosiva.\n'+
-    '4. El kettlebell sube hasta la altura de los hombros por inercia.\n'+
-    '5. Deja que vuelva entre las piernas y repite.\n'+
-    '\u26A0 El movimiento lo generan las caderas, no los brazos. Espalda neutra.');
-  t('fondos en paralelas (tr\u00EDceps)',
-    '1. S\u00FAjetate en las paralelas con brazos extendidos.\n'+
-    '2. Torso erguido para enfatizar el tr\u00EDceps.\n'+
-    '3. Baja hasta que los codos formen unos 90\u00B0.\n'+
-    '4. Empuja hacia arriba hasta extensi\u00F3n sin bloquear los codos.\n'+
-    '\u26A0 No bajar demasiado si hay molestia en el hombro.');
+  function t(n,txt){EX_TECHNIQUE[n.toLowerCase().trim()]=txt;}
+  t('press de banca plano con barra','1. Tumbate en el banco con los pies firmes en el suelo.\n2. Agarre prono, manos algo mas anchas que los hombros.\n3. Retrae escapulas y arquea ligeramente la espalda baja.\n4. Baja la barra de forma controlada hasta el pecho (nipple line).\n5. Empuja hacia arriba y ligeramente atras.\nClave: no rebotar, pies en suelo, escapulas activas.');
+  t('press de banca inclinado con barra','1. Banco a 30-45 grados. Agarre prono, manos algo mas anchas que los hombros.\n2. Baja la barra hacia la parte superior del pecho de forma controlada.\n3. Empuja hacia arriba siguiendo la linea del angulo del banco.\nClave: no elevar el angulo mas de 45 grados o se vuelve press de hombros.');
+  t('press de banca declinado con barra','1. Banco a -15-30 grados. Los pies sujetos en los apoyos.\n2. Agarre prono, manos algo mas anchas que los hombros.\n3. Baja la barra hacia la parte inferior del pecho.\n4. Empuja hacia arriba de forma controlada.\nClave: especialmente util para la porcion inferior del pectoral.');
+  t('aperturas con mancuernas en banco plano','1. Tumbate con mancuernas sobre el pecho, palmas enfrentadas, ligera flexion de codo.\n2. Abre los brazos en arco amplio hasta sentir estiramiento en el pecho.\n3. Vuelve al centro en arco controlado apretando el pectoral.\nClave: mantener la curva de los codos constante, no es un movimiento de fuerza sino de stretch.');
+  t('aperturas con mancuernas en banco inclinado','1. Banco a 30-45 grados. Mancuernas sobre el pecho con ligera flexion de codo.\n2. Abre los brazos en arco amplio hasta sentir estiramiento en la parte superior del pecto.\n3. Cierra en arco controlado.\nClave: rango de movimiento amplio para maxima activacion.');
+  t('fondos en paralelas (pecho)','1. Inclina el torso hacia delante 20-30 grados al bajar.\n2. Desciende hasta que los codos formen 90 grados o el hombro quede por debajo del codo.\n3. Empuja hasta extension casi completa.\nClave: la inclinacion del torso determina si trabajas mas pecho (inclinado) o triceps (erguido).');
+  t('press de banca con mancuernas','1. Tumbate con mancuernas a la altura del pecho, codos a 45-75 grados.\n2. Empuja hacia arriba hasta casi extension, acercando ligeramente las mancuernas.\n3. Baja de forma controlada hasta sentir estiramiento.\nClave: mayor rango de movimiento que con barra, mejor para desarrollo muscular.');
+  t('pullover con mancuerna','1. Tumbate transversal en el banco, solo los hombros apoyados. Pies en el suelo.\n2. Agarra una mancuerna con ambas manos sobre el pecho, brazos casi extendidos.\n3. Baja la mancuerna por detras de la cabeza manteniendo los codos ligeramente flexionados.\n4. Vuelve al punto inicial.\nClave: activa tanto el pectoral como el dorsal.');
+  t('crossover en polea','1. Posicion split en el centro del cable. Cables a altura de los hombros o superior.\n2. Inclina ligeramente el torso. Brazos semiflexionados.\n3. Lleva ambas manos hacia el centro y abajo, cruzandolas ligeramente al final.\nClave: apretar fuertemente el pectoral en la contraccion.');
+  t('aperturas en polea baja','1. Cables a altura de la cadera o suelo. Posicion de split o pies juntos.\n2. Tira de los cables hacia arriba y al frente en arco.\n3. Contrae el pectoral superior en el punto maximo.\nClave: trabaja la porcion clavicular del pectoral.');
+  t('press en maquina pecho','1. Ajusta el asiento para que los mangos queden a la altura del pecho.\n2. Empuja directamente hacia delante hasta casi extension completa.\n3. Regresa de forma controlada sin soltar la tension.\nClave: ideal para principiantes o como ejercicio de bomba al final.');
+  t('flexiones de pecho','1. Manos algo mas anchas que los hombros, cuerpo en linea recta.\n2. Desciende hasta que el pecho casi toque el suelo.\n3. Empuja hasta extension.\nClave: no dejar caer las caderas ni elevarlas. Core activado durante todo el movimiento.');
+  t('aperturas en maquina (peck deck)','1. Ajusta el asiento para que los codos queden a la altura de los hombros.\n2. Junta los brazos frente al pecho contrayendo el pectoral al maximo.\n3. Controla el retorno sin abrir mas de lo comodo.\nClave: contraccion maxima en el punto central es la clave de este ejercicio.');
+  t('press de banca con agarre cerrado','1. Agarre prono con manos a la anchura de los hombros o algo mas estrecho.\n2. Codos pegados al torso durante el movimiento.\n3. Baja la barra al pecho y empuja manteniendo los codos cerca.\nClave: activa principalmente el triceps y la porcion interna del pectoral.');
+  t('cruces con cables en polea alta','1. Cables en la parte superior. Inclina el torso hacia delante.\n2. Lleva ambas manos hacia abajo y al centro cruzandolas ligeramente.\n3. Aprieta el pectoral en la posicion inferior.\nClave: trabaja especialmente la porcion inferior del pectoral.');
+  t('press inclinado con mancuernas','1. Banco a 30-45 grados. Mancuernas a los lados del pecho, codos a 45-75 grados.\n2. Empuja hacia arriba convergiendo ligeramente las mancuernas.\n3. Baja de forma controlada con buen rango de movimiento.\nClave: excelente para la porcion superior del pectoral.');
+  t('declinado con mancuernas','1. Banco en declive. Mancuernas a los lados del pecho bajo, codos a 45-75 grados.\n2. Empuja hacia arriba y ligeramente hacia el centro.\n3. Baja de forma controlada.\nClave: activa la porcion inferior del pectoral.');
+  t('aperturas con cables','1. Cables a la altura del pecho. Posicion de split.\n2. Tira de los cables hacia el centro en arco controlado.\n3. Contrae el pectoral y regresa lentamente.\nClave: tension constante a lo largo de todo el rango de movimiento.');
+  t('press de banca con agarre neutro','1. Mancuernas con palmas enfrentadas (agarre neutro). Banco plano.\n2. Empuja hacia arriba manteniendo las palmas mirando entre si.\n3. Baja controladamente.\nClave: reduce el estres en la articulacion del hombro comparado con el agarre prono.');
+  t('flexiones diamante','1. Coloca las manos formando un triangulo o diamante bajo el pecho.\n2. Cuerpo en plancha. Baja hasta casi tocar el suelo.\n3. Empuja hacia arriba.\nClave: activa intensamente el triceps y la porcion interna del pectoral.');
+  t('dominadas (pull-ups) pronadas','1. Agarre prono mas ancho que los hombros. Cuelga con brazos extendidos.\n2. Activa escapulas hacia abajo y atras.\n3. Sube llevando el pecho a la barra.\n4. Baja completamente de forma controlada.\nClave: rango completo es fundamental. Si no puedes, usa banda elastica.');
+  t('remo con barra prono','1. Inclinado 45 grados, rodillas ligeramente flexionadas, espalda neutra.\n2. Agarre prono a la anchura de los hombros.\n3. Tira de la barra hacia el ombligo o zona media.\n4. Baja completamente.\nClave: no usar el impulso de la espalda baja. Codos hacia atras.');
+  t('remo con mancuerna a una mano','1. Apoyo en banco con la rodilla y la mano del mismo lado.\n2. Espalda paralela al suelo.\n3. Tira de la mancuerna hacia la cadera, codo hacia el techo.\n4. Baja completamente.\nClave: el movimiento debe ser del codo, no solo del brazo. Rotacion del hombro.');
+  t('remo en maquina (cable)','1. Sentado frente al cable bajo. Ligera flexion de rodillas.\n2. Tira del cable hacia el abdomen, codos pegados al cuerpo.\n3. Contrae escapulas al final del movimiento.\n4. Extiende los brazos controladamente.\nClave: en la contraccion apretar las escapulas hacia dentro.');
+  t('jalon al pecho en polea','1. Sentado con muslos bajo los rodillos. Agarre prono mas ancho que los hombros.\n2. Inclina ligeramente el torso (10-15 grados).\n3. Tira de la barra hacia la clavícula o parte superior del pecho.\n4. Controla el retorno.\nClave: el movimiento comienza con las escapulas, no con los biceps.');
+  t('jalon al pecho con agarre supino','1. Agarre supino a la anchura de los hombros. Espalda ligeramente inclinada.\n2. Tira de la barra hacia la clavícula o pecho alto.\n3. Contrae el dorsal y vuelve controladamente.\nClave: mayor activacion del biceps y porcion baja del dorsal.');
+  t('remo en maquina de espalda','1. Pecho contra el soporte. Agarre neutro o prono segun la maquina.\n2. Tira de los mangos hacia los costados retrayendo las escapulas.\n3. Regresa controladamente.\nClave: el soporte del pecho elimina el impulso de la zona lumbar.');
+  t('peso muerto convencional','1. Barra sobre el medio del pie. Agarre a la anchura de los hombros.\n2. Caderas sobre las rodillas, pecho alto, espalda neutra.\n3. Empuja el suelo y extiende caderas y rodillas simultáneamente.\n4. Bloquea arriba apretando glúteos. Baja controlado.\nClave: la barra debe rozar las piernas en todo momento.');
+  t('peso muerto rumano','1. De pie con la barra. Ligera flexion de rodillas que se mantiene constante.\n2. Inclina el torso hacia delante bisagra de cadera, la barra baja por las piernas.\n3. Baja hasta sentir estiramiento en los isquiotibiales.\n4. Sube extendiendo la cadera.\nClave: el movimiento es de cadera, no de rodillas.');
+  t('remo con agarre estrecho (cable)','1. Sentado. Agarre neutro estrecho.\n2. Tira hacia el abdomen manteniendo los codos pegados al torso.\n3. Contrae escapulas y dorsal al final.\nClave: ideal para trabajar la zona media de la espalda y los romboides.');
+  t('facepull','1. Cable o banda a la altura de los ojos. Agarre doble, cuerda o mangos.\n2. Tira hacia la cara separando los mangos en el punto final.\n3. Las manos quedan a los lados de la cabeza en la contraccion.\nClave: ejercicio fundamental para la salud del manguito rotador y los deltoides posteriores.');
+  t('encogimientos con barra (shrugs)','1. De pie con la barra. Agarre prono a la anchura de los hombros.\n2. Eleva los hombros directamente hacia arriba sin rotar.\n3. Mantiene 1 segundo en el punto alto y baja controladamente.\nClave: no rotar los hombros, el movimiento es vertical puro.');
+  t('hiperextensiones de espalda','1. Posicion en el banco de hiperextension, caderas sobre el soporte.\n2. Brazos cruzados o manos en la nuca.\n3. Baja el torso hasta 90 grados.\n4. Sube hasta posicion neutra o ligeramente mas.\nClave: no hiperextender la zona lumbar. La contraccion debe ser de los erectores.');
+  t('remo invertido (australian)','1. Barra a la altura de la cadera. Cuelga de ella con el cuerpo recto.\n2. Pies en el suelo, cuerpo en plancha inversa.\n3. Sube el pecho a la barra retrayendo las escapulas.\nClave: dificultad ajustable cambiando el angulo del cuerpo.');
+  t('jalon con agarre neutro','1. Agarre neutro a la anchura de los hombros. Espalda ligeramente inclinada.\n2. Tira hacia el pecho retrayendo las escapulas.\n3. Controla el retorno con tension.\nClave: reduce la tension en la muñeca comparado con el agarre prono.');
+  t('extensiones de espalda con cable','1. Cable bajo, posicion inclinada sujetando el cable.\n2. Extiende el torso contra la resistencia.\n3. Contrae los erectores en el punto alto.\nClave: ejercicio de aislamiento para los erectores espinales.');
+  t('remo pendlay','1. Barra en el suelo. Torso casi paralelo al suelo.\n2. Agarre prono. Levanta explosivamente la barra hasta el abdomen.\n3. Suelta completamente al suelo entre repeticiones.\nClave: mas explosivo que el remo convencional, mayor desarrollo de potencia.');
+  t('jalon al cuello con polea','1. Agarre prono, manos muy abiertas. Espalda recta.\n2. Tira hacia la nuca controladamente.\n3. Codos van hacia abajo y atras.\nClave: mayor enfasis en los rotadores externos del hombro, menor en el dorsal.');
+  t('remo con mancuernas bilateral','1. Inclinado con soporte o sin el. Mancuernas colgando.\n2. Tira de ambas mancuernas simultaneamente hacia las caderas.\n3. Aprieta la espalda en el punto mas alto.\nClave: mas dificil de estabilizar que el unilateral pero mayor volumen de trabajo.');
+  t('remo con banda elastica','1. Banda anclada al frente a la altura del pecho o mas bajo.\n2. Tira hacia el abdomen retrayendo las escapulas.\nClave: util cuando no hay acceso a maquinas o cables. Tension progresiva.');
+  t('press militar con barra de pie','1. Barra a la altura del cuello, agarre prono a la anchura de los hombros.\n2. Core activado. Empuja la barra verticalmente hacia arriba.\n3. Una vez superes la frente, lleva la cabeza ligeramente hacia delante.\n4. Bloquea los codos arriba y baja controladamente.\nClave: no arquear excesivamente la espalda lumbar.');
+  t('press de hombros con mancuernas sentado','1. Sentado con respaldo. Mancuernas a la altura de los hombros, palmas al frente.\n2. Empuja hacia arriba hasta casi extender los codos.\n3. Baja controladamente hasta la posicion inicial.\nClave: el respaldo elimina el impulso pero tambien limita el rango lumbar.');
+  t('elevaciones laterales con mancuernas','1. De pie, mancuernas a los lados. Ligera flexion de codo que se mantiene constante.\n2. Eleva los brazos lateralmente hasta la horizontal.\n3. El codo ligeramente mas alto que la muñeca en el punto alto.\n4. Baja de forma lenta y controlada (3-4 seg).\nClave: la fase excentrica (bajada) es fundamental. No balancear.');
+  t('elevaciones frontales con mancuernas','1. Mancuernas frente a los muslos, palmas hacia abajo.\n2. Eleva los brazos al frente hasta la horizontal.\n3. Baja controladamente.\nClave: evitar el balanceo. Activar el hombro anterior desde el inicio.');
+  t('elevaciones laterales en polea baja','1. Polea baja a un lado. Tira lateralmente hacia arriba con el brazo alejado de la polea.\n2. Eleva hasta la horizontal manteniendo el codo ligeramente flexionado.\n3. Baja controladamente.\nClave: tension constante diferente a la mancuerna, especialmente al inicio.');
+  t('vuelos con mancuernas (deltoides posterior)','1. Inclinado 45-90 grados hacia delante. Mancuernas colgando.\n2. Eleva los brazos lateralmente hasta la horizontal o mas.\n3. En el punto alto el codo ligeramente por encima del hombro.\nClave: ejercicio de aislamieno esencial para los deltoides posteriores.');
+  t('press arnold','1. Sentado con mancuernas frente a la cara, palmas hacia ti.\n2. Mientras empujas hacia arriba, rota las palmas hacia afuera.\n3. Al final las palmas miran hacia delante y los brazos estan extendidos.\n4. Invierte el movimiento al bajar.\nClave: trabaja el hombro en todos sus planos.');
+  t('elevaciones con mancuernas en banco inclinado','1. Apoya el pecho en un banco inclinado (30-45 grados). Brazos colgando.\n2. Eleva los brazos lateralmente como en vuelos remo.\n3. Baja controladamente.\nClave: la posicion inclinada aísla mejor el deltoides posterior.');
+  t('upright row (remo al cuello)','1. Barra o mancuernas frente a los muslos, agarre estrecho.\n2. Tira hacia arriba llevando los codos por encima de los hombros.\n3. La barra/mancuernas suben pegadas al cuerpo.\nClave: cuidado con el dolor de hombro. Evitar si hay problemas de impingement.');
+  t('encogimientos de hombros con mancuernas','1. De pie con mancuernas a los lados.\n2. Eleva los hombros directamente hacia las orejas.\n3. Mantiene 1 segundo y baja controladamente.\nClave: movimiento puramente vertical, sin rotar ni hacer circulos.');
+  t('press en maquina de hombros','1. Ajusta el asiento para que los mangos queden a la altura de los hombros.\n2. Empuja hacia arriba hasta casi extension completa.\n3. Regresa de forma controlada.\nClave: la maquina guia el movimiento, ideal para sobrecarga progresiva segura.');
+  t('facepull con cuerda','1. Cuerda en polea alta. Agarra ambos extremos con agarre neutro.\n2. Tira hacia la cara, separando las manos al llegar.\n3. Los pulgares apuntan hacia atras en el punto final.\nClave: fundamental para la salud del hombro y postura.');
+  t('elevaciones laterales en maquina','1. Ajusta los apoyos de forma que queden a la altura de los codos.\n2. Empuja lateralmente hacia arriba hasta la horizontal.\n3. Baja de forma controlada y con tension.\nClave: la maquina mantiene tension constante a lo largo del rango.');
+  t('press tras nuca','1. Barra detras de la cabeza a la altura del cuello. Agarre prono ancho.\n2. Empuja directamente hacia arriba.\n3. Baja hasta que los codos queden paralelos al suelo.\nClave: puede causar molestias en el hombro. Solo recomendable con buena movilidad.');
+  t('curl con barra recta','1. De pie. Agarre supino a la anchura de los hombros. Codos pegados a los costados.\n2. Flexiona los codos llevando la barra hacia los hombros.\n3. Aprieta el biceps en el punto alto.\n4. Baja de forma controlada hasta extension completa.\nClave: no balancear el torso ni levantar los codos.');
+  t('curl con mancuernas alternado','1. De pie. Mancuernas a los lados, palmas hacia dentro al inicio.\n2. Flexiona un codo y supina la muñeca al subir (la palma mira hacia ti).\n3. Baja y repite con el otro lado.\nClave: la supinacion activa mejor el biceps braquial.');
+  t('curl con barra ez','1. Agarra la barra EZ en las posiciones anguladas internas. Agarre semisupino.\n2. Flexiona los codos llevando la barra hacia los hombros.\n3. Baja controladamente.\nClave: reduce la tension en las muñecas comparado con la barra recta.');
+  t('curl en banco inclinado','1. Sentado en banco inclinado (45-60 grados). Mancuernas colgando.\n2. Flexiona los codos sin mover los hombros.\n3. El rango de extension es mayor por la posicion inclinada.\nClave: mayor estiramiento del biceps en la posicion inicial.');
+  t('curl predicador','1. Apoya el brazo en el soporte del banco predicador. Agarre supino.\n2. Parte desde extension casi completa.\n3. Flexiona el codo hasta contraer el biceps.\n4. Baja completamente.\nClave: elimina el impulso del torso. Trabaja especialmente la cabeza corta.');
+  t('curl con cable','1. Polea baja. Agarre supino o con barra o cuerda.\n2. Flexiona el codo contra la resistencia constante del cable.\n3. Controla la bajada.\nClave: tension constante a diferencia de la mancuerna, mayor activacion en la parte alta.');
+  t('curl martillo','1. Mancuernas a los lados, agarre neutro (palmas enfrentadas). Se mantiene durante todo el movimiento.\n2. Flexiona el codo manteniendo el agarre neutro.\n3. Baja controladamente.\nClave: activa el braquial y braquiorradial ademas del biceps.');
+  t('curl concentrado','1. Sentado. Codo apoyado en la cara interna del muslo.\n2. Flexiona el codo completamente.\n3. Baja de forma controlada sin despegar el codo del muslo.\nClave: aisla el biceps eliminando cualquier compensacion del torso.');
+  t('curl de muñeca','1. Sentado. Antebrazo apoyado en el muslo, palma hacia arriba.\n2. Flexiona la muñeca hacia arriba. Mantiene y baja.\nClave: trabaja los flexores del antebrazo.');
+  t('curl inverso','1. Barra o mancuernas con agarre prono (palmas hacia abajo).\n2. Flexiona los codos manteniendo el agarre prono.\n3. Baja controladamente.\nClave: activa el braquiorradial y los extensores del antebrazo.');
+  t('curl de biceps en maquina','1. Ajusta el asiento y el apoyo del codo.\n2. Flexiona completamente.\n3. Baja con control.\nClave: la maquina aisla bien el biceps eliminando compensaciones.');
+  t('spider curl','1. Apoya el pecho en el lado inclinado de un banco de predicador o banco inclinado.\n2. Los brazos cuelgan hacia abajo.\n3. Flexiona los codos llevando las mancuernas hacia los hombros.\n4. Baja completamente.\nClave: maxima tension en el punto de contraccion.');
+  t('curl con polea alta','1. Cable en la polea alta a la altura de los hombros o mas. Un lado o bilateral.\n2. El brazo esta elevado y paralelo al suelo.\n3. Flexiona el codo llevando la mano hacia la cabeza.\nClave: trabajar el biceps en posicion de estiramiento maximo.');
+  t('curl de biceps con bandas','1. Pisas la banda con los pies. Sujetas los extremos con agarre supino.\n2. Flexiona los codos contra la resistencia de la banda.\n3. Baja controladamente.\nClave: la tension aumenta conforme subes, diferente a la mancuerna.');
+  t('press frances con barra ez','1. Tumbado en banco. Agarre semisupino en la barra EZ.\n2. Los codos apuntan al techo, perpendiculares al torso.\n3. Baja la barra hacia la frente o ligeramente por detras de la cabeza.\n4. Extiende completamente.\nClave: solo se mueven los antebrazos, los codos permanecen fijos.');
+  t('fondos en paralelas (triceps)','1. Sujeto en las paralelas, torso erguido.\n2. Baja hasta que los codos formen 90 grados.\n3. Empuja hasta extension completa.\nClave: torso erguido para enfatizar el triceps. Inclinado trabaja mas el pecto.');
+  t('extension de triceps con cable (pushdown)','1. Cable en polea alta. Agarre prono con barra recta o EZ.\n2. Codos pegados al cuerpo, estabilizados.\n3. Extiende completamente los codos.\n4. Sube controladamente sin mover los codos.\nClave: los codos no deben moverse ni separarse del cuerpo.');
+  t('extension de triceps sobre la cabeza','1. De pie o sentado. Mancuerna o cable por detras de la cabeza.\n2. Codos apuntando al techo.\n3. Extiende los codos llevando el peso hacia arriba.\n4. Baja controladamente.\nClave: activa especialmente la cabeza larga del triceps por el estiramiento.');
+  t('patada de triceps','1. Inclinado con apoyo, torso casi paralelo al suelo.\n2. Brazo pegado al cuerpo, codo doblado a 90 grados.\n3. Extiende el codo completamente hacia atras.\n4. Regresa controladamente.\nClave: el brazo no se mueve, solo el antebrazo. Maxima contraccion en el punto alto.');
+  t('press de triceps con agarre cerrado','1. Tumbado en banco plano. Agarre prono estrecho (anchura de hombros o menos).\n2. Codos pegados al cuerpo durante la bajada.\n3. Empuja hacia arriba.\nClave: los codos hacia los lados del cuerpo, no hacia fuera.');
+  t('dips en banco','1. Manos en el borde del banco, pies en el suelo o elevados.\n2. Baja flexionando los codos hasta 90 grados.\n3. Empuja hacia arriba.\nClave: para aumentar la dificultad, coloca peso sobre los muslos.');
+  t('extension de triceps con mancuerna (un brazo)','1. Sentado o de pie. Mancuerna sobre la cabeza con un brazo.\n2. Codo apuntando al techo.\n3. Baja la mancuerna por detras de la cabeza flexionando el codo.\n4. Extiende completamente.\nClave: el codo debe mantenerse fijo, el movimiento es solo del antebrazo.');
+  t('pushdown con cuerda','1. Cable en polea alta con cuerda. Agarre neutro en los extremos.\n2. Empuja hacia abajo y al final separa las manos ligeramente.\n3. Sube controladamente sin mover los codos.\nClave: la separacion al final maximiza la contraccion de las tres cabezas.');
+  t('extension de triceps con barra','1. Tumbado en banco. Agarre prono con barra recta o EZ, mas estrecho.\n2. Baja la barra hacia la frente o la nariz.\n3. Extiende completamente los codos.\nClave: controlar bien la fase excentrica para no golpearse.');
+  t('diamond push-ups','1. Manos formando un triangulo bajo el pecho. Cuerpo en plancha.\n2. Baja el torso hasta casi tocar las manos.\n3. Empuja hacia arriba.\nClave: activacion intensa del triceps y pectoral interno.');
+  t('sentadilla con barra (back squat)','1. Barra en trapecios altos o deltoides posteriores. Pies a la anchura de los hombros, pies ligeramente hacia fuera.\n2. Coge aire, activa el core. Desciende manteniendo el pecho erguido y la espalda neutral.\n3. Baja hasta que los muslos esten paralelos o por debajo.\n4. Sube empujando el suelo, rodillas alineadas con los pies.\nClave: no dejar que las rodillas colapsen hacia dentro. Talones en el suelo siempre.');
+  t('prensa de piernas','1. Pies en la plataforma a la anchura de los hombros, a media altura.\n2. Libera el seguro y baja la plataforma flexionando las rodillas.\n3. Los muslos van hacia el pecho sin que la pelvis se despegue.\n4. Empuja hasta casi extension completa (no bloquear rodillas).\nClave: no bloquear las rodillas en la extension. El talon no se puede despegar.');
+  t('zancadas con barra','1. Barra en los hombros. Da un paso largo hacia delante.\n2. Baja la rodilla trasera hacia el suelo sin tocarlo.\n3. Empuja con el pie delantero para volver.\nClave: el torso se mantiene erguido. La rodilla delantera no debe superar la punta del pie.');
+  t('zancadas con mancuernas','1. Mancuernas a los lados. Mismos pasos que las zancadas con barra.\n2. Mayor rango de movimiento. Puedes hacerlas en movimiento o en el sitio.\nClave: activa glúteos e isquiotibiales ademas de los cuadriceps.');
+  t('sentadilla bulgara (split squat)','1. Pie trasero en banco o soporte. Pie delantero adelantado.\n2. Baja la rodilla trasera hacia el suelo.\n3. Sube empujando con el pie delantero, especialmente con el talon.\nClave: excelente para desequilibrios entre piernas. Mayor activacion de gluteo.');
+  t('sentadilla goblet','1. Sostienes una mancuerna o kettlebell frente al pecho con ambas manos.\n2. Pies a la anchura de los hombros, puntas hacia fuera.\n3. Desciende profundo con el pecho erguido.\nClave: ideal para aprender la mecanica de la sentadilla. La pesa al frente favorece la verticalidad.');
+  t('extension de cuadriceps en maquina','1. Sentado con los tobillos bajo el rodillo. Espalda contra el respaldo.\n2. Extiende las piernas completamente.\n3. Baja de forma controlada sin llegar a la extension completa al inicio.\nClave: aislamiento puro del cuadriceps. Efectivo al final del entrenamiento.');
+  t('sentadilla frontal','1. Barra en la parte delantera de los hombros, codos altos. Posicion de rack frontal.\n2. Desciende con el torso muy erguido.\n3. Los codos deben mantenerse altos durante todo el movimiento.\nClave: mayor activacion del cuadriceps y menor carga lumbar que la sentadilla trasera.');
+  t('leg press unilateral','1. Un pie en la plataforma centrado. El otro pie en el suelo o descansando.\n2. Baja la plataforma controladamente.\n3. Empuja con un solo pie.\nClave: permite corregir desequilibrios entre extremidades.');
+  t('hack squat','1. Hombros y espalda contra el respaldo de la maquina. Pies en la plataforma.\n2. Suelta el seguro y baja flexionando rodillas.\n3. Los muslos bajan hasta paralelos o mas.\n4. Empuja hacia arriba.\nClave: posicion de pies elevada (mas arriba en la plataforma) aumenta la activacion de gluteo.');
+  t('paso al cajón (step up)','1. Cajón o banco estable. Sube un pie al cajón.\n2. Empuja con ese pie para subir completamente al cajón.\n3. Baja controladamente poniendo el pie que sube primero al suelo.\nClave: el peso debe recaer en el talon del pie que empuja.');
+  t('sentadilla sumo','1. Pies muy separados (mas que la anchura de los hombros). Pies muy girados hacia fuera.\n2. Baja profundo con el torso erguido.\n3. Los codos pueden empujar las rodillas hacia fuera al final del rango.\nClave: mayor activacion de los aductores y gluteo medial.');
+  t('prensa inclinada a 45 grados','1. Similar a la prensa pero el angulo de la maquina es diferente.\n2. Pies a la anchura de los hombros en la plataforma.\n3. Baja hasta que los muslos esten paralelos o mas. Empuja.\nClave: el angulo cambia el enfasis en los diferentes grupos del cuadriceps.');
+  t('sentadilla con salto','1. Desciende a media sentadilla. Explota hacia arriba saltando.\n2. Aterriza con las rodillas ligeramente flexionadas.\n3. Absorbe el impacto y repite inmediatamente.\nClave: ejercicio pliometrico. Activa el sistema nervioso. Ideal para potencia.');
+  t('sentadilla con mancuernas','1. Mancuernas a los lados. Posicion similar a la sentadilla con barra.\n2. El torso tiende a inclinarse mas. Mantener el pecho alto.\nClave: accesible y efectivo para principiantes o cuando no hay barra.');
+  t('hip thrust con barra','1. Espalda alta apoyada en banco. Barra sobre las caderas con almohadilla.\n2. Pies a la anchura de los hombros, planos en el suelo.\n3. Extiende las caderas hasta que el torso y los muslos formen una linea.\n4. Aprieta los gluteos y baja controladamente.\nClave: el movimiento lo generan los gluteos, no la espalda.');
+  t('peso muerto sumo','1. Pies muy separados, puntas hacia fuera. Manos en la barra entre las piernas.\n2. Las caderas bajan mas que en el convencional.\n3. Extiende caderas y rodillas simultaneamente.\nClave: menor recorrido de la barra y mayor activacion de aductores.');
+  t('sentadilla con pie elevado','1. Un talon elevado con disco o cuña. Pie delante del otro o paralelo.\n2. Desciende profundo con el torso mas erguido gracias al talon elevado.\nClave: el talon elevado aumenta la activacion del cuadriceps.');
+  t('clamshell (almeja)','1. Tumbado de lado, caderas flexionadas 45 grados, rodillas juntas.\n2. Rota la rodilla superior hacia el techo sin mover la pelvis.\n3. Baja controladamente.\nClave: activa el gluteo medio. Fundamental para la salud de la cadera.');
+  t('monster walk (con banda)','1. Banda alrededor de los tobillos o rodillas. Posicion de media sentadilla.\n2. Da pasos laterales manteniendo la tension en la banda.\nClave: activa el gluteo medio y mejora la estabilidad de la rodilla.');
+  t('patada de burro con cable','1. Cable en el tobillo. Posicion cuadrupeda o de pie inclinada.\n2. Extiende la cadera hacia atras y arriba.\n3. Contrae el gluteo en el punto alto.\nClave: movimiento de extension de cadera puro. Mantener la espalda neutral.');
+  t('peso muerto con piernas rigidas','1. Similar al rumano pero con menos flexion de rodilla, casi rectas.\n2. La barra baja por las piernas hasta el suelo o casi.\nClave: mayor stretch de isquiotibiales que el rumano. Cuidado con la espalda.');
+  t('sentadilla lateral','1. Pies muy separados. Desplaza el peso a un lado doblando esa rodilla.\n2. La otra pierna permanece casi recta.\n3. Vuelve al centro y repite hacia el otro lado.\nClave: activa los aductores y el gluteo de la pierna que trabaja.');
+  t('hip thrust unilateral','1. Igual que el bilateral pero con un solo pie apoyado.\n2. La pierna libre puede estar extendida o flexionada.\nClave: mayor demanda del gluteo y correcccion de desequilibrios.');
+  t('zancadas laterales','1. Da un paso amplio a un lado. La rodilla del lado que da el paso se flexiona.\n2. La otra pierna permanece recta o ligeramente flexionada.\n3. Empuja para volver al centro.\nClave: activa intensamente los aductores y el gluteo del lado de trabajo.');
+  t('sentadilla en maquina (smith)','1. Barra en la maquina Smith. Pies ligeramente adelantados respecto al cuerpo.\n2. Desciende de forma controlada.\n3. Empuja hacia arriba.\nClave: la maquina guia el movimiento. Util para principiantes o para aislamiento.');
+  t('peso muerto con mancuernas','1. Mancuernas frente a los muslos. Mecanica similar al peso muerto convencional.\n2. Las mancuernas bajan por las piernas.\nClave: mas accesible que con barra. Buen rango de movimiento.');
+  t('curl femoral tumbado','1. Tumbado boca abajo en la maquina. Tobillos bajo los rodillos.\n2. Flexiona las rodillas llevando los talones hacia los gluteos.\n3. Baja controladamente hasta casi extension.\nClave: mayor activacion de los isquiotibiales en extension de cadera.');
+  t('curl femoral sentado','1. Sentado en la maquina. Tobillos sobre los rodillos.\n2. Flexiona las rodillas hacia abajo contra la resistencia.\n3. Extiende controladamente.\nClave: activa los isquiotibiales con la cadera flexionada, diferente angulo.');
+  t('peso muerto rumano unilateral','1. De pie sobre una pierna. La otra ligeramente elevada o rozando el suelo.\n2. Inclina el torso hacia delante flexionando la cadera, la pierna libre va hacia atras.\n3. Baja una mancuerna por la pierna de apoyo.\nClave: excelente para el equilibrio y correcccion de desequilibrios.');
+  t('buenos dias (good mornings)','1. Barra en los hombros. Rodillas ligeramente flexionadas.\n2. Inclina el torso hacia delante en bisagra de cadera hasta casi paralelo.\n3. Vuelve a la posicion inicial extendiendo la cadera.\nClave: activa isquiotibiales, gluteos y erectores espinales.');
+  t('nordico de isquiotibiales','1. Rodillas en el suelo, pies sujetos por un compañero o maquina.\n2. Baja el torso hacia el suelo de forma excentrica controlada.\n3. Usa las manos para frenar la caida y volver.\nClave: uno de los mejores ejercicios para prevenir lesiones de isquiotibiales.');
+  t('curl femoral con banda','1. Banda en el tobillo anclada al frente. De pie o tumbado.\n2. Flexiona la rodilla contra la resistencia de la banda.\nClave: util cuando no hay acceso a maquinas. Tension progresiva.');
+  t('curl de isquiotibiales en pelota suiza','1. Tumbado boca arriba. Talones sobre la pelota suiza.\n2. Eleva las caderas. Dobla las rodillas llevando la pelota hacia ti.\n3. Extiende las piernas y vuelve a la posicion inicial.\nClave: activa isquiotibiales y gluteos simultaneamente. Alta demanda de estabilizacion.');
+  t('sentadilla con enfasis en isquiotibiales','1. Sentadilla normal pero con el torso mas inclinado hacia delante.\n2. Las caderas bajan mas hacia atras.\nClave: mas activacion de isquiotibiales y gluteos. Similar al peso muerto rumano.');
+  t('elevación de talones de pie','1. De pie, manos en soporte. Talones colgando del escalon o en el suelo.\n2. Eleva sobre las puntas de los pies hasta la maxima contraccion del gemelo.\n3. Baja completamente hasta sentir el estiramiento.\nClave: el rango de movimiento completo es fundamental. Bajada lenta.');
+  t('elevación de talones sentado','1. Sentado en la maquina o banco. Rodillas dobladas a 90 grados.\n2. Levanta los talones sobre las puntas de los pies.\n3. Baja completamente.\nClave: activa el soleo que se encuentra por debajo del gemelo.');
+  t('elevacion de talones con mancuerna','1. De pie con una mancuerna en una mano, la otra en soporte.\n2. Pisar el borde de un escalon con la punta del pie del mismo lado.\n3. Sube y baja con un rango completo.\nClave: permite trabajar unilateralmente y con mayor rango que bilateralmente.');
+  t('tibial anterior (dorsiflexion)','1. De pie. Talones en el suelo, elevas las puntas de los pies.\n2. Baja controladamente.\nClave: trabaja el tibial anterior, importante para la salud de los pies y las rodillas.');
+  t('calf raises en prensa','1. Solo las puntas de los pies en la parte inferior de la plataforma de la prensa.\n2. Empuja con las puntas hasta la maxima extension del tobillo.\n3. Baja completamente para sentir el estiramiento.\nClave: permite mayor carga que en el suelo.');
+  t('salto de cuerda','1. Agarre de la cuerda a los lados de las caderas.\n2. Salta sobre las puntas de los pies con saltos pequenos y rapidos.\n3. La rotacion viene de las muñecas, no de los brazos.\nClave: excelente cardio y trabajo de gemelos y coordinacion.');
+  t('donkey calf raises','1. Inclinado hacia delante con el torso apoyado. Puntas en el escalon.\n2. Sube sobre las puntas con el maximo rango posible.\n3. Baja completamente.\nClave: la posicion inclinada cambia el angulo de activacion del gemelo.');
+  t('plancha frontal (plank)','1. Antebrazos y puntas de los pies en el suelo.\n2. Cuerpo en linea recta de cabeza a talones.\n3. Activa el core, gluteos y cuadriceps simultaneamente.\n4. Respira de forma controlada.\nClave: no elevar ni hundir las caderas. No aguantar la respiracion.');
+  t('plancha lateral','1. Apoyo en un antebrazo y el borde del pie. Cuerpo en linea recta lateral.\n2. La cadera no debe caer.\n3. Mantener el tiempo establecido.\nClave: activa especialmente el oblicuo y el quadratus lumborum.');
+  t('crunch abdominal','1. Tumbado. Rodillas dobladas. Manos en la nuca o cruzadas en el pecho.\n2. Eleva solo los hombros del suelo contrayendo el abdomen.\n3. Baja controladamente.\nClave: el movimiento es pequeno. No tirar del cuello. Solo los hombros se elevan.');
+  t('elevacion de piernas tumbado','1. Tumbado boca arriba. Manos bajo los gluteos para dar apoyo.\n2. Eleva las piernas hasta 90 grados manteniendo la zona lumbar en el suelo.\n3. Baja controladamente sin tocar el suelo.\nClave: activacion maxima del recto abdominal inferior.');
+  t('rueda abdominal','1. De rodillas, manos en la rueda bajo los hombros.\n2. Rueda hacia delante extendiendo los brazos hasta casi tocar el suelo.\n3. Contrae el core para volver.\nClave: uno de los ejercicios mas exigentes para el core. Requiere buena base.');
+  t('rotaciones con cable','1. Polea lateral a la altura de los hombros. Agarra el mango con ambas manos.\n2. Gira el torso alejandote del cable manteniendo los brazos semiflexionados.\n3. Vuelve controladamente.\nClave: activa los oblicuos y el transverso abdominal.');
+  t('crunch en maquina','1. Sentado en la maquina. Agarra los mangos por encima de la cabeza o frente al pecho.\n2. Flexiona el torso hacia delante contrayendo el abdomen.\n3. Regresa controladamente.\nClave: permite sobrecarga progresiva de los abdominales.');
+  t('mountain climbers','1. Posicion de plancha alta. Brazos extendidos.\n2. Lleva alternadamente las rodillas hacia el pecho de forma rapida.\n3. Mantener las caderas bajas y el core activado.\nClave: ejercicio mixto que combina cardio y trabajo de core.');
+  t('dragon flag','1. Tumbado en banco. Agarra el banco por detras de la cabeza.\n2. Eleva el cuerpo en linea recta usando el core.\n3. Baja de forma excentrica controlada sin tocar el suelo.\nClave: uno de los ejercicios de core mas avanzados. Requiere gran fuerza.');
+  t('hollow hold','1. Tumbado boca arriba. Eleva ligeramente la cabeza, hombros y piernas del suelo.\n2. Brazos extendidos por encima de la cabeza.\n3. La zona lumbar debe estar pegada al suelo. Mantener.\nClave: activa el core de forma isometrica similar al movimiento de la gimnasia.');
+  t('reverse crunch','1. Tumbado. Manos bajo los gluteos o a los lados.\n2. Lleva las rodillas hacia el pecho elevando tambien los gluteos del suelo.\n3. Baja controladamente.\nClave: activa la porcion inferior del recto abdominal.');
+  t('bicycle crunch','1. Tumbado. Manos en la nuca. Piernas ligeramente elevadas.\n2. Lleva el codo derecho a la rodilla izquierda y viceversa de forma alternada.\n3. Gira el torso, no solo el codo.\nClave: activa los oblicuos y el recto abdominal simultaneamente.');
+  t('dead bug','1. Tumbado boca arriba. Brazos hacia el techo. Caderas y rodillas a 90 grados.\n2. Baja un brazo hacia la cabeza y la pierna contraria hacia el suelo simultaneamente.\n3. Vuelve y repite con el lado contrario.\nClave: la zona lumbar debe permanecer pegada al suelo en todo momento.');
+  t('turkish get up','1. Tumbado con kettlebell en una mano, extendida hacia el techo.\n2. Siguiendo los pasos (7 posiciones): codo, mano, rodilla, de pie.\n3. Realiza el movimiento inverso para volver al suelo.\nClave: ejercicio de movilidad y fuerza integrada. Aprender cada paso individualmente.');
+  t('farmer carry','1. Agarra mancuernas o kettlebells pesadas a los lados.\n2. Camina de forma erecta, hombros atras, core activo.\n3. La distancia o tiempo es el parametro de trabajo.\nClave: desarrolla la fuerza de agarre y la estabilidad del core.');
+  t('swing con kettlebell bilateral','1. Kettlebell entre los pies a la anchura de los hombros.\n2. Inclinate en bisagra de cadera sujetando la kettlebell.\n3. Impulsa las caderas hacia delante de forma explosiva.\n4. La kettlebell sube hasta la altura de los hombros por inercia.\n5. Deja que vuelva entre las piernas y repite.\nClave: el movimiento lo generan las caderas, no los brazos.');
+  t('turkish get-up con kettlebell','1. Tumbado. Kettlebell en una mano extendida hacia el techo.\n2. Incorporate paso a paso hasta quedar de pie manteniendo el brazo extendido.\n3. Vuelve al suelo por el mismo camino.\nClave: ejercicio complejo. Aprender cada fase individualmente.');
+  t('swing con kettlebell unilateral','1. Igual que el bilateral pero con una sola mano en la kettlebell.\n2. Alternar o trabajar en series de un solo lado.\nClave: mayor demanda de estabilizacion del core que el bilateral.');
+  t('clean con kettlebell','1. Kettlebell en el suelo. Swing hacia arriba y al llegar a la altura del hombro la recibes en posicion de rack.\n2. La kettlebell descansa en el antebrazo y el hombro.\n3. Deja caer de vuelta al swing.\nClave: la muñeca debe rotar fluidamente para recibir la kettlebell sin golpearse.');
+  t('press con kettlebell','1. Kettlebell en posicion de rack (hombro).\n2. Empuja hacia arriba hasta extension completa del brazo.\n3. Baja de forma controlada volviendo al rack.\nClave: el codo guia el movimiento hacia afuera en la trayectoria.');
+  t('snatch con kettlebell','1. Swing hacia arriba pero en lugar de parar a la altura del hombro, la kettlebell sigue y llega al techo con el brazo extendido.\n2. La kettlebell rueda sobre la muñeca en el punto alto.\n3. Baja de forma controlada al swing.\nClave: tecnica avanzada. Requiere buen dominio del swing y del clean primero.');
+  t('goblet squat con kettlebell','1. Kettlebell agarrada por las asas contra el pecho.\n2. Sentadilla profunda con el torso erguido.\nClave: el peso frente al cuerpo favorece la verticalidad del torso.');
+  t('lunges con kettlebell','1. Kettlebells en las manos o una sola en rack.\n2. Zancada hacia delante o en el sitio. Rodilla trasera baja hacia el suelo.\n3. Vuelve a la posicion inicial.\nClave: el rack unilateral aumenta la demanda del core.');
+  t('press de banca con banda elastica','1. Banda anclada a los lados del banco. Barra adicional o solo la banda.\n2. La resistencia aumenta conforme subes (accommodating resistance).\n3. Empuja explosivamente.\nClave: desarrolla la velocidad de la barra y la potencia en el punto de bloqueo.');
+  t('press de hombros con banda elastica','1. Pisa la banda. Agarra los extremos a la altura de los hombros.\n2. Empuja hacia arriba hasta extension.\nClave: la tension aumenta conforme subes. Bueno para la fase alta del movimiento.');
+  t('curl con banda elastica','1. Pisa la banda. Agarra los extremos con agarre supino.\n2. Flexiona los codos contra la resistencia de la banda.\nClave: la resistencia aumenta en el punto de maxima flexion, diferente a la mancuerna.');
+  t('squat con banda de resistencia','1. Banda alrededor de los muslos o rodillas. Posicion de sentadilla.\n2. La banda crea resistencia hacia dentro, tienes que empujar las rodillas hacia fuera activamente.\n3. Realiza la sentadilla normalmente.\nClave: activa el gluteo medio y mejora la mecanica de la sentadilla.');
+  t('plancha con banda elastica','1. Banda alrededor de la cintura anclada por detras.\n2. Mantener la posicion de plancha mientras la banda tira de ti hacia atras.\nClave: aumenta la demanda de los musculos anti-extension del core.');
+  t('traccion con suspension (trx) espalda','1. Cuerpo inclinado hacia atras con los talones en el suelo y las manos en los mangos del TRX.\n2. Tira del cuerpo hacia los mangos retrayendo las escapulas.\n3. Baja con el cuerpo en linea recta.\nClave: la dificultad se ajusta cambiando el angulo del cuerpo.');
+  t('press con suspension (trx) pecho','1. Posicion de plancha inclinada con los pies en los mangos del TRX.\n2. Flexiona los codos bajando el pecho hacia el suelo.\n3. Empuja hasta la posicion de plancha.\nClave: exige gran estabilizacion del core ademas del trabajo de pectoral.');
+  t('piruetas con suspension (trx)','1. Un pie en los mangos del TRX, cuerpo en plancha lateral.\n2. Rota el cuerpo hacia el suelo con el apoyo del brazo libre.\nClave: ejercicio avanzado de movilidad y core.');
+  t('squat con suspension (trx)','1. Sujeta los mangos del TRX al frente. Posicion de sentadilla.\n2. La ayuda del TRX permite mantener el torso mas vertical y bajar mas profundo.\nClave: util para aprender la mecanica de la sentadilla profunda.');
+  t('correr continuo','1. Postura erecta. Mirada al frente. Aterrizaje en el mediopie o antepie.\n2. Brazos a 90 grados, oscilan de forma natural.\n3. Frecuencia de paso acorde a la intensidad.\nClave: la respiracion debe ser ritmica. Empezar conservador y progresar.');
+  t('correr en cinta','1. Igual que correr en calle pero sin impacto del viento.\n2. Cuidado de no correr en el borde trasero de la cinta.\nClave: la inclinacion del 1-2% simula mejor la resistencia del aire al aire libre.');
+  t('ciclismo en bicicleta estatica','1. Ajusta el asiento para que las rodillas esten ligeramente flexionadas en la extension.\n2. Cadencia segun la intensidad objetivo.\n3. La posicion del cuerpo depende del tipo de bicicleta.\nClave: sin impacto. Excelente para alta intensidad sin dañar las articulaciones.');
+  t('remo en maquina (ergometro)','1. Pies en los soportes. Agarra el mango. Posicion inicial: espalda ligeramente inclinada, rodillas dobladas.\n2. Empuja con las piernas primero, luego inclina el torso hacia atras y finalmente tira con los brazos.\n3. El retorno es en orden inverso.\nClave: el 60% de la fuerza viene de las piernas. La secuencia es fundamental.');
+  t('eliptica','1. Pies en las plataformas. Manos en los mangos.\n2. Movimiento eliptico que imita el paso de carrera sin impacto.\n3. Mantener una postura erecta.\nClave: bajo impacto articular. Excelente para cardio de mantenimiento.');
+  t('salto de caja','1. De pie frente al cajón. Posicion de media sentadilla.\n2. Explota hacia arriba y aterriza en el cajón amortiguando con las rodillas.\n3. Baja paso a paso o salta hacia atras segun el protocolo.\nClave: ejercicio de potencia. Aterrizaje suave para proteger las rodillas.');
+  t('burpees','1. De pie. Baja las manos al suelo. Salta los pies hacia atras.\n2. Opcional: flexion de pecho en el suelo.\n3. Salta los pies hacia las manos. Salta hacia arriba con los brazos al aire.\nClave: ejercicio de cuerpo completo de alta demanda cardiovascular.');
+  t('sprint en cinta','1. Velocidad alta (>14 kmh para la mayoria). Inclinacion opcional.\n2. Dura 10-30 segundos. Recuperacion activa o pasiva.\nClave: exige velocidad real y aterrizar bien. No agarrarse a los laterales.');
+  t('salto de tijera (jumping jacks)','1. De pie, pies juntos, brazos abajo.\n2. Salta separando los pies y elevando los brazos por encima de la cabeza simultaneamente.\n3. Vuelve a la posicion inicial saltando.\nClave: ejercicio de calentamiento clasico y para activar el sistema cardiovascular.');
+  t('natacion (estilo libre)','1. Cuerpo horizontal y streamline en el agua.\n2. Brazadas alternadas con rotacion del cuerpo.\n3. Patada de pies ondulante desde la cadera.\n4. Respiracion lateral en cada 2-3 brazadas.\nClave: la tecnica es fundamental para la eficiencia en el agua.');
+
+  t('estiramiento de cuadriceps de pie','De pie, dobla la rodilla llevando el talon hacia el gluteo. Agarra el tobillo con la mano del mismo lado. Mantiene la rodilla alineada con la otra. Aguanta 20-30 segundos. Cambia de lado.');
+  t('estiramiento de isquiotibiales','Sentado en el suelo o de pie con la pierna extendida. Inclina el torso hacia la pierna manteniendo la espalda recta. Aguanta 20-30 segundos sin llegar al dolor.');
+  t('estiramiento de gluteo','Tumbado boca arriba. Dobla una rodilla y cruza el tobillo sobre el muslo de la otra pierna. Agarra el muslo o la espinilla y acercalos al pecho. Aguanta 20-30 segundos.');
+  t('estiramiento de cadera (flexor)','Posicion de estocada baja. Rodilla trasera en el suelo. Adelanta las caderas ligeramente. Siente el estiramiento en la parte delantera de la cadera trasera. Aguanta 20-30 segundos.');
+  t('estiramiento de hombros','Lleva un brazo horizontalmente frente al pecho. Con el otro brazo empuja el primero hacia el pecho. Aguanta 20-30 segundos. Repite con el otro lado.');
+  t('estiramiento de pecho','Entrelaza los dedos por detras de la espalda. Eleva los brazos y abre el pecho. Aguanta 20-30 segundos. Alternativa: apoya el antebrazo en un marco de puerta.');
+  t('estiramiento de espalda (gato-vaca)','En cuadrupedia. Alterna entre arquear la espalda hacia el techo (gato) y hundir la barriga hacia el suelo (vaca). Movimiento suave y controlado. 10-15 repeticiones lentas.');
+  t('estiramiento de triceps','Lleva un codo hacia atras por encima de la cabeza. Con la mano contraria empuja suavemente el codo. Aguanta 20-30 segundos. Repite con el otro lado.');
+  t('estiramiento de biceps','Brazo extendido, palma hacia arriba. Dobla la muñeca hacia abajo con la mano contraria. Aguanta 20-30 segundos.');
+  t('estiramiento de gemelos','De pie frente a una pared. Pierna trasera recta, talon en el suelo. Inclina el cuerpo hacia la pared hasta sentir el estiramiento en el gemelo. Aguanta 30 segundos.');
+  t('estiramiento de aductores','Sentado en el suelo, plantas de los pies juntas. Con los codos en las rodillas empuja suavemente hacia abajo. Aguanta 30 segundos.');
+  t('estiramiento de cuello','Inclina la cabeza lateralmente llevando la oreja hacia el hombro. Puedes añadir una ligera presion con la mano. Aguanta 20-30 segundos. Repite hacia el otro lado.');
+  t('estiramiento de lumbares','Tumbado boca arriba. Lleva ambas rodillas al pecho. Abraza las rodillas y mantiene. Variante: rodillas al pecho y rota suavemente a los lados.');
+  t('estiramiento de oblicuos','De pie con los pies separados. Inclina el torso lateralmente, un brazo por encima de la cabeza. Aguanta 20-30 segundos. Repite al otro lado.');
+  t('rotaciones de hombros','Brazos a los lados. Realiza circulos amplios con los hombros hacia delante y hacia atras. 10 circulos en cada direccion. Movimiento suave de calentamiento.');
+  t('movilidad de cadera (circulos)','De pie con las manos en las caderas. Realiza circulos amplios con las caderas. 10 circulos en cada sentido. Movimiento de calentamiento.');
+  t('movilidad de tobillo','Sentado. Realiza circulos con el pie en cada sentido. Tambien flexion y extension del tobillo. 10-15 repeticiones en cada direccion.');
+  t('estiramiento de soleo','De pie frente a la pared. Igual que el estiramiento de gemelo pero dobla ligeramente la rodilla trasera. El soleo se estira mejor con la rodilla ligeramente flexionada.');
+  t('estiramiento en cobra','Tumbado boca abajo. Manos bajo los hombros. Empuja hacia arriba extendiendo los brazos. El pubis permanece en el suelo. Aguanta 20-30 segundos.');
+  t('postura del niño (childs pose)','De rodillas, siéntate sobre los talones. Extiende los brazos hacia delante en el suelo. El torso descansa sobre los muslos. Aguanta 30-60 segundos. Estira la espalda baja y los hombros.');
 })();
 // Click outside ANY modal to close
 document.addEventListener('click',function(e){
