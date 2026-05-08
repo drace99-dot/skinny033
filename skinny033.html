@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SKINNY 033</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -16,6 +16,16 @@
 }
 html,body{height:100%;overflow:hidden}
 body{background:var(--black);color:var(--white);font-family:var(--sans);font-size:13px}
+@media(max-width:480px){
+  .cbox{max-width:95vw!important;width:95vw!important;max-height:88vh!important;font-size:12px}
+  .wk-float-panel{max-width:95vw!important;max-height:88vh!important}
+  .wk-float-fields{grid-template-columns:repeat(2,1fr)!important}
+  .cardio-type-btn{min-width:60px!important;font-size:7px!important;padding:5px!important}
+  .interval-fields{grid-template-columns:repeat(2,1fr)!important}
+  .nav{padding:0 8px!important}
+  .modal,.mol{padding:0!important}
+  .vwbody{max-height:72vh!important}
+}
 body.light-mode{--black:#f5f5f5;--dark:#ffffff;--dark2:#eeeeee;--dark3:#e0e0e0;--dark4:#cccccc;--dark5:#bbbbbb;--white:#111111;--white3:#333333;--white4:#666666;background:#f5f5f5;color:#111}
 body.light-mode .nav{background:#fff;border-color:#ddd}
 body.light-mode .card{background:#fff;border-color:#ddd}
@@ -681,8 +691,14 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
           <div id="wIntervalList"></div>
         </div>
         <div class="cardio-field-row">
-          <div class="fg" style="margin-bottom:8px"><label class="fl">Hora inicio (opcional)</label><input type="time" class="fi" id="wCardioStart"></div>
-          <div class="fg" style="margin-bottom:8px"><label class="fl">Hora fin (opcional)</label><input type="time" class="fi" id="wCardioEnd"></div>
+          <div class="fg" style="margin-bottom:8px">
+            <label class="fl">Hora inicio <button type="button" style="font-size:7px;padding:1px 5px;background:var(--dark3);border:1px solid var(--dark4);color:var(--white4);cursor:pointer;margin-left:4px" onclick="var n=new Date();G('wCardioStart').value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes()">Ahora</button></label>
+            <input type="time" class="fi" id="wCardioStart">
+          </div>
+          <div class="fg" style="margin-bottom:8px">
+            <label class="fl">Hora fin <button type="button" style="font-size:7px;padding:1px 5px;background:var(--dark3);border:1px solid var(--dark4);color:var(--white4);cursor:pointer;margin-left:4px" onclick="var n=new Date();G('wCardioEnd').value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes()">Ahora</button></label>
+            <input type="time" class="fi" id="wCardioEnd">
+          </div>
         </div>
         <div class="fg" style="margin-bottom:8px"><label class="fl">Duración total</label>
           <div class="time-hm"><input type="number" class="fi" id="wCardioDurH" placeholder="0" min="0" max="23" inputmode="numeric"><span class="sep">h</span><input type="number" class="fi" id="wCardioDurM" placeholder="0" min="0" max="59" inputmode="numeric"><span class="sep">min</span></div>
@@ -1514,19 +1530,10 @@ function renderAdminSwitchBar(){
     bar.appendChild(btn);
   });
   // PDF export button
-  var bPdf=mk('button','admin-switch-btn','Descargar PDF');
+  var bPdf=mk('button','admin-switch-btn','Ver PDF');
   bPdf.style.cssText='border-color:#27ae60;color:#27ae60;flex-shrink:0;font-size:8px';
-  bPdf.title='Descargar informe PDF del perfil actual';
-  bPdf.onclick=function(){
-    var html=buildPDFHtml();
-    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url;
-    a.download=(currentProfile?currentProfile.name:'informe')+'_skinny033.html';
-    document.body.appendChild(a);a.click();
-    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},3000);
-  };
+  bPdf.title='Ver y descargar informe del perfil';
+  bPdf.onclick=function(){showPDFPreview();};
   bar.appendChild(bPdf);
   // Back to admin panel button
   var bAdmin=mk('button','admin-switch-btn','⚙ Admin');bAdmin.style.cssText='border-color:var(--gold-dim);color:var(--gold-dim);flex-shrink:0';
@@ -1751,6 +1758,49 @@ function renderMacroChart(cont){
       y2:{position:'right',ticks:{color:'#888',font:{size:9}},grid:{display:false},title:{display:true,text:'Proteína g',color:'#888',font:{size:8}}}
     }}});
   },100);
+}
+
+// ══ PDF PREVIEW AND DOWNLOAD ══════════════════════════════════════════════════
+function showPDFPreview(){
+  var html=buildPDFHtml();
+  // Create overlay with iframe preview + print button
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;flex-direction:column';
+  // Header
+  var hdr=document.createElement('div');
+  hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1a1a1a;border-bottom:1px solid #333;flex-shrink:0';
+  var title=document.createElement('div');
+  title.style.cssText='font-size:12px;color:#C9A84C;letter-spacing:2px;text-transform:uppercase';
+  title.textContent='Vista previa — '+(currentProfile?currentProfile.name:'Informe');
+  // Buttons
+  var btnWrap=document.createElement('div');btnWrap.style.cssText='display:flex;gap:8px;align-items:center';
+  var bPrint=document.createElement('button');
+  bPrint.style.cssText='background:#27ae60;color:#fff;border:none;padding:8px 16px;font-size:10px;letter-spacing:2px;cursor:pointer;text-transform:uppercase';
+  bPrint.textContent='Imprimir / Guardar PDF';
+  bPrint.onclick=function(){
+    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var win=window.open(url,'_blank');
+    if(win){setTimeout(function(){win.print();},800);}
+    else{
+      var a=document.createElement('a');a.href=url;
+      a.download=(currentProfile?currentProfile.name:'informe')+'.html';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+    }
+    setTimeout(function(){URL.revokeObjectURL(url);},15000);
+  };
+  var bClose=document.createElement('button');
+  bClose.style.cssText='background:transparent;color:#888;border:1px solid #333;padding:8px 12px;font-size:11px;cursor:pointer';
+  bClose.textContent='✕ Cerrar';
+  bClose.onclick=function(){overlay.remove();};
+  btnWrap.appendChild(bPrint);btnWrap.appendChild(bClose);
+  hdr.appendChild(title);hdr.appendChild(btnWrap);
+  // Iframe
+  var iframe=document.createElement('iframe');
+  iframe.style.cssText='flex:1;border:none;background:#fff';
+  iframe.srcdoc=html;
+  overlay.appendChild(hdr);overlay.appendChild(iframe);
+  document.body.appendChild(overlay);
 }
 function renderAdminPanel(){
   // Refresh from Firebase before rendering
@@ -2649,11 +2699,12 @@ var _cardioIntervals=[];
 
 G('wType').onchange=function(){
   var v=this.value;
-  if(v&&v!=='Otro'){G('wNm').value=v;}
-  else if(v==='Otro'){G('wNm').value='';G('wNm').focus();}
+  // Only suggest name if name field is empty
+  if((v&&v!=='Otro')&&!G('wNm').value.trim()){G('wNm').value=v;}
   var isCardio=CARDIO_TYPES.indexOf(v)>=0;
   G('wCardioFields').style.display=isCardio?'block':'none';
   G('wExBtns').style.display=isCardio?'none':'flex';
+  if(v==='Fuerza'||v==='Otro'){G('wExBtns').style.display='flex';}
   updateCardioSpeed();
 };
 
@@ -2972,7 +3023,8 @@ function saveWorkout(){
     }
   }else{
     var newItem={id:uid(),name:name,exercises:baseEx,date:dateStr,completed:false};
-    if(CARDIO_TYPES.indexOf(name)>=0){
+    var wTypeVal=G('wType').value||'';
+    if(CARDIO_TYPES.indexOf(wTypeVal)>=0||CARDIO_TYPES.indexOf(name)>=0){
       var distV=parseFloat(G('wCardioDist').value)||0;
       var durHv=parseFloat(G('wCardioDurH').value)||0;
       var durMv=parseFloat(G('wCardioDurM').value)||0;
@@ -3005,7 +3057,15 @@ function openModN(item){
   G('nTtl').textContent=item?'Editar Comida':'Nueva Comida';
   G('nNm').value=item?item.name:'';G('nNotes').value=item?(item.notes||''):'';
   foods=item&&item.foods?JSON.parse(JSON.stringify(item.foods)):[];
-  var defDate=item?(item.date||todayDateStr()):wdToDateStr(weekOff,selDay);
+  var defDate;
+  if(item&&editKey){
+    // Derive date from editKey (ground truth) - editKey format: wX_dY
+    try{
+      var m=editKey.match(/w(-?\d+)_d(\d+)/);
+      if(m){defDate=wdToDateStr(parseInt(m[1]),parseInt(m[2]));}
+    }catch(e){}
+  }
+  if(!defDate)defDate=item?(item.date||todayDateStr()):wdToDateStr(weekOff,selDay);
   G('nDatePick').value=defDate;
   renderFds();G('modN').style.display='flex';
 }
@@ -3113,7 +3173,7 @@ function saveNutrition(){
 
   if(editId){
     // EDIT MODE: remove from old key, put in new key
-    var srcKey=editKey||newKey;
+    var srcKey=editKey;// editKey is always the authoritative source when editing
     var srcItems=(D.nutrition[srcKey]&&D.nutrition[srcKey].items)||[];
     var existingItem=srcItems.find(function(x){return x.id===editId;})||{};
     var updatedItem={id:editId,name:name,notes:G('nNotes').value,
@@ -4625,20 +4685,45 @@ function showExDetail(item){
     vLink.textContent='▶ Ver técnica en YouTube';
     vw.appendChild(vLink);modal.appendChild(vw);
   }
-  // Technique
+  // Technique - editable
   var techKey=(item.name||'').toLowerCase().trim();
-  var technique=EX_TECHNIQUE&&EX_TECHNIQUE[techKey];
-  // Fuzzy match: try partial key match
+  var technique=(item.technique)||'';
   if(!technique&&EX_TECHNIQUE){
-    Object.keys(EX_TECHNIQUE).forEach(function(k){
-      if(!technique&&(k.indexOf(techKey)>=0||techKey.indexOf(k)>=0)){technique=EX_TECHNIQUE[k];}
-    });
+    technique=EX_TECHNIQUE[techKey]||'';
+    // Fuzzy match
+    if(!technique){Object.keys(EX_TECHNIQUE).forEach(function(k){if(!technique&&(k.indexOf(techKey)>=0||techKey.indexOf(k)>=0)){technique=EX_TECHNIQUE[k];}});}
   }
-  if(technique){
-    var tw=mk('div','');tw.style.cssText='background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold);padding:14px;margin-top:4px;margin-bottom:12px';
-    tw.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px">Técnica de ejecución</div><div style="font-size:12px;color:var(--white3);line-height:1.8;white-space:pre-line">'+technique+'</div>';
-    modal.appendChild(tw);
-  }
+  var tw=mk('div','');tw.style.cssText='background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold);padding:14px;margin-top:4px;margin-bottom:12px';
+  var techHdr=mk('div','');techHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';
+  techHdr.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim)">Técnica de ejecución</div>';
+  var bEditTech=mk('button','lib-btn','✎ Editar');bEditTech.style.cssText='font-size:8px;padding:2px 8px';
+  techHdr.appendChild(bEditTech);tw.appendChild(techHdr);
+  var techDisplay=mk('div','');techDisplay.style.cssText='font-size:12px;color:var(--white3);line-height:1.8;white-space:pre-line';techDisplay.textContent=technique||'Sin técnica registrada';
+  var techEdit=document.createElement('textarea');techEdit.style.cssText='width:100%;min-height:120px;background:var(--dark3);border:1px solid var(--dark4);color:var(--white);font-size:11px;padding:8px;display:none;resize:vertical;font-family:var(--sans);line-height:1.6';
+  techEdit.value=technique;
+  var techBtns=mk('div','');techBtns.style.cssText='display:none;gap:6px;margin-top:8px';
+  var bSaveTech=mk('button','bsave','Guardar técnica');
+  var bDelTech=mk('button','bcanc','Eliminar técnica');
+  techBtns.appendChild(bSaveTech);techBtns.appendChild(bDelTech);
+  bEditTech.onclick=function(){techDisplay.style.display='none';techEdit.style.display='block';techBtns.style.display='flex';bEditTech.style.display='none';};
+  bSaveTech.onclick=function(){
+    var newTech=techEdit.value.trim();
+    item.technique=newTech;EX_TECHNIQUE[techKey]=newTech;
+    // Save to Firebase
+    if(D.exLib[item.id])D.exLib[item.id].technique=newTech;
+    saveFS('exLib',item.id,Object.assign({},D.exLib[item.id]||item,{technique:newTech}));
+    lsSave();techDisplay.textContent=newTech||'Sin técnica registrada';
+    techDisplay.style.display='block';techEdit.style.display='none';techBtns.style.display='none';bEditTech.style.display='';
+  };
+  bDelTech.onclick=function(){
+    item.technique='';EX_TECHNIQUE[techKey]='';
+    if(D.exLib[item.id])D.exLib[item.id].technique='';
+    saveFS('exLib',item.id,Object.assign({},D.exLib[item.id]||item,{technique:''}));
+    lsSave();techDisplay.textContent='Sin técnica registrada';
+    techEdit.value='';techDisplay.style.display='block';techEdit.style.display='none';techBtns.style.display='none';bEditTech.style.display='';
+  };
+  tw.appendChild(techDisplay);tw.appendChild(techEdit);tw.appendChild(techBtns);
+  modal.appendChild(tw);
   var bRow=mk('div','cbts');
   var bClose=mk('button','bcc','Cerrar');bClose.onclick=function(){document.body.removeChild(overlay);};
   var bHist=mk('button','bco','Historial carga');bHist.onclick=function(){document.body.removeChild(overlay);showLoadHistory(item.name);};
@@ -4796,7 +4881,22 @@ function startWorkoutMode(item,key){
   wkTimerSec=0;wkRunning=false;fatigueAnswers={};
   G('wkModeName').textContent=item.name;G('wkModeTimer').textContent='00:00';G('wkModePlay').textContent='▶';
   G('wkRestOverlay').style.display='none';
-  renderWkMode();
+  var _isCardioMode=wkModeItem.cardio!==undefined||CARDIO_TYPES.indexOf(wkModeItem.name||'')>=0;
+  if(_isCardioMode){
+    // For cardio: show activity info in wkMode background
+    var _wkBg=G('wkModeExs');
+    if(_wkBg){_wkBg.innerHTML='';
+      var _iDiv=document.createElement('div');
+      _iDiv.style.cssText='padding:20px 10px;text-align:center';
+      var _cd=wkModeItem.cardio||{};
+      var _ints=_cd.intervals||[];
+      _iDiv.innerHTML='<div style="font-family:var(--serif);font-size:18px;color:var(--gold);margin-bottom:8px">'+(wkModeItem.name||'Actividad')+'</div>'+
+        '<div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:12px">'+(_cd.tipo||'Entrenamiento libre')+'</div>'+
+        (_ints.length?'<div style="font-size:11px;color:var(--white3)">'+_ints.length+' intervalos planificados</div>':
+        '<div style="font-size:11px;color:var(--white4)">Sesión libre — usa el panel para registrar</div>');
+      _wkBg.appendChild(_iDiv);
+    }
+  }else{renderWkMode();}
   G('wkMode').style.display='flex';
   // Auto-start timer — updates both full screen and float panel
   wkRunning=true;G('wkModePlay').textContent='⏸';
@@ -4958,13 +5058,31 @@ function renderActivityFloat(body){
     }
   }else{
     // Free session: lap button + FC
-    var bLap=mk('button','act-timer-btn','⏱ Vuelta');
-    bLap.style.cssText='width:100%;padding:10px;margin-bottom:10px';
+    var bLap=mk('button','act-timer-btn','Vuelta');
+    bLap.style.cssText='padding:8px 14px;margin-bottom:8px;flex-shrink:0';
     bLap.onclick=function(){
-      _actIntervalLaps.push({n:_actIntervalLaps.length+1,t:_actTimerSec});
-      renderActivityFloat(body);
+      var lapTime=_actTimerSec;
+      var lapN=_actIntervalLaps.length+1;
+      var prevT=_actIntervalLaps.length>0?_actIntervalLaps[_actIntervalLaps.length-1].t:0;
+      _actIntervalLaps.push({n:lapN,t:lapTime});
+      // Add lap row inline without re-rendering
+      var lapsContainer=G('actLapsList');
+      if(lapsContainer){
+        var row=mk('div','act-interval-row');
+        row.innerHTML='<span class="act-interval-lbl">Vuelta '+lapN+'</span><span class="act-interval-val">'+fmtSec(lapTime)+' (+'+fmtSec(lapTime-prevT)+')</span>';
+        lapsContainer.appendChild(row);
+      }
     };
     body.appendChild(bLap);
+    // Laps list container
+    var lapsList=mk('div','');lapsList.id='actLapsList';
+    _actIntervalLaps.forEach(function(lap,i){
+      var row=mk('div','act-interval-row');
+      var prevT=i>0?_actIntervalLaps[i-1].t:0;
+      row.innerHTML='<span class="act-interval-lbl">Vuelta '+lap.n+'</span><span class="act-interval-val">'+fmtSec(lap.t)+' (+'+fmtSec(lap.t-prevT)+')</span>';
+      lapsList.appendChild(row);
+    });
+    body.appendChild(lapsList);
   }
 
   // FC global fields
@@ -5041,8 +5159,10 @@ function renderWkFloat(){
   (curGrp||[]).forEach(function(ei){
     var ex=exs[ei];var s=ex.series&&ex.series[curSerIdx];if(!s)return;
     var isWarmupSer=s&&s.type==='warmup';
+    var isStretchSer2=(ex.sectionType==='stretch');
     var block=mk('div','wk-float-ex-block');
     if(isWarmupSer){block.style.borderLeftColor='#3498db';block.style.background='rgba(52,152,219,.05)';}
+    else if(isStretchSer2){block.style.borderLeftColor='#27ae60';block.style.background='rgba(39,174,96,.05)';}
     else if(isSuperset)block.style.borderLeftColor='var(--gold)';
     var nmDiv=mk('div','wk-float-ex-nm',(isWarmupSer?'CALENTAMIENTO — ':'')+( ex.name||'Ejercicio '+(ei+1)));
     if(isWarmupSer)nmDiv.style.color='#3498db';
