@@ -525,6 +525,12 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
 .dish-cfg-box{background:var(--dark);border:1px solid var(--gold-dim);width:100%;max-width:480px;max-height:88vh;overflow-y:auto;position:relative}
 .dish-cfg-box::-webkit-scrollbar{width:3px}.dish-cfg-box::-webkit-scrollbar-thumb{background:var(--gold-dim)}
 </style>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU2tpbm55IDAzMyIsInNob3J0X25hbWUiOiJTMDMzIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBhMGEiLCJ0aGVtZV9jb2xvciI6IiNDOUE4NEMiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9wbmc7YmFzZTY0LGlWQk9SdzBLR2dvPSIsInNpemVzIjoiMTkyek19XX0=">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Skinny 033">
+<meta name="theme-color" content="#0a0a0a">
 </head>
 <body>
 
@@ -1776,18 +1782,27 @@ function showPDFPreview(){
   var btnWrap=document.createElement('div');btnWrap.style.cssText='display:flex;gap:8px;align-items:center';
   var bPrint=document.createElement('button');
   bPrint.style.cssText='background:#27ae60;color:#fff;border:none;padding:8px 16px;font-size:10px;letter-spacing:2px;cursor:pointer;text-transform:uppercase';
-  bPrint.textContent='Imprimir / Guardar PDF';
+  bPrint.textContent='Abrir e Imprimir';
   bPrint.onclick=function(){
+    // Open in new window and trigger print (user can Save as PDF from print dialog)
     var blob=new Blob([html],{type:'text/html;charset=utf-8'});
     var url=URL.createObjectURL(blob);
     var win=window.open(url,'_blank');
-    if(win){setTimeout(function(){win.print();},800);}
-    else{
+    if(win){
+      win.onload=function(){
+        win.focus();
+        setTimeout(function(){win.print();},500);
+      };
+      // Fallback if onload doesn't fire
+      setTimeout(function(){if(win)win.print();},1500);
+    }else{
+      // Popup blocked - download as html
       var a=document.createElement('a');a.href=url;
-      a.download=(currentProfile?currentProfile.name:'informe')+'.html';
+      a.download=(currentProfile?currentProfile.name:'informe')+'_informe.html';
       document.body.appendChild(a);a.click();document.body.removeChild(a);
+      alert('Descargado como HTML. Ábrelo en el navegador y usa Ctrl+P > Guardar como PDF.');
     }
-    setTimeout(function(){URL.revokeObjectURL(url);},15000);
+    setTimeout(function(){URL.revokeObjectURL(url);},20000);
   };
   var bClose=document.createElement('button');
   bClose.style.cssText='background:transparent;color:#888;border:1px solid #333;padding:8px 12px;font-size:11px;cursor:pointer';
@@ -2166,7 +2181,7 @@ function makeWorkoutCard(item,key){
     // Duration - check both cardio object and direct fields
     var dH=parseFloat(cd.durH)||parseFloat(item.durH)||0;
     var dM=parseFloat(cd.durM)||parseFloat(item.durM)||0;
-    if(dH||dM)cdParts.push((dH?dH+'h ':'')+dM+'min');
+    if(dH||dM){cdParts.push((dH?Math.round(dH)+'h ':'')+( dM?Math.round(dM)+'min':''));}
     if(cd.dist)cdParts.push(cd.dist+'km');
     if(cd.tipo&&cd.tipo!=='continuo')cdParts.push(cd.tipo);
     var iCount=(cd.intervals&&cd.intervals.length)||(cd.intervalResults&&cd.intervalResults.length)||0;
@@ -2699,8 +2714,7 @@ var _cardioIntervals=[];
 
 G('wType').onchange=function(){
   var v=this.value;
-  // Only suggest name if name field is empty
-  if((v&&v!=='Otro')&&!G('wNm').value.trim()){G('wNm').value=v;}
+  // Type selector only controls which fields show - does NOT affect the name
   var isCardio=CARDIO_TYPES.indexOf(v)>=0;
   G('wCardioFields').style.display=isCardio?'block':'none';
   G('wExBtns').style.display=isCardio?'none':'flex';
@@ -2729,6 +2743,7 @@ setTimeout(function(){
 function renderCardioIntervals(){
   var list=G('wIntervalList');if(!list)return;list.innerHTML='';
   _cardioIntervals.forEach(function(intv,idx){
+    if(!intv.series)intv.series=[];
     var block=mk('div','interval-block');
     var hdr=mk('div','interval-block-hdr');
     var sel=document.createElement('select');sel.className='fi-sel';sel.style.cssText='padding:4px 8px;font-size:10px;flex:1';
@@ -2772,6 +2787,27 @@ function renderCardioIntervals(){
       dtsel.onchange=(function(i){return function(){_cardioIntervals[i].descansotipo=this.value;};})(idx);
       drow.appendChild(dtsel);block.appendChild(drow);
     }
+    // Series within interval
+    var serHdr=mk('div','');serHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-top:8px;margin-bottom:4px';
+    serHdr.textContent='Series del intervalo';
+    block.appendChild(serHdr);
+    var serList=mk('div','');
+    (intv.series||[]).forEach(function(s,si){
+      var sRow=mk('div','');sRow.style.cssText='display:flex;gap:4px;align-items:center;margin-bottom:4px';
+      ['tiempo','dist','vel','descanso'].forEach(function(fk){
+        var inp=document.createElement('input');inp.type='number';inp.className='fi';
+        inp.style.cssText='flex:1;padding:4px;font-size:10px';inp.placeholder=fk;
+        inp.value=s[fk]||'';
+        inp.oninput=(function(i2,s2,k2){return function(){_cardioIntervals[i2].series[s2][k2]=this.value;};})(idx,si,fk);
+        sRow.appendChild(inp);
+      });
+      var bdel=mk('button','btnrm','✕');bdel.onclick=(function(i2,s2){return function(){_cardioIntervals[i2].series.splice(s2,1);renderCardioIntervals();};})(idx,si);
+      sRow.appendChild(bdel);serList.appendChild(sRow);
+    });
+    block.appendChild(serList);
+    var bAddSer=mk('button','btnadd','+ Serie');bAddSer.style.cssText='font-size:8px;padding:4px 8px;margin-top:4px';
+    bAddSer.onclick=(function(i2){return function(){if(!_cardioIntervals[i2].series)_cardioIntervals[i2].series=[];_cardioIntervals[i2].series.push({tiempo:'',dist:'',vel:'',descanso:''});renderCardioIntervals();};})(idx);
+    block.appendChild(bAddSer);
     list.appendChild(block);
   });
 }
@@ -3171,40 +3207,33 @@ function saveNutrition(){
   var wd=dateToWD(dateStr);
   var newKey=gk(wd.weekOff,wd.dayIdx);
 
-  if(editId){
-    // EDIT MODE: remove from old key, put in new key
-    var srcKey=editKey;// editKey is always the authoritative source when editing
-    var srcItems=(D.nutrition[srcKey]&&D.nutrition[srcKey].items)||[];
-    var existingItem=srcItems.find(function(x){return x.id===editId;})||{};
-    var updatedItem={id:editId,name:name,notes:G('nNotes').value,
-      foods:JSON.parse(JSON.stringify(foods)),date:dateStr,completed:!!existingItem.completed};
-    if(srcKey===newKey){
-      // Same day: replace in place
-      var newItems=srcItems.map(function(x){return x.id===editId?updatedItem:x;});
-      if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
-      D.nutrition[newKey]={items:newItems};
-      saveFS('nutrition',newKey,{items:newItems});
-    }else{
-      // Date changed: remove from old day, add to new day
-      var filteredOld=srcItems.filter(function(x){return x.id!==editId;});
-      if(!D.nutrition[srcKey])D.nutrition[srcKey]={items:[]};
-      D.nutrition[srcKey]={items:filteredOld};
-      if(filteredOld.length===0)delFS('nutrition',srcKey);
-      else saveFS('nutrition',srcKey,{items:filteredOld});
-      var newDayItems=((D.nutrition[newKey]&&D.nutrition[newKey].items)||[]).concat([updatedItem]);
-      if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
-      D.nutrition[newKey]={items:newDayItems};
-      saveFS('nutrition',newKey,{items:newDayItems});
-    }
+  if(editId&&editKey){
+    // EDIT: find item across ALL nutrition keys to avoid duplicating
+    // Remove from wherever it currently exists
+    Object.keys(D.nutrition||{}).forEach(function(k){
+      var its=(D.nutrition[k]&&D.nutrition[k].items)||[];
+      var found=its.some(function(x){return x.id===editId;});
+      if(found){
+        var filtered=its.filter(function(x){return x.id!==editId;});
+        D.nutrition[k]={items:filtered};
+        if(filtered.length===0)delFS('nutrition',k);
+        else saveFS('nutrition',k,{items:filtered});
+      }
+    });
+    // Re-insert in correct key
+    var existComp=false;
+    var updItem={id:editId,name:name,notes:G('nNotes').value,
+      foods:JSON.parse(JSON.stringify(foods)),date:dateStr,completed:existComp};
+    if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
+    D.nutrition[newKey].items=(D.nutrition[newKey].items||[]).concat([updItem]);
+    saveFS('nutrition',newKey,{items:D.nutrition[newKey].items});
   }else{
-    // NEW item
+    // NEW
     var newItem={id:uid(),name:name,notes:G('nNotes').value,
       foods:JSON.parse(JSON.stringify(foods)),date:dateStr,completed:false};
     if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
-    var existingItems=(D.nutrition[newKey].items||[]).slice();
-    existingItems.push(newItem);
-    D.nutrition[newKey]={items:existingItems};
-    saveFS('nutrition',newKey,{items:existingItems});
+    D.nutrition[newKey].items=(D.nutrition[newKey].items||[]).concat([newItem]);
+    saveFS('nutrition',newKey,{items:D.nutrition[newKey].items});
     try{adjustPantry(newItem.foods,-1);}catch(e){}
   }
   if(wd.weekOff!==weekOff&&calView!=='month'){weekOff=wd.weekOff;}
@@ -4686,12 +4715,21 @@ function showExDetail(item){
     vw.appendChild(vLink);modal.appendChild(vw);
   }
   // Technique - editable
-  var techKey=(item.name||'').toLowerCase().trim();
+  var techKey=(item.name||'').toLowerCase().trim().replace(/[()]/g,'').replace(/\s+/g,' ');
   var technique=(item.technique)||'';
   if(!technique&&EX_TECHNIQUE){
+    // Exact match first
     technique=EX_TECHNIQUE[techKey]||'';
-    // Fuzzy match
-    if(!technique){Object.keys(EX_TECHNIQUE).forEach(function(k){if(!technique&&(k.indexOf(techKey)>=0||techKey.indexOf(k)>=0)){technique=EX_TECHNIQUE[k];}});}
+    // Try without accents
+    if(!technique){
+      var noAccent=techKey.replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n');
+      Object.keys(EX_TECHNIQUE).forEach(function(k){
+        if(!technique){
+          var kNoAcc=k.replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n');
+          if(kNoAcc===noAccent||kNoAcc.indexOf(noAccent)>=0||noAccent.indexOf(kNoAcc)>=0){technique=EX_TECHNIQUE[k];}
+        }
+      });
+    }
   }
   var tw=mk('div','');tw.style.cssText='background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold);padding:14px;margin-top:4px;margin-bottom:12px';
   var techHdr=mk('div','');techHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';
@@ -5144,8 +5182,13 @@ function renderWkFloat(){
   body.innerHTML='';
   var exs=wkModeItem.exercises||[];
   // Check if this is a cardio activity
-  var isCardioAct=wkModeItem.cardio!==undefined||CARDIO_TYPES.indexOf(wkModeItem.name||'')>=0;
-  if(isCardioAct){renderActivityFloat(body);return;}
+  var isCardioAct=!!(wkModeItem&&(wkModeItem.cardio!==undefined||CARDIO_TYPES.indexOf(wkModeItem.name||'')>=0));
+  if(isCardioAct){
+    var actBody=G('wkFloatBody');
+    renderActivityFloat(actBody||body);
+    G('wkFloat').style.display='flex';
+    return;
+  }
   var cur=_wkGetCurrent();
   var groups=cur.groups,curGrpIdx=cur.curGrpIdx,curSerIdx=cur.curSerIdx;
   var curGrp=groups[curGrpIdx]||[0];
@@ -5469,7 +5512,8 @@ G('wkFloatToggle').onclick=function(){
     fl.style.display='none';
     G('wkFloatToggle').textContent='Abrir Panel';
   }else{
-    renderWkFloat();
+    fl.style.display='flex';// show first
+    renderWkFloat();// then populate
     G('wkFloatToggle').textContent='Cerrar Panel';
   }
 };
