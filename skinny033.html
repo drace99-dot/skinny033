@@ -695,6 +695,13 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
       </div>
       <div class="fg" id="wNmWrap"><label class="fl">Nombre del Entrenamiento <span style="font-size:8px;color:var(--white4)">(opcional)</span></label><input type="text" class="fi" id="wNm" placeholder="Ej: Empuje · Pecho & Hombros"></div>
       <div class="fg"><label class="fl">Fecha del Entrenamiento</label><input type="date" class="fi-date" id="wDatePick"></div>
+      <!-- Hora inicio / fin para TODOS los tipos -->
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div class="fg" style="flex:1;margin-bottom:0"><label class="fl">⏱ Hora inicio</label>
+          <input type="time" class="fi" id="wStartTime" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Toca para registrar la hora actual de inicio"></div>
+        <div class="fg" style="flex:1;margin-bottom:0"><label class="fl">⏱ Hora fin</label>
+          <input type="time" class="fi" id="wEndTime" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Toca para registrar la hora actual de fin"></div>
+      </div>
       <button class="btnadd-main" id="btnLoadTpl" style="border-color:var(--gold-dim);color:var(--gold-dim);margin-bottom:10px">Cargar Plantilla</button>
       <!-- Cardio fields (shown only for cardio types) -->
       <div id="wCardioFields" style="display:none">
@@ -706,16 +713,8 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
           </div>
           <div id="wIntervalList"></div>
         </div>
-        <div class="cardio-field-row">
-          <div class="fg" style="margin-bottom:8px">
-            <label class="fl">Hora inicio</label>
-            <input type="time" class="fi" id="wCardioStart" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Toca para registrar la hora actual">
-          </div>
-          <div class="fg" style="margin-bottom:8px">
-            <label class="fl">Hora fin</label>
-            <input type="time" class="fi" id="wCardioEnd" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Toca para registrar la hora actual">
-          </div>
-        </div>
+        <!-- Hidden fields for cardio start/end (uses general wStartTime/wEndTime) -->
+        <input type="hidden" id="wCardioStart"><input type="hidden" id="wCardioEnd">
         <div class="fg" style="margin-bottom:8px"><label class="fl">Duración total</label>
           <div class="time-hm"><input type="number" class="fi" id="wCardioDurH" placeholder="0" min="0" max="23" inputmode="numeric"><span class="sep">h</span><input type="number" class="fi" id="wCardioDurM" placeholder="0" min="0" max="59" inputmode="numeric"><span class="sep">min</span></div>
         </div>
@@ -736,8 +735,13 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
       <div id="wExBtns" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
         <button class="btnadd-main" id="btnEx" style="flex:1;margin-bottom:0;min-width:120px">+ Ejercicio</button>
         <button class="btnadd-main" id="btnExLib" style="flex:1;margin-bottom:0;min-width:120px;border-color:var(--gold-dim);color:var(--gold-dim)">· Biblioteca</button>
-        <button class="btnadd-main" id="btnWarmup" style="flex:1;margin-bottom:0;min-width:100px;border-color:#3498db;color:#3498db">Calentamiento</button>
+        <button class="btnadd-main" id="btnWarmup" style="flex:1;margin-bottom:0;min-width:100px;border-color:#3498db;color:#3498db">🔥 Calentamiento</button>
         <button class="btnadd-main" id="btnStretch" style="flex:1;margin-bottom:0;min-width:100px;border-color:#27ae60;color:#27ae60">🤸 Estiramientos</button>
+      </div>
+      <!-- For cardio: warmup/stretch exercise buttons always visible -->
+      <div id="wCardioExBtns" style="display:none;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="btnadd-main" id="btnCardioWarmup" style="flex:1;margin-bottom:0;border-color:#3498db;color:#3498db">🔥 Añadir Calentamiento</button>
+        <button class="btnadd-main" id="btnCardioStretch" style="flex:1;margin-bottom:0;border-color:#27ae60;color:#27ae60">🤸 Añadir Estiramientos</button>
       </div>
       <label class="tpl-row">
         <input type="checkbox" class="tpl-check" id="wSaveTpl">
@@ -805,7 +809,10 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
     <div class="mhdr"><div class="mttl" id="nTtl">Nueva Comida</div><button class="mclose" id="nX">&#x2715;</button></div>
     <div class="mbody">
       <div class="fg"><label class="fl">Nombre del Plato / Comida</label><input type="text" class="fi" id="nNm" placeholder="Ej: Desayuno · Tortilla de Patata"></div>
-      <div class="fg"><label class="fl">Fecha</label><input type="date" class="fi-date" id="nDatePick"></div>
+      <div style="display:flex;gap:8px">
+        <div class="fg" style="flex:1"><label class="fl">Fecha</label><input type="date" class="fi-date" id="nDatePick"></div>
+        <div class="fg" style="flex:0 0 110px"><label class="fl">⏱ Hora</label><input type="time" class="fi" id="nTimePick" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Hora de la comida"></div>
+      </div>
       <div class="fg"><label class="fl">Notas (opcional)</label><textarea class="fi-ta" id="nNotes" placeholder="Ej: Post-entrenamiento, preparación, alergias..."></textarea></div>
       <div id="nFds"></div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -1147,8 +1154,12 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
     <div class="mbody">
       <div class="fg"><label class="fl">Nombre del Hábito</label>
         <input type="text" class="fi" id="hbNm" placeholder="Ej: Pesarse, Tomar creatina, Beber 2L agua..."></div>
-      <div class="fg"><label class="fl">Icono (emoji)</label>
-        <input type="text" class="fi" id="hbEmoji" placeholder="⚖️" maxlength="2"></div>
+      <div style="display:flex;gap:8px">
+        <div class="fg" style="flex:1"><label class="fl">Icono (emoji)</label>
+          <input type="text" class="fi" id="hbEmoji" placeholder="⚖️" maxlength="2"></div>
+        <div class="fg" style="flex:0 0 110px"><label class="fl">⏱ Hora recordatorio</label>
+          <input type="time" class="fi" id="hbTime" title="Hora a la que se debe realizar"></div>
+      </div>
       <div class="fg"><label class="fl">Color</label>
         <select class="fi-sel" id="hbColor">
           <option value="var(--blue)">Azul</option>
@@ -1235,6 +1246,49 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
   </div>
 </div>
 
+<!-- ADMIN UPLOAD PAGE -->
+<div class="mol" id="modUpload" style="display:none">
+  <div class="modal" style="max-width:600px">
+    <div class="mhdr"><div class="mttl">📤 Subir Archivos de Datos</div><button class="mclose" id="uploadX">&#x2715;</button></div>
+    <div class="mbody">
+      <div style="font-size:9px;letter-spacing:1px;color:var(--white4);margin-bottom:14px">Sube PDF o Excel (.xlsx/.csv) de comidas o entrenamientos. La app leerá y registrará los datos automáticamente en el perfil activo.</div>
+      <!-- Dropdown selector -->
+      <div class="fg" style="margin-bottom:14px">
+        <label class="fl">¿Qué quieres subir?</label>
+        <select class="fi-sel" id="upTypeSelect">
+          <option value="">— Selecciona tipo —</option>
+          <option value="food">🥗 Comidas / Alimentos</option>
+          <option value="workout">🏋️ Entrenamiento / Ejercicios</option>
+        </select>
+      </div>
+      <!-- Formato info (toggles per type) -->
+      <div id="upFormatInfo" style="display:none;font-size:9px;color:var(--white4);background:var(--dark2);border-left:3px solid var(--gold-dim);padding:8px 10px;margin-bottom:12px"></div>
+      <!-- Food upload -->
+      <div id="upFoodPanel" style="display:none">
+        <div class="fg"><label class="fl">Seleccionar archivo (PDF / XLSX / CSV)</label>
+          <input type="file" id="upFoodFile" accept=".pdf,.xlsx,.xls,.csv" class="fi" style="padding:8px;cursor:pointer"></div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <div class="fg" style="flex:1;margin-bottom:0"><label class="fl">Fecha (si no está en el archivo)</label><input type="date" class="fi" id="upFoodDate"></div>
+        </div>
+        <button class="bsave g" id="upFoodBtn" style="width:100%;margin-top:10px">Procesar y Guardar Comidas</button>
+        <div id="upFoodLog" style="margin-top:10px;font-size:10px;color:var(--white3);max-height:180px;overflow-y:auto;background:var(--dark2);padding:8px;display:none"></div>
+      </div>
+      <!-- Workout upload -->
+      <div id="upWkPanel" style="display:none">
+        <div class="fg"><label class="fl">Seleccionar archivo (PDF / XLSX / CSV)</label>
+          <input type="file" id="upWkFile" accept=".pdf,.xlsx,.xls,.csv" class="fi" style="padding:8px;cursor:pointer"></div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <div class="fg" style="flex:1;margin-bottom:0"><label class="fl">Fecha del entreno</label><input type="date" class="fi" id="upWkDate"></div>
+          <div class="fg" style="flex:1;margin-bottom:0"><label class="fl">Nombre del entreno</label><input type="text" class="fi" id="upWkName" placeholder="Ej: Push Day A"></div>
+        </div>
+        <button class="bsave" id="upWkBtn" style="width:100%;margin-top:10px">Procesar y Guardar Entreno</button>
+        <div id="upWkLog" style="margin-top:10px;font-size:10px;color:var(--white3);max-height:180px;overflow-y:auto;background:var(--dark2);padding:8px;display:none"></div>
+      </div>
+    </div>
+    <div class="mftr"><button class="bcanc" id="uploadCnc">Cerrar</button></div>
+  </div>
+</div>
+
 <!-- CONFIRM -->
 <div class="col" id="conf" style="display:none">
   <div class="cbox">
@@ -1261,7 +1315,7 @@ if(useFS){try{firebase.initializeApp({apiKey:"AIzaSyBzKvv-gYbmEOojgno9KPirhKTXlJ
 
 // ══ STATE ══════════════════════════════════════════════
 var mainTab='cal',calTab='training',libTab='foods',libFoodSub='alimentos',libTrainSub='plantillas',profTab='datos';
-var weekOff=0,atWeekOff=0,editId=null,editKey=null,selDay=0,confirmCb=null;
+var weekOff=0,atWeekOff=0,editId=null,editKey=null,selDay=0,confirmCb=null,dayOff=0;
 var calView='day',calMonthOff=0;
 
 // Convert date string to {weekOff, dayIdx} for the key system
@@ -1889,12 +1943,12 @@ G('secLib').style.display='none';G('secProf').style.display='none';G('secCal').s
 // ══ CALENDAR ════════════════════════════════════════════
 G('wPrev').onclick=function(){
   if(calView==='month'){calMonthOff--;renderCal();}
-  else if(calView==='day'){weekOff--;renderCal();}
+  else if(calView==='day'){dayOff--;renderCal();}
   else{weekOff--;renderCal();}
 };
 G('wNext').onclick=function(){
   if(calView==='month'){calMonthOff++;renderCal();}
-  else if(calView==='day'){weekOff++;renderCal();}
+  else if(calView==='day'){dayOff++;renderCal();}
   else{weekOff++;renderCal();}
 };
 ['cvbDay','cvbWeek','cvbMonth'].forEach(function(id){
@@ -1905,7 +1959,7 @@ G('wNext').onclick=function(){
     renderCal();
   };
 });
-G('cvbGoToday').onclick=function(){weekOff=0;calMonthOff=0;renderCal();};
+G('cvbGoToday').onclick=function(){weekOff=0;calMonthOff=0;dayOff=0;renderCal();};
 G('btnAddW').onclick=function(){selDay=todayDayIdx();editId=null;editKey=null;openModW(null);};
 G('btnAddN').onclick=function(){selDay=todayDayIdx();editId=null;editKey=null;openModN(null);};
 G('btnAddH').onclick=function(){openHabitModal(null);};
@@ -1923,12 +1977,13 @@ function openHabitModal(item){
   G('hbTtl').textContent=item?'Editar Hábito':'Nuevo Hábito';
   G('hbNm').value=item?item.name:'';G('hbEmoji').value=item?(item.emoji||'✅'):'✅';
   G('hbColor').value=item?(item.color||'var(--blue)'):'var(--blue)';
+  if(G('hbTime'))G('hbTime').value=item&&item.habitTime||'';
   G('modHabit').style.display='flex';
 }
 G('hbSv').onclick=function(){
   var name=G('hbNm').value.trim();if(!name)return alert('Añade un nombre');
   var id=hbEditId||uid();
-  var hab={id:id,name:name,emoji:G('hbEmoji').value||'✅',color:G('hbColor').value};
+  var hab={id:id,name:name,emoji:G('hbEmoji').value||'✅',color:G('hbColor').value,habitTime:G('hbTime')?G('hbTime').value:''};
   if(!D.habitDefs)D.habitDefs={};D.habitDefs[id]=hab;
   saveFS('habitDefs',id,hab);closeM('modHabit');renderCal();
 };
@@ -2131,12 +2186,15 @@ function renderCalWeek(){
 
 function renderCalDay(){
   var now=new Date();
-  G('wLbl').textContent=now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
-  G('wInd').textContent='VISTA DE HOY';
+  now.setDate(now.getDate()+dayOff);
+  var label=now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  G('wLbl').textContent=label.charAt(0).toUpperCase()+label.slice(1);
+  G('wInd').textContent=dayOff===0?'HOY':dayOff===1?'MAÑANA':dayOff===-1?'AYER':(dayOff>0?'+'+dayOff+' días':dayOff+' días');
   var scroll=G('calScroll');scroll.style.overflowX='hidden';
   var grid=G('cgrid');grid.className='day-view-grid';grid.innerHTML='';
+  var wOff2=dateToWD(now.toISOString().slice(0,10)).weekOff;
   var dayIdx=(now.getDay()+6)%7;
-  grid.appendChild(_buildDayCol(now,0,dayIdx));
+  grid.appendChild(_buildDayCol(now,wOff2,dayIdx));
 }
 
 function renderCalMonth(){
@@ -2498,29 +2556,33 @@ function showVW(item,key){
     // Intervals
     var intervals=(cd.intervalResults&&cd.intervalResults.length>0)?cd.intervalResults:(cd.intervals||[]);
     if(intervals.length>0){
-      var intHdr=mk('div','');intHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px';intHdr.textContent='Series / Intervalos';
+      var intHdr=mk('div','');intHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px';
+      // Count total series
+      var totalSeries=intervals.reduce(function(sum,iv){return sum+(parseInt(iv.nSeries)||1);},0);
+      intHdr.textContent='Intervalos: '+intervals.length+' bloques · '+totalSeries+' series en total';
       ci.appendChild(intHdr);
       var typeLabels={trabajo:'[Trabajo]',descanso:'[Descanso]',descanso_activo:'[Desc.activo]'};
-      // Group consecutive identical intervals
-      var grouped=[];
+      var serNum=1;
       intervals.forEach(function(intv){
-        var key=JSON.stringify({tipo:intv.tipo,tiempo:intv.tiempo,dist:intv.dist,vel:intv.vel});
-        if(grouped.length>0&&grouped[grouped.length-1].key===key){grouped[grouped.length-1].count++;}
-        else{grouped.push({key:key,count:1,intv:intv});}
-      });
-      grouped.forEach(function(g){
-        var intv=g.intv;
-        var row=mk('div','');row.style.cssText='padding:6px 8px;background:var(--dark3);border-left:2px solid var(--blue);margin-bottom:4px;display:flex;align-items:center;gap:10px';
-        var countBadge=g.count>1?mk('div',''):null;
-        if(countBadge){countBadge.style.cssText='background:var(--blue);color:var(--white);font-size:9px;padding:2px 6px;font-weight:700;flex-shrink:0';countBadge.textContent=g.count+'×';row.appendChild(countBadge);}
+        var nS=parseInt(intv.nSeries)||1;
+        var lbl=nS>1?'Series '+serNum+'-'+(serNum+nS-1):'Serie '+serNum;
+        serNum+=nS;
+        var row=mk('div','');row.style.cssText='padding:6px 8px;background:var(--dark3);border-left:2px solid var(--blue);margin-bottom:4px';
+        var topRow=mk('div','');topRow.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:nS>1?4:0px';
+        if(nS>1){var countBadge=mk('div','');countBadge.style.cssText='background:var(--blue);color:var(--white);font-size:9px;padding:2px 6px;font-weight:700;flex-shrink:0';countBadge.textContent=nS+'×';topRow.appendChild(countBadge);}
+        var serLbl=mk('div','');serLbl.style.cssText='font-size:9px;color:var(--gold-dim);font-weight:600;flex-shrink:0';serLbl.textContent=lbl;topRow.appendChild(serLbl);
         var info=mk('div','');info.style.cssText='font-size:10px;color:var(--white3)';
-        var parts=[typeLabels[intv.tipo]||intv.tipo];
+        var parts=[];
+        if(typeLabels[intv.tipo]||intv.tipo)parts.push(typeLabels[intv.tipo]||intv.tipo);
         if(intv.tiempo)parts.push(fmtSec?fmtSec(parseInt(intv.tiempo)):(Math.floor(intv.tiempo/60)+'min '+(intv.tiempo%60)+'s'));
         if(intv.dist)parts.push(intv.dist+'m');
-        if(intv.vel)parts.push(intv.vel+(intv.tipo==='descanso_activo'?' ('+intv.vel+')':' km/h'));
-        if(intv.fcMedia)parts.push('FC '+intv.fcMedia);
+        if(intv.vel)parts.push(intv.vel+' km/h');
         if(intv.descanso)parts.push('Desc '+intv.descanso+'s');
-        info.textContent=parts.join(' · ');row.appendChild(info);ci.appendChild(row);
+        if(intv.durSec)parts.push(fmtSec?fmtSec(intv.durSec):'');
+        if(intv.fcMedia)parts.push('FC '+intv.fcMedia);
+        info.textContent=parts.join(' · ');topRow.appendChild(info);
+        row.appendChild(topRow);
+        ci.appendChild(row);
       });
     }
     if(cd.notes){var cn=mk('div','');cn.style.cssText='font-size:10px;color:var(--white3);margin-top:6px';cn.textContent=cd.notes;ci.appendChild(cn);}
@@ -2705,10 +2767,17 @@ function openModW(item){
   exercises=item&&item.exercises?JSON.parse(JSON.stringify(item.exercises)):[];
   var defDate=item?(item.date||todayDateStr()):wdToDateStr(weekOff,selDay);
   G('wDatePick').value=defDate;
+  // Start/end time for all types
+  if(G('wStartTime'))G('wStartTime').value=item&&item.startTime||'';
+  if(G('wEndTime'))G('wEndTime').value=item&&item.endTime||'';
   // Cardio fields
   var cd=item&&item.cardio;
-  G('wCardioStart').value=cd&&cd.start||'';
-  G('wCardioEnd').value=cd&&cd.end||'';
+  // Sync: use cardio.start/end if present, otherwise use startTime
+  var cdStart=(cd&&cd.start)||item&&item.startTime||'';
+  var cdEnd=(cd&&cd.end)||item&&item.endTime||'';
+  if(G('wStartTime')&&cdStart)G('wStartTime').value=cdStart;
+  if(G('wEndTime')&&cdEnd)G('wEndTime').value=cdEnd;
+  G('wCardioStart').value=cdStart;G('wCardioEnd').value=cdEnd;
   G('wCardioDurH').value=cd?(cd.durH||item.durH||0):'';
   G('wCardioDurM').value=cd?(cd.durM||item.durM||0):'';
   G('wCardioDist').value=cd?(cd.dist||''):'';
@@ -2723,12 +2792,17 @@ function openModW(item){
   G('wCardioFields').style.display=isCardio?'block':'none';
   if(G('wResistanceTypeRow'))G('wResistanceTypeRow').style.display=isCardio?'block':'none';
   G('wExBtns').style.display=isCardio?'none':'flex';
+  if(G('wCardioExBtns'))G('wCardioExBtns').style.display=isCardio?'flex':'none';
   // Set cardio type dropdown
   setTimeout(function(){
     var ctSel=G('wCardioTypeSelect');if(ctSel)ctSel.value=_cardioType;
     var showIntervals=(_cardioType==='intervalos'||_cardioType==='hiit');
     var wrap=G('wCardioIntervalsWrap');if(wrap)wrap.style.display=showIntervals?'block':'none';
     if(_cardioIntervals.length>0){if(wrap)wrap.style.display='block';renderCardioIntervals();}
+  // Cardio warmup/stretch buttons
+  var bCW=G('btnCardioWarmup');var bCS=G('btnCardioStretch');
+  if(bCW)bCW.onclick=function(){exercises.push({name:'',sectionType:'warmup',series:[{reps:'',time:'',rest:'30',type:'warmup'}]});renderExs();};
+  if(bCS)bCS.onclick=function(){exercises.push({name:'',sectionType:'stretch',series:[{time:'30',rest:''}]});renderExs();};
   },100);
   renderExs();G('modW').style.display='flex';
 }
@@ -2742,6 +2816,7 @@ G('wType').onchange=function(){
   G('wCardioFields').style.display=isCardio?'block':'none';
   if(G('wResistanceTypeRow'))G('wResistanceTypeRow').style.display=isCardio?'block':'none';
   G('wExBtns').style.display=isCardio?'none':'flex';
+  if(G('wCardioExBtns'))G('wCardioExBtns').style.display=isCardio?'flex':'none';
   if(v==='Fuerza'||v==='Otro'){G('wExBtns').style.display='flex';}
   updateCardioSpeed();
 };
@@ -2787,14 +2862,34 @@ function renderCardioIntervals(){
     var nsInp=document.createElement('input');nsInp.type='number';nsInp.min='1';nsInp.max='99';nsInp.className='fi';
     nsInp.style.cssText='width:52px;padding:4px 6px;font-size:12px;text-align:center';
     nsInp.value=nSeries;nsInp.inputMode='numeric';
-    nsInp.oninput=(function(i){return function(){_cardioIntervals[i].nSeries=Math.max(1,parseInt(this.value)||1);renderCardioIntervals();};})(idx);
+    nsInp.oninput=(function(i,lEl){return function(){
+      var val=Math.max(1,parseInt(this.value)||1);
+      _cardioIntervals[i].nSeries=val;
+      // Update only labels without re-rendering to avoid focus loss
+      var startN=_calcIntervalStartNum(_cardioIntervals,i);
+      lEl.textContent=_intervalLabel(startN,val);
+      // Update subsequent labels
+      var lbls=G('wIntervalList').querySelectorAll('.interval-lbl');
+      var runStart=startN+val;
+      for(var k=i+1;k<_cardioIntervals.length;k++){
+        var ks=parseInt(_cardioIntervals[k].nSeries)||1;
+        if(lbls[k])lbls[k].textContent=_intervalLabel(runStart,ks);
+        runStart+=ks;
+      }
+    };})(idx,lblEl);
     nsWrap.appendChild(nsLbl);nsWrap.appendChild(nsInp);
     var bdel=mk('button','btnrm','✕');bdel.onclick=(function(i){return function(){_cardioIntervals.splice(i,1);renderCardioIntervals();};})(idx);
     var bdup=mk('button','btnlib','⧉');bdup.title='Duplicar intervalo';bdup.style.cssText='font-size:10px;padding:2px 6px';
     bdup.onclick=(function(i){return function(){var clone=JSON.parse(JSON.stringify(_cardioIntervals[i]));_cardioIntervals.splice(i+1,0,clone);renderCardioIntervals();};})(idx);
     hdr.appendChild(lblEl);hdr.appendChild(nsWrap);hdr.appendChild(bdup);hdr.appendChild(bdel);
     block.appendChild(hdr);
-    // All fields in ONE row
+    // Nombre del intervalo
+    var nmField=mk('div','interval-field');nmField.style.cssText='margin-bottom:6px';
+    nmField.innerHTML='<label style="font-size:7px;letter-spacing:1px;text-transform:uppercase;color:var(--white4)">Nombre (opcional)</label>';
+    var nmInp=document.createElement('input');nmInp.type='text';nmInp.className='fi';nmInp.placeholder='Ej: Sprint, Recuperación...';
+    nmInp.value=intv.nombre||'';nmInp.style.cssText='padding:5px 8px;font-size:11px';
+    nmInp.oninput=(function(i){return function(){_cardioIntervals[i].nombre=this.value;};})(idx);
+    nmField.appendChild(nmInp);block.appendChild(nmField);
     var fields=mk('div','interval-fields');
     fields.style.cssText='display:flex;gap:6px;margin-bottom:4px;flex-wrap:nowrap;align-items:flex-end';
     // Time field
@@ -2868,6 +2963,10 @@ setTimeout(function(){
   }
   G('wCardioStart').onchange=autoComputeDur;
   G('wCardioEnd').onchange=autoComputeDur;
+  // Sync general time fields → hidden cardio fields
+  var wST=G('wStartTime'),wET=G('wEndTime');
+  if(wST)wST.onchange=function(){if(G('wCardioStart'))G('wCardioStart').value=this.value;autoComputeDur();};
+  if(wET)wET.onchange=function(){if(G('wCardioEnd'))G('wCardioEnd').value=this.value;autoComputeDur();};
 },300);
 // ── DRAG REORDER ────────────────────────────────────────────
 var dragSrcIdx=null,dragType=null,dragExIdx=null;
@@ -3050,6 +3149,8 @@ function renderExPickList(){
 function saveWorkout(){
   var name=G('wNm').value.trim()||G('wType').value||'Entrenamiento';
   var dateStr=G('wDatePick').value||todayDateStr();
+  var startTimeV=G('wStartTime')?G('wStartTime').value:'';
+  var endTimeV=G('wEndTime')?G('wEndTime').value:'';
   var wd=dateToWD(dateStr);
   var key=gk(wd.weekOff,wd.dayIdx);
   var baseEx=JSON.parse(JSON.stringify(exercises));
@@ -3094,6 +3195,7 @@ function saveWorkout(){
     }
   }else{
     var newItem2={id:uid(),name:name,wType:wTypeVal,exercises:baseEx,date:dateStr,completed:false};
+    if(startTimeV)newItem2.startTime=startTimeV;if(endTimeV)newItem2.endTime=endTimeV;
     if(isCardio){newItem2.durH=cardioObj.durH;newItem2.durM=cardioObj.durM;newItem2.cardio=cardioObj;}
     items.push(newItem2);
   }
@@ -3128,6 +3230,7 @@ function openModN(item){
   }
   if(!defDate)defDate=item?(item.date||todayDateStr()):wdToDateStr(weekOff,selDay);
   G('nDatePick').value=defDate;
+  if(G('nTimePick'))G('nTimePick').value=item&&item.mealTime||'';
   renderFds();G('modN').style.display='flex';
 }
 function updateFdTotals(){
@@ -3255,7 +3358,7 @@ function saveNutrition(){
   }else{
     // NEW
     var newItem={id:uid(),name:name,notes:G('nNotes').value,
-      foods:JSON.parse(JSON.stringify(foods)),date:dateStr,completed:false};
+      foods:JSON.parse(JSON.stringify(foods)),date:dateStr,mealTime:G('nTimePick')?G('nTimePick').value:'',completed:false};
     if(!D.nutrition[newKey])D.nutrition[newKey]={items:[]};
     D.nutrition[newKey].items=(D.nutrition[newKey].items||[]).concat([newItem]);
     saveFS('nutrition',newKey,{items:D.nutrition[newKey].items});
@@ -4039,6 +4142,11 @@ function renderProfMain(cont){
       subCont.classList.add('open');bForms.style.borderColor='var(--gold-dim)';}
     };
     panelBtns.appendChild(bForms);
+    // Subir archivos (admin only)
+    var bUpload=mk('button','prof-panel-btn','');
+    bUpload.innerHTML='<span class="prof-panel-btn-icon">📤</span><span>Subir Archivos</span><span class="prof-panel-btn-sub">PDF/Excel de comidas y entrenos</span>';
+    bUpload.onclick=function(){openUploadPage();};
+    panelBtns.appendChild(bUpload);
   }
   cont.appendChild(panelBtns);
 
@@ -4932,26 +5040,35 @@ function startWorkoutMode(item,key){
   wkModeItem=JSON.parse(JSON.stringify(item));wkModeKey=key;
   if(!wkModeItem.completed){(wkModeItem.exercises||[]).forEach(function(ex){(ex.series||[]).forEach(function(s){s.done=false;});});}
   wkTimerSec=0;wkRunning=false;fatigueAnswers={};
+  // Reset activity timer vars
+  clearInterval(_actTimerInt);_actTimerSec=0;_actTimerRunning=false;
+  _actCurIntervalIdx=0;_actIntervalResults=[];_actIntervalLaps=[];
+  clearInterval(_actRestInt);
   G('wkModeName').textContent=item.name;G('wkModeTimer').textContent='00:00';G('wkModePlay').textContent='▶';
   G('wkRestOverlay').style.display='none';
   var _isCardioMode=wkModeItem.cardio!==undefined||CARDIO_TYPES.indexOf(wkModeItem.name||'')>=0;
   if(_isCardioMode){
-    // For cardio: show activity info in wkMode background
-    var _wkBg=G('wkModeExs');
-    if(_wkBg){_wkBg.innerHTML='';
-      var _iDiv=document.createElement('div');
-      _iDiv.style.cssText='padding:20px 10px;text-align:center';
-      var _cd=wkModeItem.cardio||{};
-      var _ints=_cd.intervals||[];
-      _iDiv.innerHTML='<div style="font-family:var(--serif);font-size:18px;color:var(--gold);margin-bottom:8px">'+(wkModeItem.name||'Actividad')+'</div>'+
-        '<div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:12px">'+(_cd.tipo||'Entrenamiento libre')+'</div>'+
-        (_ints.length?'<div style="font-size:11px;color:var(--white3)">'+_ints.length+' intervalos planificados</div>':
-        '<div style="font-size:11px;color:var(--white4)">Sesión libre — usa el panel para registrar</div>');
-      _wkBg.appendChild(_iDiv);
-    }
+    // Render cardio background with full structure
+    renderWkModeCardio();
+    // Auto-start activity timer immediately
+    _actTimerRunning=true;
+    _actTimerInt=setInterval(function(){
+      _actTimerSec++;
+      var d=G('actTimerDisp');if(d)d.textContent=fmtSec(_actTimerSec);
+      // Auto-advance interval by time if configured
+      var intervals=(wkModeItem.cardio&&wkModeItem.cardio.intervals)||[];
+      if(intervals.length>0&&intervals[_actCurIntervalIdx]){
+        var intSec=parseInt(intervals[_actCurIntervalIdx].tiempo)||0;
+        var lapStart=_actIntervalResults.slice(0,_actCurIntervalIdx).reduce(function(s,r){return s+(parseInt(r.durSec)||0);},0);
+        if(intSec>0&&(_actTimerSec-lapStart)>=intSec){
+          clearInterval(_actTimerInt);_actTimerRunning=false;
+          _completeIntervalAndRest();
+        }
+      }
+    },1000);
   }else{renderWkMode();}
   G('wkMode').style.display='flex';
-  // Auto-start timer — updates both full screen and float panel
+  // Auto-start main session timer
   wkRunning=true;G('wkModePlay').textContent='⏸';
   clearInterval(wkTimerInt);
   wkTimerInt=setInterval(function(){
@@ -5051,6 +5168,56 @@ function _showActivitySummary(body){
   body.appendChild(finBtn);
 }
 
+function renderWkModeCardio(){
+  // Background page showing full interval plan with editable result fields
+  var body=G('wkModeBody');body.innerHTML='';
+  var cd=wkModeItem.cardio||{};
+  var intervals=cd.intervals||[];
+  var hdr=mk('div','');
+  hdr.style.cssText='font-family:var(--serif);font-size:16px;color:var(--gold);padding:8px 0 4px;letter-spacing:1px;border-bottom:1px solid var(--dark4);margin-bottom:10px';
+  hdr.textContent=(wkModeItem.name||'Actividad')+' · '+(cd.tipo||'Libre');
+  body.appendChild(hdr);
+  if(!intervals.length){
+    var free=mk('div','');free.style.cssText='text-align:center;color:var(--white4);padding:20px';
+    free.textContent='Sesión libre — registra desde el panel';
+    body.appendChild(free);return;
+  }
+  var secLbl=mk('div','');secLbl.style.cssText='font-size:7px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);border-left:3px solid var(--gold);padding-left:8px;margin-bottom:8px';
+  secLbl.textContent='INTERVALOS / SERIES';body.appendChild(secLbl);
+  intervals.forEach(function(intv,idx){
+    var nS=parseInt(intv.nSeries)||1;
+    var startNum=intervals.slice(0,idx).reduce(function(s,iv){return s+(parseInt(iv.nSeries)||1);},0)+1;
+    var lbl=(intv.nombre||'')||(nS>1?'Series '+startNum+'-'+(startNum+nS-1):'Serie '+startNum);
+    var res=_actIntervalResults[idx]||{};
+    var isDone=idx<_actCurIntervalIdx;
+    var isCur=idx===_actCurIntervalIdx;
+    var block=mk('div','');
+    block.style.cssText='background:var(--dark2);border:1px solid '+(isDone?'var(--green)':isCur?'var(--gold)':'var(--dark4)')+';border-left:3px solid '+(isDone?'var(--green)':isCur?'var(--gold)':'var(--dark5)')+';padding:10px 12px;margin-bottom:8px';
+    var bHdr=mk('div','');bHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:6px';
+    var bLbl=mk('div','');bLbl.style.cssText='font-size:9px;letter-spacing:1px;color:'+(isDone?'var(--green)':isCur?'var(--gold)':'var(--white4)')+';font-weight:600';
+    bLbl.textContent=(isDone?'✓ ':'')+(isCur?'▶ ':'')+lbl;
+    bHdr.appendChild(bLbl);
+    if(intv.tiempo){var tLbl=mk('div','');tLbl.style.cssText='font-size:8px;color:var(--white4)';tLbl.textContent=fmtSec(parseInt(intv.tiempo));bHdr.appendChild(tLbl);}
+    block.appendChild(bHdr);
+    // Result fields — editable always
+    var rFields=mk('div','');rFields.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:4px';
+    [{k:'tiempo',l:'Tiempo(s)'},{k:'dist',l:'Dist(m)'},{k:'vel',l:'Vel km/h'},{k:'fcMedia',l:'FC Media'},{k:'fcMax',l:'FC Máx'},{k:'rpe',l:'RPE'}].forEach(function(f){
+      var w=mk('div','');w.style.cssText='display:flex;flex-direction:column;gap:2px';
+      var lEl=mk('div','');lEl.style.cssText='font-size:6px;letter-spacing:1px;text-transform:uppercase;color:var(--white4)';lEl.textContent=f.l;
+      var inp=document.createElement('input');inp.type='number';inp.className='wk-inp';inp.inputMode='decimal';
+      inp.placeholder=intv[f.k]||'—';
+      inp.value=res[f.k]||'';
+      inp.oninput=(function(ii,fk){return function(){
+        if(!_actIntervalResults[ii])_actIntervalResults[ii]={};
+        _actIntervalResults[ii][fk]=this.value;
+      };})(idx,f.k);
+      w.appendChild(lEl);w.appendChild(inp);rFields.appendChild(w);
+    });
+    block.appendChild(rFields);
+    body.appendChild(block);
+  });
+}
+
 function renderActivityFloat(body){
   var fex=G('wkFloatEx');var fser=G('wkFloatSer');
   if(fex)fex.textContent=wkModeItem.name||'Actividad';
@@ -5059,115 +5226,121 @@ function renderActivityFloat(body){
 
   if(fser)fser.textContent=hasIntervals?'Intervalo '+(_actCurIntervalIdx+1)+' de '+intervals.length:'Cronómetro';
 
-  // Timer row
+  // Timer display — auto-running, just show it (no init button)
   var timerRow=mk('div','act-timer-row');
-  var timerDisp=mk('div','act-timer-display',fmtSec(_actTimerSec));timerDisp.id='actTimerDisp';
-  var bStart=mk('button','act-timer-btn',_actTimerRunning?'⏸ Pausar':'▶ Iniciar');
-  bStart.onclick=function(){
-    if(_actTimerRunning){clearInterval(_actTimerInt);_actTimerRunning=false;bStart.textContent='▶ Iniciar';}
-    else{_actTimerRunning=true;bStart.textContent='⏸ Pausar';
+  var timerDisp=mk('div','act-timer-display',fmtSec(_actTimerSec));timerDisp.id='actTimerDisp';timerDisp.style.flex='1';
+  // Pause/resume button only (no init)
+  var bPause=mk('button','act-timer-btn',_actTimerRunning?'⏸':'▶');
+  bPause.style.cssText='padding:6px 12px;flex-shrink:0';
+  bPause.onclick=function(){
+    if(_actTimerRunning){
+      clearInterval(_actTimerInt);_actTimerRunning=false;bPause.textContent='▶';
+    }else{
+      _actTimerRunning=true;bPause.textContent='⏸';
       _actTimerInt=setInterval(function(){
         _actTimerSec++;
         var d=G('actTimerDisp');if(d)d.textContent=fmtSec(_actTimerSec);
-        // Auto-advance if interval has a time set
-        if(hasIntervals&&intervals[_actCurIntervalIdx]){
-          var intSec=parseInt(intervals[_actCurIntervalIdx].tiempo)||0;
-          var lapStart=_actIntervalResults.reduce(function(s,r){return s+(r.durSec||0);},0);
+        var ints=(wkModeItem.cardio&&wkModeItem.cardio.intervals)||[];
+        if(ints.length>0&&ints[_actCurIntervalIdx]){
+          var intSec=parseInt(ints[_actCurIntervalIdx].tiempo)||0;
+          var lapStart=_actIntervalResults.slice(0,_actCurIntervalIdx).reduce(function(s,r){return s+(parseInt(r.durSec)||0);},0);
           if(intSec>0&&(_actTimerSec-lapStart)>=intSec){
-            // Time up for this interval
             clearInterval(_actTimerInt);_actTimerRunning=false;
-            completeCurrentInterval(body);
+            _completeIntervalAndRest();
           }
         }
       },1000);
     }
   };
-  timerRow.appendChild(timerDisp);timerRow.appendChild(bStart);
+  timerRow.appendChild(timerDisp);timerRow.appendChild(bPause);
   body.appendChild(timerRow);
 
   // Current interval fields (if intervals defined)
   if(hasIntervals&&_actCurIntervalIdx<intervals.length){
     var curIntv=intervals[_actCurIntervalIdx];
+    var nS=parseInt(curIntv.nSeries)||1;
+    var startNum=intervals.slice(0,_actCurIntervalIdx).reduce(function(s,iv){return s+(parseInt(iv.nSeries)||1);},0)+1;
+    var intvLabel=(curIntv.nombre||'')||(nS>1?'Series '+startNum+'-'+(startNum+nS-1):'Serie '+startNum);
     var curResult=_actIntervalResults[_actCurIntervalIdx]||{};
-    var intvBlock=mk('div','interval-block');
-    intvBlock.style.marginBottom='10px';
+    var intvBlock=mk('div','interval-block');intvBlock.style.marginBottom='10px';
     var intvHdr=mk('div','interval-block-hdr');
-    var typeLabels={trabajo:'[Trabajo]',descanso:'[Descanso]',descanso_activo:'🚶 Descanso activo'};
-    intvHdr.appendChild(mk('div','interval-lbl',(typeLabels[curIntv.tipo]||curIntv.tipo)+' — Intervalo '+(_actCurIntervalIdx+1)));
-    if(curIntv.tiempo)intvHdr.appendChild(mk('div','').appendChild&&Object.assign(mk('div',''),{style:'font-size:10px;color:var(--white4)',textContent:'Objetivo: '+fmtSec(parseInt(curIntv.tiempo))||''}));
+    var typeLabels={trabajo:'Trabajo',descanso:'Descanso',descanso_activo:'🚶 Desc. activo'};
+    var typeTxt=(typeLabels[curIntv.tipo]||curIntv.tipo)||'';
+    intvHdr.appendChild(mk('div','interval-lbl',intvLabel+(typeTxt?' · '+typeTxt:'')));
+    if(curIntv.tiempo){
+      var tObj=mk('div','');tObj.style.cssText='font-size:9px;color:var(--white4)';
+      tObj.textContent='Obj: '+fmtSec(parseInt(curIntv.tiempo));
+      intvHdr.appendChild(tObj);
+    }
     intvBlock.appendChild(intvHdr);
-    // Planned values
     if(curIntv.dist||curIntv.vel){
-      var planRow=mk('div','');planRow.style.cssText='display:flex;gap:10px;margin-bottom:8px;font-size:9px;color:var(--white4)';
+      var planRow=mk('div','');planRow.style.cssText='display:flex;gap:10px;margin-bottom:6px;font-size:9px;color:var(--white4)';
       if(curIntv.dist)planRow.appendChild(Object.assign(mk('span',''),{textContent:'Dist: '+curIntv.dist+'m'}));
-      if(curIntv.vel)planRow.appendChild(Object.assign(mk('span',''),{textContent:'Vel: '+curIntv.vel+(curIntv.tipo==='descanso_activo'?' ('+curIntv.vel+')':' km/h')}));
+      if(curIntv.vel)planRow.appendChild(Object.assign(mk('span',''),{textContent:'Vel: '+curIntv.vel+' km/h'}));
       intvBlock.appendChild(planRow);
     }
-    // Editable result fields
-    var resHdr=mk('div','');resHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px';resHdr.textContent='Registrar serie';
+    var resHdr=mk('div','');resHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px';resHdr.textContent='Registrar';
     intvBlock.appendChild(resHdr);
     var resFields=mk('div','wk-float-fields');
-    [{k:'tiempo',l:'Tiempo (s)',p:curIntv.tiempo||'—'},{k:'dist',l:'Dist (m)',p:curIntv.dist||'—'},{k:'vel',l:'Vel km/h',p:curIntv.vel||'—'},
-     {k:'fcMedia',l:'FC Media',p:'150'},{k:'fcMax',l:'FC Máx',p:'180'},{k:'rpe',l:'RPE',p:'7'}].forEach(function(f){
+    [{k:'tiempo',l:'Tiempo (s)',p:curIntv.tiempo||'—'},{k:'dist',l:'Dist (m)',p:curIntv.dist||'—'},
+     {k:'vel',l:'Vel km/h',p:curIntv.vel||'—'},{k:'fcMedia',l:'FC Media',p:'150'},
+     {k:'fcMax',l:'FC Máx',p:'180'},{k:'rpe',l:'RPE',p:'7'}].forEach(function(f){
       var wrap=mk('div','wk-float-field');wrap.appendChild(mk('div','wk-float-lbl',f.l));
       var inp=document.createElement('input');inp.type='number';inp.className='wk-float-inp';inp.placeholder=f.p;inp.inputMode='decimal';
       inp.value=curResult[f.k]||'';
-      inp.oninput=(function(key){return function(){if(!_actIntervalResults[_actCurIntervalIdx])_actIntervalResults[_actCurIntervalIdx]={};_actIntervalResults[_actCurIntervalIdx][key]=this.value;};})(f.k);
+      inp.oninput=(function(fk){return function(){
+        if(!_actIntervalResults[_actCurIntervalIdx])_actIntervalResults[_actCurIntervalIdx]={};
+        _actIntervalResults[_actCurIntervalIdx][fk]=this.value;
+      };})(f.k);
       wrap.appendChild(inp);resFields.appendChild(wrap);
     });
     intvBlock.appendChild(resFields);
     body.appendChild(intvBlock);
-    // Done button FIRST
+    // Complete interval button
     var isLast=(_actCurIntervalIdx===intervals.length-1);
-    var doneIntBtn=mk('button','wk-float-done',isLast?'✓ TERMINAR ACTIVIDAD':'✓ COMPLETAR INTERVALO '+(_actCurIntervalIdx+1));
-    if(isLast)doneIntBtn.style.background='rgba(39,174,96,.25)';
+    var doneIntBtn=mk('button','wk-float-done',isLast?'✓ TERMINAR ACTIVIDAD':'✓ COMPLETAR INTERVALO');
+    if(isLast)doneIntBtn.style.background='rgba(39,174,96,.2)';
     doneIntBtn.onclick=function(){
+      // Record duration
+      if(!_actIntervalResults[_actCurIntervalIdx])_actIntervalResults[_actCurIntervalIdx]={};
+      var lapStart=_actIntervalResults.slice(0,_actCurIntervalIdx).reduce(function(s,r){return s+(parseInt(r.durSec)||0);},0);
+      _actIntervalResults[_actCurIntervalIdx].durSec=_actTimerSec-lapStart;
       if(isLast){
-        // Record last interval and go straight to summary
-        if(!_actIntervalResults[_actCurIntervalIdx])_actIntervalResults[_actCurIntervalIdx]={};
-        var lapStart=_actIntervalResults.slice(0,_actCurIntervalIdx).reduce(function(s,r){return s+(parseInt(r.durSec)||0);},0);
-        _actIntervalResults[_actCurIntervalIdx].durSec=_actTimerSec-lapStart;
         clearInterval(_actTimerInt);_actTimerRunning=false;
         _actCurIntervalIdx++;
+        renderWkModeCardio();
         var bd2=G('wkFloatBody');if(bd2){bd2.innerHTML='';_showActivitySummary(bd2);}
-      }else{completeCurrentInterval(body);}
+      }else{
+        _completeIntervalAndRest();
+      }
     };
     body.appendChild(doneIntBtn);
-    // Next interval preview BELOW the button
+    // Next interval preview
     if(!isLast){
       var nx=intervals[_actCurIntervalIdx+1];
-      var nxDiv=mk('div','');
-      nxDiv.style.cssText='padding:8px 12px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);font-size:10px;color:var(--white3);margin-top:8px';
-      nxDiv.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:3px">A continuación</div>'+
-        '<div>'+(nx.tipo==='trabajo'?'Trabajo':nx.tipo==='descanso'?'Descanso':'Desc. activo')+
-        (nx.tiempo?' · '+fmtSec(parseInt(nx.tiempo)):'')+
-        (nx.dist?' · '+nx.dist+'m':'')+
-        (nx.vel?' · '+nx.vel+' km/h':'')+'</div>';
+      var nxNS=parseInt(nx.nSeries)||1;
+      var nxStartN=intervals.slice(0,_actCurIntervalIdx+1).reduce(function(s,iv){return s+(parseInt(iv.nSeries)||1);},0)+1;
+      var nxLbl=(nx.nombre||'')||(nxNS>1?'Series '+nxStartN+'-'+(nxStartN+nxNS-1):'Serie '+nxStartN);
+      var nxDiv=mk('div','');nxDiv.style.cssText='padding:6px 10px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);font-size:10px;color:var(--white3);margin-top:6px';
+      nxDiv.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:2px">A continuación</div><div>'+nxLbl+(nx.tiempo?' · '+fmtSec(parseInt(nx.tiempo)):'')+( nx.dist?' · '+nx.dist+'m':'')+(nx.vel?' · '+nx.vel+' km/h':'')+'</div>';
       body.appendChild(nxDiv);
     }
-  }else{
-    // Free session: lap button + FC
-    var bLap=mk('button','act-timer-btn','Vuelta');
-    bLap.style.cssText='padding:8px 14px;margin-bottom:8px;flex-shrink:0';
+  }else if(!hasIntervals){
+    // Free session: lap button + laps list
+    var bLap=mk('button','act-timer-btn','↩ Vuelta');
+    bLap.style.cssText='padding:8px 14px;margin-bottom:8px;flex-shrink:0;width:100%';
     bLap.onclick=function(){
       var lapTime=_actTimerSec;
       var lapN=_actIntervalLaps.length+1;
       var prevT=_actIntervalLaps.length>0?_actIntervalLaps[_actIntervalLaps.length-1].t:0;
       _actIntervalLaps.push({n:lapN,t:lapTime});
-      // Add lap row inline without re-rendering
       var lapsContainer=G('actLapsList');
-      if(lapsContainer){
-        var row=mk('div','act-interval-row');
-        row.innerHTML='<span class="act-interval-lbl">Vuelta '+lapN+'</span><span class="act-interval-val">'+fmtSec(lapTime)+' (+'+fmtSec(lapTime-prevT)+')</span>';
-        lapsContainer.appendChild(row);
-      }
+      if(lapsContainer){var row=mk('div','act-interval-row');row.innerHTML='<span class="act-interval-lbl">Vuelta '+lapN+'</span><span class="act-interval-val">'+fmtSec(lapTime)+' (+'+fmtSec(lapTime-prevT)+')</span>';lapsContainer.appendChild(row);}
     };
     body.appendChild(bLap);
-    // Laps list container
     var lapsList=mk('div','');lapsList.id='actLapsList';
     _actIntervalLaps.forEach(function(lap,i){
-      var row=mk('div','act-interval-row');
-      var prevT=i>0?_actIntervalLaps[i-1].t:0;
+      var row=mk('div','act-interval-row');var prevT=i>0?_actIntervalLaps[i-1].t:0;
       row.innerHTML='<span class="act-interval-lbl">Vuelta '+lap.n+'</span><span class="act-interval-val">'+fmtSec(lap.t)+' (+'+fmtSec(lap.t-prevT)+')</span>';
       lapsList.appendChild(row);
     });
@@ -5175,8 +5348,8 @@ function renderActivityFloat(body){
   }
 
   // FC global fields
-  var fcRow=mk('div','');fcRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px';
-  [{l:'FC Media sesión',k:'_fcMedia'},{l:'FC Máxima sesión',k:'_fcMax'}].forEach(function(f){
+  var fcRow=mk('div','');fcRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;margin-top:8px';
+  [{l:'FC Media sesión',k:'_fcMedia'},{l:'FC Máx sesión',k:'_fcMax'}].forEach(function(f){
     var wrap=mk('div','wk-float-field');wrap.appendChild(mk('div','wk-float-lbl',f.l));
     var inp=document.createElement('input');inp.type='number';inp.className='wk-float-inp';inp.placeholder='—';inp.inputMode='numeric';
     inp.value=wkModeItem[f.k]||'';
@@ -5186,12 +5359,24 @@ function renderActivityFloat(body){
   body.appendChild(fcRow);
 
   // Completed intervals list
-  if(_actIntervalResults.length>0||(hasIntervals&&_actCurIntervalIdx>0)){
+  if(_actIntervalResults.length>0){
     var doneHdr=mk('div','');doneHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px';
-    doneHdr.textContent='Intervalos completados';body.appendChild(doneHdr);
+    doneHdr.textContent='Completados';body.appendChild(doneHdr);
     _actIntervalResults.forEach(function(r,i){
+      if(i>=_actCurIntervalIdx)return;
+      var intv=intervals[i]||{};
+      var nS2=parseInt(intv.nSeries)||1;
+      var sN=intervals.slice(0,i).reduce(function(s,iv){return s+(parseInt(iv.nSeries)||1);},0)+1;
+      var lbl2=(intv.nombre||'')||(nS2>1?'Series '+sN+'-'+(sN+nS2-1):'Serie '+sN);
       var row=mk('div','act-interval-row');
-      row.innerHTML='<span class="act-interval-lbl">Int '+(i+1)+'</span><span class="act-interval-val">'+(r.durSec?fmtSec(r.durSec):fmtSec(parseInt((intervals[i]&&intervals[i].tiempo)||0)))+(r.dist?' · '+r.dist+'m':'')+(r.fcMedia?' · FC '+r.fcMedia:'')+'</span>';
+      var parts=[];
+      if(r.durSec)parts.push(fmtSec(r.durSec));
+      if(r.dist)parts.push(r.dist+'m');
+      if(r.vel)parts.push(r.vel+' km/h');
+      if(r.fcMedia)parts.push('FC '+r.fcMedia);
+      if(r.fcMax)parts.push('FCmax '+r.fcMax);
+      if(r.rpe)parts.push('RPE '+r.rpe);
+      row.innerHTML='<span class="act-interval-lbl">✓ '+lbl2+'</span><span class="act-interval-val">'+( parts.join(' · ')||'—')+'</span>';
       body.appendChild(row);
     });
   }
@@ -5213,19 +5398,66 @@ function renderActivityFloat(body){
   body.appendChild(finBtn);
 }
 
-function completeCurrentInterval(){
+// Complete current interval and show rest popup (small overlay inside float)
+function _completeIntervalAndRest(){
   var intervals=(wkModeItem.cardio&&wkModeItem.cardio.intervals)||[];
-  if(!_actIntervalResults[_actCurIntervalIdx])_actIntervalResults[_actCurIntervalIdx]={};
-  var lapStart=_actIntervalResults.slice(0,_actCurIntervalIdx).reduce(function(s,r){return s+(parseInt(r.durSec)||0);},0);
-  _actIntervalResults[_actCurIntervalIdx].durSec=_actTimerSec-lapStart;
+  var curIntv=intervals[_actCurIntervalIdx]||{};
+  var restSec=parseInt(curIntv.descanso)||0;
   clearInterval(_actTimerInt);_actTimerRunning=false;
+  // Move to next
   _actCurIntervalIdx++;
-  // Vibrate and go directly to next interval (no rest screen)
+  // Update background
+  renderWkModeCardio();
   if(navigator.vibrate)navigator.vibrate([200,100,200]);
-  var bd=G('wkFloatBody');if(!bd)return;
-  bd.innerHTML='';
-  renderActivityFloat(bd);
+  // Show rest popup inside float body
+  var body=G('wkFloatBody');if(!body)return;
+  body.innerHTML='';
+  var fex=G('wkFloatEx');var fser=G('wkFloatSer');
+  if(fex)fex.textContent='Descanso';
+  if(_actCurIntervalIdx<intervals.length){
+    var nx2=intervals[_actCurIntervalIdx];
+    var nxNS2=parseInt(nx2.nSeries)||1;
+    var nxSN=intervals.slice(0,_actCurIntervalIdx).reduce(function(s,iv){return s+(parseInt(iv.nSeries)||1);},0)+1;
+    var nxLbl2=(nx2.nombre||'')||(nxNS2>1?'Series '+nxSN+'-'+(nxSN+nxNS2-1):'Serie '+nxSN);
+    if(fser)fser.textContent='Siguiente: '+nxLbl2;
+  }else{if(fser)fser.textContent='Última completada';}
+  if(restSec<=0){
+    // No rest - go straight to next
+    renderActivityFloat(body);return;
+  }
+  // Rest countdown
+  var restWrap=mk('div','wk-float-rest');
+  restWrap.appendChild(mk('div','wk-float-rest-label','⏸ Descanso'));
+  var countEl=mk('div','wk-float-rest-count',String(restSec));
+  restWrap.appendChild(countEl);
+  var s2=mk('div','');s2.style.cssText='font-size:8px;color:var(--white4);text-align:center;margin-bottom:8px';s2.textContent='segundos';
+  restWrap.appendChild(s2);
+  var acts=mk('div','wk-float-rest-actions');
+  var bSkip2=mk('button','bcanc','Saltar');bSkip2.style.cssText='padding:8px 16px;font-size:9px';
+  var bAdd2=mk('button','bsave b','+30s');bAdd2.style.cssText='padding:8px 16px;font-size:9px';
+  acts.appendChild(bSkip2);acts.appendChild(bAdd2);
+  restWrap.appendChild(acts);
+  body.appendChild(restWrap);
+  // Countdown
+  var restSecLocal=restSec;
+  clearInterval(_actRestInt);
+  _actRestInt=setInterval(function(){
+    restSecLocal--;countEl.textContent=String(restSecLocal);
+    if(restSecLocal<=0){
+      clearInterval(_actRestInt);
+      if(navigator.vibrate)navigator.vibrate([300,100,300]);
+      var bd2=G('wkFloatBody');if(!bd2)return;
+      bd2.innerHTML='';renderActivityFloat(bd2);
+    }
+  },1000);
+  bSkip2.onclick=function(){
+    clearInterval(_actRestInt);
+    if(navigator.vibrate)navigator.vibrate([200,100,200]);
+    var bd2=G('wkFloatBody');if(!bd2)return;bd2.innerHTML='';renderActivityFloat(bd2);
+  };
+  bAdd2.onclick=function(){restSecLocal+=30;countEl.textContent=String(restSecLocal);};
 }
+
 
 function renderWkFloat(){
   var fl=G('wkFloat');if(!fl||!wkModeItem)return;
@@ -5296,23 +5528,55 @@ function renderWkFloat(){
     body.appendChild(nextDiv);
   }
   // Done button
-  // Show elapsed time for current series
-  var serTimer=mk('div','');serTimer.style.cssText='text-align:center;font-size:10px;color:var(--white4);margin-bottom:6px;font-family:var(--serif)';serTimer.id='serTimerDisp';
-  body.appendChild(serTimer);
-  // Start counting up when panel opens
-  var _serStart=Date.now();
-  var _serTimerIntLocal=setInterval(function(){
-    var el=G('serTimerDisp');
-    if(!el){clearInterval(_serTimerIntLocal);return;}
-    var elapsed=Math.floor((Date.now()-_serStart)/1000);
-    el.textContent='Tiempo en serie: '+fmtSec(elapsed);
-  },1000);
+  // Show elapsed time for current series — lap timer with Vuelta button
+  var serTimerWrap=mk('div','');serTimerWrap.style.cssText='background:var(--dark2);border:1px solid var(--dark4);padding:8px 10px;margin-bottom:8px;border-radius:2px';
+  var serTimerDisp=mk('div','');serTimerDisp.style.cssText='text-align:center;font-family:var(--serif);font-size:22px;color:var(--gold);margin-bottom:6px';
+  serTimerDisp.id='serTimerDisp';serTimerDisp.textContent='00:00';
+  var lapLog=mk('div','');lapLog.style.cssText='font-size:9px;color:var(--white4);text-align:center;margin-bottom:6px;max-height:50px;overflow-y:auto';lapLog.id='lapLog';
+  var serTimerBtns=mk('div','');serTimerBtns.style.cssText='display:flex;gap:6px;justify-content:center';
+  var _serSec=0,_serRunning=false,_serIntLocal=null,_lapStart=0,_laps=[];
+  var bStartSer=mk('button','act-timer-btn','▶ Iniciar');
+  var bLap=mk('button','act-timer-btn','↩ Vuelta');bLap.style.cssText+='background:var(--dark3);border-color:var(--gold-dim);color:var(--gold-dim)';
+  bLap.disabled=true;
+  bStartSer.onclick=function(){
+    if(_serRunning){
+      clearInterval(_serIntLocal);_serRunning=false;bStartSer.textContent='▶ Iniciar';bLap.disabled=true;
+    }else{
+      _serRunning=true;bStartSer.textContent='⏸ Pausar';bLap.disabled=false;
+      _lapStart=_lapStart||Date.now();
+      _serIntLocal=setInterval(function(){
+        _serSec++;
+        var m=Math.floor(_serSec/60),s=_serSec%60;
+        var el=G('serTimerDisp');if(el)el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+      },1000);
+    }
+  };
+  bLap.onclick=function(){
+    if(!_serRunning)return;
+    var now=Date.now();
+    var lapMs=now-_lapStart;_lapStart=now;
+    var ls=Math.floor(lapMs/1000);
+    var lm=Math.floor(ls/60),lsec=ls%60;
+    _laps.push((lm<10?'0':'')+lm+':'+(lsec<10?'0':'')+lsec);
+    var logEl=G('lapLog');
+    if(logEl){logEl.textContent=_laps.map(function(l,i){return 'V'+(i+1)+': '+l;}).join(' · ');}
+  };
+  serTimerBtns.appendChild(bStartSer);serTimerBtns.appendChild(bLap);
+  serTimerWrap.appendChild(serTimerDisp);serTimerWrap.appendChild(lapLog);serTimerWrap.appendChild(serTimerBtns);
+  body.appendChild(serTimerWrap);
   var doneBtn=mk('button','wk-float-done','✓  SERIE COMPLETADA');
   doneBtn.onclick=function(){
+    // Stop series timer, save elapsed time if no manual time entered
+    clearInterval(_serIntLocal);_serRunning=false;
+    var _serElapsed=_serSec;
     // Save user values and mark done
     (curGrp||[]).forEach(function(ei){
       var s=wkModeItem.exercises[ei].series&&wkModeItem.exercises[ei].series[curSerIdx];
-      if(s)s.done=true;
+      if(s){
+        s.done=true;
+        // If no manual time was entered, save the series timer value
+        if(!s['_usr_time']&&!s.time&&_serElapsed>0){s['_usr_time']=String(_serElapsed);s.time=String(_serElapsed);}
+      }
     });
     var _allDone=wkModeItem.exercises.every(function(ex){return (ex.series||[]).every(function(s){return !!s.done;});});
     if(_allDone){
@@ -5378,10 +5642,10 @@ function showFloatRest(secs,nextInfo){
     if(wkRestSec<=0){
       clearInterval(wkRestInt);
       if(navigator.vibrate)navigator.vibrate([200,100,200]);
-      renderWkFloat();
+      renderWkFloat(); // renders new series → creates new local _serSec=0 automatically
     }
   },1000);
-  bSkip.onclick=function(){clearInterval(wkRestInt);renderWkFloat();};
+  bSkip.onclick=function(){clearInterval(wkRestInt);if(navigator.vibrate)navigator.vibrate([150]);renderWkFloat();};
   bAdd.onclick=function(){wkRestSec+=30;countEl.textContent=String(wkRestSec);};
 }
 
@@ -5406,7 +5670,14 @@ function renderWkMode(){
   var exs=wkModeItem.exercises||[];
   updateCurrentBanner();
 
-  // Build groups
+  // Group exercises by section
+  var sections=[
+    {type:'warmup',label:'🔥 Calentamiento',color:'#3498db',groups:[]},
+    {type:'main',label:'🏋️ Trabajo Principal',color:'var(--gold)',groups:[]},
+    {type:'stretch',label:'🤸 Estiramientos',color:'#27ae60',groups:[]}
+  ];
+
+  // Build superset groups
   var groups=[],gi=0;
   while(gi<exs.length){
     var grp=[gi];
@@ -5415,105 +5686,98 @@ function renderWkMode(){
   }
 
   groups.forEach(function(grp){
-    var isSuperset=grp.length>1;
-    var typeLbl=grp.length===2?'BISERIE':'SUPERSERIE ('+grp.length+' ejercicios)';
-    // All series done in this group?
-    var grpDone=grp.every(function(ei){return (exs[ei].series||[]).every(function(s){return !!s.done;});});
+    var sType=(exs[grp[0]]&&exs[grp[0]].sectionType)||'main';
+    // warmup series also go to warmup section
+    if(exs[grp[0]]&&exs[grp[0]].series&&exs[grp[0]].series[0]&&exs[grp[0]].series[0].type==='warmup')sType='warmup';
+    var sec=sections.find(function(s){return s.type===sType;})||sections[1];
+    sec.groups.push(grp);
+  });
 
-    // ── Superserie card wrapper ──────────────────────────────────────────────
-    var wrap=isSuperset?mk('div','ss-card'):mk('div','wk-ex-section');
+  sections.filter(function(s){return s.groups.length>0;}).forEach(function(section){
+    var secHdr=mk('div','');
+    secHdr.style.cssText='font-size:8px;letter-spacing:3px;text-transform:uppercase;color:'+section.color+';padding:8px 12px;background:rgba(0,0,0,.3);border-left:3px solid '+section.color+';margin-bottom:8px;margin-top:8px';
+    secHdr.textContent=section.label;body.appendChild(secHdr);
 
-    if(isSuperset){
-      var cardHdr=mk('div','ss-card-hdr');
-      var cardLeft=mk('div','');
-      cardLeft.appendChild(mk('div','ss-card-type','⚡ '+typeLbl));
-      cardLeft.appendChild(mk('div','ss-card-names',grp.map(function(ei){return exs[ei].name||'Ejercicio '+(ei+1);}).join(' + ')));
-      var tog=mk('span','ss-card-toggle',grpDone?'✓':'▼');
-      cardHdr.appendChild(cardLeft);cardHdr.appendChild(tog);
-      var cardBody=mk('div','ss-card-body');
-      cardHdr.onclick=function(){cardBody.style.display=cardBody.style.display==='none'?'block':'none';tog.textContent=cardBody.style.display==='none'?'▶':'▼';};
-      wrap.appendChild(cardHdr);wrap.appendChild(cardBody);
-      var innerWrap=cardBody;
-    }else{
+    section.groups.forEach(function(grp){
+      var isSuperset=grp.length>1;
+      var typeLbl=grp.length===2?'BISERIE':'SUPERSERIE ('+grp.length+' ejercicios)';
+      var grpDone=grp.every(function(ei){return (exs[ei].series||[]).every(function(s){return !!s.done;});});
+      var wrap=isSuperset?mk('div','ss-card'):mk('div','wk-ex-section');
       var innerWrap=wrap;
-    }
+      if(isSuperset){
+        var cardHdr=mk('div','ss-card-hdr');
+        var cardLeft=mk('div','');
+        cardLeft.appendChild(mk('div','ss-card-type','⚡ '+typeLbl));
+        cardLeft.appendChild(mk('div','ss-card-names',grp.map(function(ei){return exs[ei].name||'Ejercicio '+(ei+1);}).join(' + ')));
+        var tog=mk('span','ss-card-toggle',grpDone?'✓':'▼');
+        cardHdr.appendChild(cardLeft);cardHdr.appendChild(tog);
+        var cardBody=mk('div','ss-card-body');
+        cardHdr.onclick=function(){cardBody.style.display=cardBody.style.display==='none'?'block':'none';tog.textContent=cardBody.style.display==='none'?'▶':'▼';};
+        wrap.appendChild(cardHdr);wrap.appendChild(cardBody);
+        innerWrap=cardBody;
+      }
 
-    grp.forEach(function(ei,gidx){
-      var ex=exs[ei];
-      var sec=mk('div','wk-ex-section');
-      if(isSuperset)sec.style.cssText='border-left:2px solid rgba(201,168,76,.25);padding-left:8px;margin-bottom:8px';
-      var nm=mk('div','wk-ex-name',ex.name||'Ejercicio '+(ei+1));
-      if(isSuperset)nm.style.cssText='font-size:12px;padding:4px 0;color:var(--white3)';
-      sec.appendChild(nm);
+      grp.forEach(function(ei,gidx){
+        var ex=exs[ei];
+        var sec2=mk('div','wk-ex-section');
+        if(isSuperset)sec2.style.cssText='border-left:2px solid rgba(201,168,76,.25);padding-left:8px;margin-bottom:8px';
+        var nm=mk('div','wk-ex-name',ex.name||'Ejercicio '+(ei+1));
+        if(isSuperset)nm.style.cssText='font-size:12px;padding:4px 0;color:var(--white3)';
+        sec2.appendChild(nm);
+        // Column headers
+        var hrow=mk('div','wk-inp-hdr');
+        var isStretchEx=(section.type==='stretch');
+        (isStretchEx?['#','Tiempo(s)','Desc(s)','']:['#','Reps','Tiempo(s)','Kg','RIR','RPE','Desc(s)','']).forEach(function(l){var d=mk('div');d.textContent=l;hrow.appendChild(d);});
+        sec2.appendChild(hrow);
 
-      // Column headers
-      var hrow=mk('div','wk-inp-hdr');
-      ['#','Reps','Tiempo(s)','Kg','RIR','RPE','Desc(s)',''].forEach(function(l){var d=mk('div');d.textContent=l;hrow.appendChild(d);});
-      sec.appendChild(hrow);
-
-      (ex.series||[]).forEach(function(s,si){
-        var done=!!(s.done);
-        var isWU=s.type==='warmup';
-        var row=mk('div','wk-input-row'+(done?' wk-series-done':'')+(isWU?' sblk-warmup':''));
-        var lbl=mk('div','');lbl.style.cssText='text-align:center;font-size:11px;color:'+(isWU?'#3498db':'var(--gold-dim)');lbl.textContent=isWU?'CAL':String(si+1);
-        row.appendChild(lbl);
-
-        // Editable fields: reps, time, weight, rir, rpe, rest
-        var isStretchSer=(ex.sectionType==='stretch');
-        var serFields=isStretchSer?[{k:'time',p:'—'},{k:'rest',p:'30'}]:[{k:'reps',p:'—'},{k:'time',p:'—'},{k:'weight',p:'—'},{k:'rir',p:'—'},{k:'rpe',p:'—'},{k:'rest',p:'90'}];
-        serFields.forEach(function(f){
-          var inp=document.createElement('input');inp.type='number';
-          inp.className='wk-inp';inp.inputMode='decimal';
-          inp.placeholder=s['_tgt_'+f.k]||s[f.k]||f.p; // target as placeholder
-          inp.value=s['_usr_'+f.k]!==undefined?s['_usr_'+f.k]:(s[f.k]||'');
-          inp.disabled=done;
-          inp.oninput=(function(i,j,key){return function(){
-            // Save user value separately from admin target
+        (ex.series||[]).forEach(function(s,si){
+          var done=!!(s.done);
+          var isWU=s.type==='warmup';
+          var row=mk('div','wk-input-row'+(done?' wk-series-done':'')+(isWU?' sblk-warmup':''));
+          var lbl=mk('div','');lbl.style.cssText='text-align:center;font-size:11px;color:'+(isWU?'#3498db':'var(--gold-dim)');
+          lbl.textContent=isWU?'C':String(si+1);
+          row.appendChild(lbl);
+          var serFields=isStretchEx?[{k:'time',p:'—'},{k:'rest',p:'30'}]:[{k:'reps',p:'—'},{k:'time',p:'—'},{k:'weight',p:'—'},{k:'rir',p:'—'},{k:'rpe',p:'—'},{k:'rest',p:'90'}];
+          serFields.forEach(function(f){
+            var inp=document.createElement('input');inp.type='number';
+            inp.className='wk-inp';inp.inputMode='decimal';
+            inp.placeholder=s['_tgt_'+f.k]||s[f.k]||f.p;
+            inp.value=s['_usr_'+f.k]!==undefined?s['_usr_'+f.k]:(s[f.k]||'');
+            // Always editable — even completed series
+            inp.oninput=(function(i,j,key){return function(){
+              var ser=wkModeItem.exercises[i].series[j];
+              ser['_usr_'+key]=this.value;ser[key]=this.value;
+            };})(ei,si,f.k);
+            row.appendChild(inp);
+          });
+          var chk=mk('button','wk-check'+(done?' done':''),done?'✓':'○');
+          chk.onclick=(function(i,j,grpArr,gidxLocal){return function(e){
+            e.stopPropagation();
             var ser=wkModeItem.exercises[i].series[j];
-            ser['_usr_'+key]=this.value;
-            // Also update the live value
-            ser[key]=this.value;
-          };})(ei,si,f.k);
-          row.appendChild(inp);
-        });
-
-        var chk=mk('button','wk-check'+(done?' done':''),done?'✓':'○');
-        chk.onclick=(function(i,j,grpArr,gidxLocal){return function(e){
-          e.stopPropagation();
-          var ser=wkModeItem.exercises[i].series[j];
-          ser.done=!ser.done;
-          if(ser.done){
-            // CHECK IF ALL DONE FIRST — if so, finish immediately, no rest
-            var _allDone=wkModeItem.exercises.every(function(ex){return (ex.series||[]).every(function(s){return !!s.done;});});
-            if(_allDone){
-              renderWkMode();
-              setTimeout(finishWorkout,300);
-              return;
-            }
-            // Not all done — handle rest/superserie logic
-            if(isSuperset){
-              var nextUnfinished=null;
-              for(var g2=gidxLocal+1;g2<grpArr.length;g2++){
-                var nEx=wkModeItem.exercises[grpArr[g2]];
-                var nSer=nEx&&nEx.series[j];
-                if(nSer&&!nSer.done){nextUnfinished=grpArr[g2];break;}
+            ser.done=!ser.done;
+            if(ser.done){
+              var _allDone=wkModeItem.exercises.every(function(ex2){return (ex2.series||[]).every(function(s2){return !!s2.done;});});
+              if(_allDone){renderWkMode();setTimeout(finishWorkout,300);return;}
+              if(isSuperset){
+                var nextUnfinished=null;
+                for(var g2=gidxLocal+1;g2<grpArr.length;g2++){var nEx=wkModeItem.exercises[grpArr[g2]];var nSer=nEx&&nEx.series[j];if(nSer&&!nSer.done){nextUnfinished=grpArr[g2];break;}}
+                if(nextUnfinished!==null){renderWkMode();}
+                else{var restSec2=parseInt(ser.rest)||90;startRestCountdown(typeLbl,restSec2,i,j);renderWkMode();}
+              }else{
+                var restSec3=parseInt(ser.rest)||90;
+                startRestCountdown(wkModeItem.exercises[i].name,restSec3,i,j);
+                renderWkMode();
               }
-              if(nextUnfinished!==null){renderWkMode();}
-              else{var restSec=parseInt(ser.rest)||90;startRestCountdown(typeLbl,restSec,i,j);renderWkMode();}
-            }else{
-              var restSec=parseInt(ser.rest)||90;
-              startRestCountdown(wkModeItem.exercises[i].name,restSec,i,j);
-              renderWkMode();
-            }
-          }else{renderWkMode();}
-          renderWkFloat();
-        };})(ei,si,grp,gidx);
-        row.appendChild(chk);
-        sec.appendChild(row);
+            }else{renderWkMode();}
+            renderWkFloat();
+          };})(ei,si,grp,gidx);
+          row.appendChild(chk);
+          sec2.appendChild(row);
+        });
+        innerWrap.appendChild(sec2);
       });
-      innerWrap.appendChild(sec);
+      body.appendChild(wrap);
     });
-    body.appendChild(wrap);
   });
 }
 
@@ -5584,7 +5848,316 @@ if(G('wkFloatClose')){
   };
 }
 
-// ── FATIGUE MODAL ──────────────────────────────────────────────────────────
+// ══ ADMIN FILE UPLOAD & PARSING ═══════════════════════════════════════════════
+function openUploadPage(){
+  var d=G('upFoodDate');if(d)d.value=todayDateStr();
+  var d2=G('upWkDate');if(d2)d2.value=todayDateStr();
+  G('modUpload').style.display='flex';
+}
+G('uploadX').onclick=function(){G('modUpload').style.display='none';};
+G('uploadCnc').onclick=function(){G('modUpload').style.display='none';};
+
+// Upload type dropdown
+(function(){
+  var sel=G('upTypeSelect');if(!sel)return;
+  var INFO={
+    food:'📋 FORMATO COMIDAS (CSV/XLSX/PDF)\n\nColumnas OBLIGATORIAS:\n• Nombre — nombre del alimento\n• Kcal — calorías totales\n• Proteínas — gramos de proteína\n• Carbohidratos — gramos de carbohidratos\n• Grasas — gramos de grasa\n\nColumnas OPCIONALES (pero recomendadas):\n• Comida — tipo: Desayuno, Almuerzo, Comida, Merienda, Cena, Snack\n• Fecha — formato DD/MM/YYYY, YYYY-MM-DD, etc.\n• Hora — hora de la toma (ej: 08:00)\n• Gramos — cantidad en gramos del alimento\n\nEJEMPLO DE ARCHIVO:\nFecha,Comida,Hora,Nombre,Gramos,Kcal,Proteínas,Carbohidratos,Grasas\n12/05/2026,Desayuno,08:00,Huevos revueltos,150,216,18,1,15\n12/05/2026,Desayuno,08:00,Pan integral,80,198,7.2,32.8,2.7\n12/05/2026,Comida,14:00,Pollo a la plancha,200,330,62,0,7\n12/05/2026,Comida,14:00,Arroz blanco cocido,150,195,4,42,0.4\n12/05/2026,Cena,21:00,Salmón al horno,150,312,30,0,19.5\n\nNOTA: Si el archivo tiene varias comidas del mismo día, se crean entradas separadas para cada tipo (Desayuno, Comida, Cena...). Si solo hay una columna de Nombre sin columna Comida, todos los alimentos se agrupan como "Comida". Para varios días, incluye la columna Fecha.',
+    workout:'📋 FORMATO ENTRENAMIENTO (CSV/XLSX/PDF)\n\nColumnas OBLIGATORIAS:\n• Ejercicio — nombre del ejercicio\n• Series — número de series\n• Reps — repeticiones (ej: 8, 8-10, 12)\n• Kg — peso en kilogramos\n\nColumnas OPCIONALES (recomendadas):\n• Descanso — segundos de descanso entre series\n• RIR — repeticiones en reserva\n• RPE — esfuerzo percibido (1-10)\n• Sección — bloque: calentamiento, trabajo, estiramientos\n• Fecha — DD/MM/YYYY si hay varios días\n• Entreno — nombre de la sesión (ej: Push A, Pierna, Full Body)\n\nEJEMPLO DE ARCHIVO:\nFecha,Entreno,Sección,Ejercicio,Series,Reps,Kg,RIR,RPE,Descanso\n12/05/2026,Push A,calentamiento,Sentadilla peso corporal,2,15,,,,60\n12/05/2026,Push A,trabajo,Press Banca,4,8,80,2,8,120\n12/05/2026,Push A,trabajo,Press Inclinado Mancuernas,3,10,30,2,7,90\n12/05/2026,Push A,estiramientos,Estiramiento de pecho,1,30,,,,0\n13/05/2026,Pull A,calentamiento,Face Pull,2,15,10,,,60\n13/05/2026,Pull A,trabajo,Dominadas,4,6,,2,8,120\n\nNOTA: Si hay varios días (varias fechas), se crean entrenamientos separados por día. Columna Sección reconoce: "calentamiento/warm", "trabajo/main", "estiramientos/stretch/flex".'
+  };
+  sel.onchange=function(){
+    var v=this.value;
+    var info=G('upFormatInfo');
+    var food=G('upFoodPanel');var wk=G('upWkPanel');
+    if(v==='food'){
+      food.style.display='block';wk.style.display='none';
+      if(info){info.style.display='block';info.style.whiteSpace='pre-line';info.textContent=INFO.food;}
+    }else if(v==='workout'){
+      food.style.display='none';wk.style.display='block';
+      if(info){info.style.display='block';info.style.whiteSpace='pre-line';info.textContent=INFO.workout;}
+    }else{
+      food.style.display='none';wk.style.display='none';
+      if(info)info.style.display='none';
+    }
+  };
+})();
+
+// CSV/text parsing helpers
+function parseCSVText(text){
+  var lines=text.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+  if(!lines.length)return[];
+  // Detect separator
+  var sep=lines[0].indexOf('\t')>=0?'\t':(lines[0].indexOf(';')>=0?';':',');
+  var headers=lines[0].split(sep).map(function(h){return h.trim().toLowerCase().replace(/["""]/g,'');});
+  return lines.slice(1).map(function(line){
+    var cols=line.split(sep).map(function(c){return c.trim().replace(/["""]/g,'');});
+    var obj={};headers.forEach(function(h,i){obj[h]=cols[i]||'';});
+    return obj;
+  });
+}
+
+function normHdr(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
+
+// Map header to field
+function mapFoodRow(row){
+  var ks=Object.keys(row);
+  function find(){for(var i=0;i<arguments.length;i++){for(var k=0;k<ks.length;k++){if(normHdr(ks[k]).indexOf(arguments[i])>=0)return row[ks[k]]||'';}}}
+  var name=find('nombre','name','alimento','food','producto');
+  var kcal=parseFloat(find('kcal','calorias','cal','energia','energy'))||0;
+  var prot=parseFloat(find('prote','prot'))||0;
+  var carbs=parseFloat(find('carbo','hidrato','carb'))||0;
+  var fat=parseFloat(find('grasa','fat','lipido'))||0;
+  var grams=parseFloat(find('gramos','gram','cantidad','peso','g '))||100;
+  return name?{name:name,kcal:kcal,prot:prot,carbs:carbs,fat:fat,grams:grams}:null;
+}
+
+function mapWorkoutRow(row){
+  var ks=Object.keys(row);
+  function find(){for(var i=0;i<arguments.length;i++){for(var k=0;k<ks.length;k++){if(normHdr(ks[k]).indexOf(arguments[i])>=0)return row[ks[k]]||'';}}}
+  var name=find('ejercicio','exercise','nombre','name','movimiento');
+  var series=parseInt(find('series','sets','serie'))||1;
+  var reps=find('reps','repeticion','rep');
+  var weight=find('kg','peso','carga','weight','load');
+  var rir=find('rir');
+  var rpe=find('rpe','esfuerzo','effort');
+  var rest=find('descanso','rest','recuper','desc');
+  var sectionType=normHdr(find('seccion','tipo','section','type')).indexOf('calent')>=0?'warmup':(normHdr(find('seccion','tipo','section','type')).indexOf('estir')>=0?'stretch':'main');
+  return name?{name:name,series:series,reps:reps,weight:weight,rir:rir,rpe:rpe,rest:rest,sectionType:sectionType}:null;
+}
+
+function logMsg(elId,msg,color){
+  var el=G(elId);if(!el)return;
+  el.style.display='block';
+  var line=document.createElement('div');line.style.cssText='padding:2px 0;border-bottom:1px solid var(--dark4);color:'+(color||'var(--white3)');
+  line.textContent=msg;el.appendChild(line);el.scrollTop=el.scrollHeight;
+}
+
+// Process food file
+G('upFoodBtn').onclick=function(){
+  var file=G('upFoodFile').files[0];if(!file)return alert('Selecciona un archivo primero.');
+  var dateStr=G('upFoodDate').value||todayDateStr();
+  var logEl=G('upFoodLog');logEl.innerHTML='';logEl.style.display='block';
+  logMsg('upFoodLog','Procesando: '+file.name,'var(--gold)');
+  var ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv'||ext==='txt'){
+    var reader=new FileReader();
+    reader.onload=function(e){processFoodText(e.target.result,dateStr);};
+    reader.readAsText(file,'UTF-8');
+  }else if(ext==='xlsx'||ext==='xls'){
+    var reader2=new FileReader();
+    reader2.onload=function(e){
+      try{
+        var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var csv=XLSX.utils.sheet_to_csv(ws);
+        processFoodText(csv,dateStr);
+      }catch(err){logMsg('upFoodLog','Error leyendo Excel: '+err.message,'var(--red)');}
+    };
+    reader2.readAsArrayBuffer(file);
+  }else if(ext==='pdf'){
+    logMsg('upFoodLog','Leyendo PDF con OCR (puede tardar)...','var(--gold)');
+    if(typeof Tesseract==='undefined'){logMsg('upFoodLog','Tesseract no disponible. Usa CSV o Excel.','var(--red)');return;}
+    Tesseract.recognize(file,'spa').then(function(res){
+      processFoodText(res.data.text,dateStr);
+    }).catch(function(err){logMsg('upFoodLog','Error OCR: '+err,'var(--red)');});
+  }else{logMsg('upFoodLog','Formato no soportado. Usa .csv, .xlsx o .pdf','var(--red)');}
+};
+
+function processFoodText(text,defaultDateStr){
+  var rows=parseCSVText(text);
+  if(!rows.length){logMsg('upFoodLog','No se encontraron datos estructurados.','var(--red)');return;}
+
+  function normHdrF(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
+  var ks0=Object.keys(rows[0]||{});
+  function findVal(row,_ks){for(var i=0;i<arguments.length;i++){if(i===0)continue;for(var k=0;k<_ks.length;k++){if(normHdrF(_ks[k]).indexOf(arguments[i])>=0)return row[_ks[k]]||'';}} return '';}
+
+  // Group rows by meal (by comida/meal column or meal type keyword)
+  var mealGroups={};var mealOrder=[];
+
+  rows.forEach(function(row){
+    var ks=Object.keys(row);
+    function fv(){for(var i=0;i<arguments.length;i++){for(var k=0;k<ks.length;k++){if(normHdrF(ks[k]).indexOf(arguments[i])>=0)return row[ks[k]]||'';}}return '';}
+
+    var foodName=fv('nombre','name','alimento','food','producto','item');
+    if(!foodName)return; // skip empty rows
+
+    var kcal=parseFloat(fv('kcal','calorias','cal','energia','energy'))||0;
+    var prot=parseFloat(fv('prote','prot'))||0;
+    var carbs=parseFloat(fv('carbo','hidrato','carb'))||0;
+    var fat=parseFloat(fv('grasa','fat','lipido'))||0;
+    var grams=parseFloat(fv('gramos','gram','cantidad','peso'))||100;
+
+    // Date
+    var rawDate=fv('fecha','date','dia','day');
+    var dateStr=defaultDateStr;
+    if(rawDate){
+      // Try to parse various date formats
+      var dParts=rawDate.match(/(\d{1,4})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+      if(dParts){
+        var y=dParts[1].length===4?dParts[1]:'20'+dParts[3];
+        var mo=dParts[1].length===4?dParts[2]:dParts[2];
+        var dy=dParts[1].length===4?dParts[3]:dParts[1];
+        dateStr=y+'-'+(mo.length===1?'0':'')+mo+'-'+(dy.length===1?'0':'')+dy;
+      }
+    }
+
+    // Meal type / name
+    var mealType=fv('comida','meal','tipo','toma','ingesta','momento');
+    if(!mealType){
+      // Try to infer from food name or notes
+      var foodLow=(foodName||'').toLowerCase();
+      if(foodLow.indexOf('desayuno')>=0)mealType='Desayuno';
+      else if(foodLow.indexOf('almuerzo')>=0||foodLow.indexOf('comida')>=0)mealType='Comida';
+      else if(foodLow.indexOf('cena')>=0)mealType='Cena';
+      else if(foodLow.indexOf('merienda')>=0)mealType='Merienda';
+      else if(foodLow.indexOf('snack')>=0||foodLow.indexOf('tentempie')>=0)mealType='Snack';
+      else mealType='Comida';
+    }
+
+    // Meal time
+    var mealTime=fv('hora','time','horario');
+
+    var groupKey=dateStr+'__'+mealType;
+    if(!mealGroups[groupKey]){mealGroups[groupKey]={date:dateStr,mealType:mealType,mealTime:mealTime,foods:[]};mealOrder.push(groupKey);}
+    mealGroups[groupKey].foods.push({name:foodName,kcal:kcal,prot:prot,carbs:carbs,fat:fat,grams:grams});
+    if(mealTime&&!mealGroups[groupKey].mealTime)mealGroups[groupKey].mealTime=mealTime;
+  });
+
+  if(!mealOrder.length){logMsg('upFoodLog','No se pudieron mapear comidas.','var(--red)');return;}
+
+  var savedCount=0;
+  mealOrder.forEach(function(gk){
+    var grp=mealGroups[gk];
+    var wd=dateToWD(grp.date);var key2=gk2(wd.weekOff,wd.dayIdx);
+    var items=(D.nutrition[key2]&&D.nutrition[key2].items||[]).slice();
+    var totals={kcal:0,prot:0,carbs:0,fat:0};
+    grp.foods.forEach(function(f){totals.kcal+=f.kcal;totals.prot+=f.prot;totals.carbs+=f.carbs;totals.fat+=f.fat;});
+    var entry={id:uid(),name:grp.mealType,mealTime:grp.mealTime||'',notes:'',foods:grp.foods,date:grp.date,completed:false};
+    items.push(entry);
+    if(!D.nutrition[key2])D.nutrition[key2]={};D.nutrition[key2].items=items;
+    saveFS('nutrition',key2,{items:items});
+    savedCount++;
+    logMsg('upFoodLog','✓ '+grp.mealType+(grp.mealTime?' '+grp.mealTime:'')+' · '+grp.date+' · '+grp.foods.length+' alimentos · '+Math.round(totals.kcal)+' kcal','var(--green)');
+    grp.foods.forEach(function(f){logMsg('upFoodLog','   · '+f.name+' ('+Math.round(f.kcal)+' kcal, P:'+f.prot+'g, C:'+f.carbs+'g, G:'+f.fat+'g)','var(--white4)');});
+  });
+
+  logMsg('upFoodLog','— Total: '+savedCount+' comida'+(savedCount!==1?'s':'')+' registrada'+(savedCount!==1?'s':'')+' en el calendario —','var(--gold)');
+  renderCal();
+}
+
+function gk2(w,d){return 'w'+w+'_d'+d;}
+
+// Process workout file
+G('upWkBtn').onclick=function(){
+  var file=G('upWkFile').files[0];if(!file)return alert('Selecciona un archivo primero.');
+  var dateStr=G('upWkDate').value||todayDateStr();
+  var wkName=G('upWkName').value.trim()||'Entreno importado';
+  var logEl=G('upWkLog');logEl.innerHTML='';logEl.style.display='block';
+  logMsg('upWkLog','Procesando: '+file.name,'var(--gold)');
+  var ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv'||ext==='txt'){
+    var reader=new FileReader();
+    reader.onload=function(e){processWorkoutText(e.target.result,dateStr,wkName);};
+    reader.readAsText(file,'UTF-8');
+  }else if(ext==='xlsx'||ext==='xls'){
+    var reader2=new FileReader();
+    reader2.onload=function(e){
+      try{
+        if(typeof XLSX==='undefined')throw new Error('XLSX no disponible');
+        var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var csv=XLSX.utils.sheet_to_csv(ws);
+        processWorkoutText(csv,dateStr,wkName);
+      }catch(err){logMsg('upWkLog','Error: '+err.message+'. Prueba con CSV.','var(--red)');}
+    };
+    reader2.readAsArrayBuffer(file);
+  }else if(ext==='pdf'){
+    logMsg('upWkLog','Leyendo PDF con OCR...','var(--gold)');
+    if(typeof Tesseract==='undefined'){logMsg('upWkLog','Usa CSV o Excel en su lugar.','var(--red)');return;}
+    Tesseract.recognize(file,'spa').then(function(res){
+      processWorkoutText(res.data.text,dateStr,wkName);
+    }).catch(function(err){logMsg('upWkLog','Error OCR: '+err,'var(--red)');});
+  }else{logMsg('upWkLog','Formato no soportado. Usa .csv, .xlsx o .pdf','var(--red)');}
+};
+
+function processWorkoutText(text,defaultDateStr,defaultWkName){
+  var rows=parseCSVText(text);
+  if(!rows.length){logMsg('upWkLog','No se encontraron datos.','var(--red)');return;}
+
+  function normHdrW(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();}
+
+  // Group by day + workout name
+  var wkGroups={};var wkOrder=[];
+
+  rows.forEach(function(row){
+    var ks=Object.keys(row);
+    function fv(){for(var i=0;i<arguments.length;i++){for(var k=0;k<ks.length;k++){if(normHdrW(ks[k]).indexOf(arguments[i])>=0)return row[ks[k]]||'';}}return '';}
+
+    var exName=fv('ejercicio','exercise','ejerc','nombre','name','movimiento','ex');
+    if(!exName)return;
+
+    // Date
+    var rawDate=fv('fecha','date','dia','day');
+    var dateStr=defaultDateStr;
+    if(rawDate){
+      var dParts=rawDate.match(/(\d{1,4})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+      if(dParts){
+        var y=dParts[1].length===4?dParts[1]:'20'+dParts[3];
+        var mo=dParts[1].length===4?dParts[2]:dParts[2];
+        var dy=dParts[1].length===4?dParts[3]:dParts[1];
+        dateStr=y+'-'+(mo.length===1?'0':'')+mo+'-'+(dy.length===1?'0':'')+dy;
+      }
+    }
+
+    var wkName=fv('entreno','workout','sesion','nombre_entreno','plan','dia_nombre')||defaultWkName||'Entreno importado';
+    var groupKey=dateStr+'__'+wkName;
+
+    var series=parseInt(fv('series','sets','serie','nro_series'))||1;
+    var reps=fv('reps','repeticion','rep');
+    var weight=fv('kg','peso','carga','weight','load','kilos');
+    var rir=fv('rir');
+    var rpe=fv('rpe','esfuerzo','effort');
+    var rest=fv('descanso','rest','recuper','desc');
+    var sectionRaw=normHdrW(fv('seccion','section','tipo','bloque','fase'));
+    var sectionType='main';
+    if(sectionRaw.indexOf('calent')>=0||sectionRaw.indexOf('warm')>=0)sectionType='warmup';
+    else if(sectionRaw.indexOf('estir')>=0||sectionRaw.indexOf('stretch')>=0||sectionRaw.indexOf('flex')>=0)sectionType='stretch';
+
+    if(!wkGroups[groupKey]){wkGroups[groupKey]={date:dateStr,name:wkName,exMap:{},exOrder:[]};wkOrder.push(groupKey);}
+    var grp=wkGroups[groupKey];
+    var exKey=exName.toLowerCase();
+    if(!grp.exMap[exKey]){grp.exMap[exKey]={name:exName,sectionType:sectionType,series:[]};grp.exOrder.push(exKey);}
+    for(var s2=0;s2<series;s2++){
+      grp.exMap[exKey].series.push({
+        reps:reps||'',weight:weight||'',rir:rir||'',rpe:rpe||'',rest:rest||'',
+        type:sectionType==='warmup'?'warmup':undefined
+      });
+    }
+  });
+
+  if(!wkOrder.length){logMsg('upWkLog','No se pudieron mapear ejercicios.','var(--red)');return;}
+
+  wkOrder.forEach(function(gk){
+    var grp=wkGroups[gk];
+    var exercises2=grp.exOrder.map(function(k){var e=grp.exMap[k];return {id:uid(),name:e.name,sectionType:e.sectionType,series:e.series};});
+    var wd=dateToWD(grp.date);var key2=gk2(wd.weekOff,wd.dayIdx);
+    var items=(D.workouts[key2]&&D.workouts[key2].items||[]).slice();
+    var entry={id:uid(),name:grp.name,date:grp.date,exercises:exercises2,completed:false,wType:'Full Body'};
+    items.push(entry);
+    if(!D.workouts[key2])D.workouts[key2]={};D.workouts[key2].items=items;
+    saveFS('workouts',key2,{items:items});
+    logMsg('upWkLog','✓ '+grp.name+' · '+grp.date+' · '+exercises2.length+' ejercicios','var(--green)');
+    exercises2.forEach(function(e){logMsg('upWkLog','   · '+e.name+' ('+e.series.length+' series)'+( e.sectionType!=='main'?' ['+e.sectionType+']':''),'var(--white4)');});
+  });
+
+  logMsg('upWkLog','— Total: '+wkOrder.length+' entreno'+(wkOrder.length!==1?'s':'')+' registrado'+(wkOrder.length!==1?'s':'')+' —','var(--gold)');
+  renderCal();
+}
+
+// Load SheetJS for Excel support (lazy)
+(function(){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';document.head.appendChild(s);})();
+
+// ══ END FILE UPLOAD ═══════════════════════════════════════════════════════════
+
 var FATIGUE_QS=[
   {id:'rpe',q:'¿Cómo valorarías el esfuerzo percibido del entrenamiento?',type:'scale',
    opts:['1 — Muy fácil','2','3','4','5 — Moderado','6','7','8','9','10 — Máximo esfuerzo']},
@@ -6183,6 +6756,95 @@ var EX_TECHNIQUE={};
   t('estiramiento de soleo','De pie frente a la pared. Igual que el estiramiento de gemelo pero dobla ligeramente la rodilla trasera. El soleo se estira mejor con la rodilla ligeramente flexionada.');
   t('estiramiento en cobra','Tumbado boca abajo. Manos bajo los hombros. Empuja hacia arriba extendiendo los brazos. El pubis permanece en el suelo. Aguanta 20-30 segundos.');
   t('postura del niño (childs pose)','De rodillas, siéntate sobre los talones. Extiende los brazos hacia delante en el suelo. El torso descansa sobre los muslos. Aguanta 30-60 segundos. Estira la espalda baja y los hombros.');
+  // ── Técnicas adicionales ──────────────────────────────────────────────────
+  t('sentadilla con barra (squat)','1. Barra sobre los trapecios (low bar) o parte alta del trapecio (high bar). Pies a la anchura de los hombros o algo más.\n2. Rodillas en línea con los pies, punta ligeramente hacia fuera.\n3. Desciende manteniendo el torso lo más erguido posible y la espalda neutra.\n4. Profundidad: al menos paralelo, idealmente por debajo.\n5. Sube empujando el suelo, bloqueando con los glúteos arriba.\nClave: no dejar caer las rodillas hacia dentro. La barra debe ir en línea vertical sobre el mediopié.');
+  t('sentadilla frontal','1. Barra apoyada en los deltoides anteriores, codos altos y paralelos al suelo.\n2. Agarre limpio o cruzado. Pies a la anchura de los hombros.\n3. Torso muy erguido durante todo el movimiento.\n4. Desciende hasta paralelo o por debajo.\nClave: exige gran movilidad de tobillo y muñeca. El torso vertical es la clave.');
+  t('sentadilla goblet','1. Sujeta una mancuerna o kettlebell a la altura del pecho con ambas manos.\n2. Pies a la anchura de los hombros, puntas ligeramente hacia fuera.\n3. Desciende manteniendo los codos dentro de las rodillas.\n4. Vuelve a la posición inicial.\nClave: ideal para aprender la mecánica de la sentadilla. El peso ayuda a mantener el torso erguido.');
+  t('zancada (lunge)','1. De pie, da un paso grande hacia adelante.\n2. La rodilla delantera forma 90 grados, la trasera casi toca el suelo.\n3. Empuja con el pie delantero para volver.\nClave: no dejar que la rodilla delantera pase la punta del pie. Torso erguido.');
+  t('zancada caminando','1. Da pasos alternos hacia adelante bajando la rodilla trasera hacia el suelo.\n2. Mantén el torso erguido y los pies en dirección al movimiento.\nClave: ejercicio excelente para glúteos y cuádriceps con componente de equilibrio.');
+  t('step-up (subida a cajón)','1. De pie frente al cajón. Sube un pie sobre él.\n2. Empuja con el talón del pie superior para elevar el cuerpo.\n3. Baja el pie trasero de forma controlada.\nClave: no uses el impulso del pie inferior. Todo el trabajo debe venir de la pierna apoyada en el cajón.');
+  t('prensa de piernas','1. Pies a la anchura de los hombros en la plataforma. Espalda apoyada en el respaldo.\n2. Baja la plataforma hasta que las rodillas formen 90 grados o algo más.\n3. Empuja con los talones hasta casi extensión completa.\nClave: nunca bloquear completamente las rodillas. Espalda baja siempre en contacto con el respaldo.');
+  t('extensión de cuádriceps en máquina','1. Sentado. Ajusta el soporte para que quede en el tobillo.\n2. Extiende las piernas hasta casi extensión completa.\n3. Baja de forma controlada sin llegar a cero tensión.\nClave: contracción máxima del cuádriceps arriba. No usar impulso.');
+  t('curl de isquiotibiales tumbado','1. Tumbado boca abajo en la máquina. Soporte en el tendón de Aquiles.\n2. Flexiona las rodillas llevando los talones hacia los glúteos.\n3. Baja lentamente.\nClave: apretar los glúteos para fijar la pelvis. No levantar las caderas durante el movimiento.');
+  t('peso muerto sumo','1. Pies más separados que en el convencional, puntas hacia fuera 45 grados.\n2. Agarre dentro de las piernas a la anchura de los hombros.\n3. Caderas más bajas que en convencional. Espalda neutra.\n4. Empuja el suelo con los pies y extiende caderas y rodillas.\nClave: las rodillas deben seguir la línea de los pies durante todo el movimiento.');
+  t('hip thrust con barra','1. Espalda apoyada en el banco, barra sobre las caderas con pad de protección.\n2. Pies a la anchura de los hombros, talones en el suelo.\n3. Eleva las caderas hasta posición horizontal apretando los glúteos.\n4. Mantén 1 segundo arriba. Baja controladamente.\nClave: el movimiento es de extensión de cadera. El mentón al pecho para no hiperextender la lumbar.');
+  t('patada de glúteo en polea','1. Cable en la polea baja. Tobillera en la pierna de trabajo.\n2. De pie, ligeramente inclinado hacia adelante agarrando el soporte.\n3. Extiende la pierna hacia atrás hasta que el glúteo esté completamente contraído.\n4. Vuelve controladamente.\nClave: no arquear la espalda. El movimiento es solo de la cadera.');
+  t('abducción de cadera en máquina','1. Sentado en la máquina. Almohadillas en la parte exterior de los muslos.\n2. Abre las piernas contra la resistencia.\n3. Vuelve lentamente.\nClave: contracción máxima en el punto de máxima apertura. Activa glúteo medio.');
+  t('elevación de talones (calf raise)','1. De pie en un escalón con los talones colgando.\n2. Eleva los talones lo máximo posible contrayendo los gemelos.\n3. Baja hasta sentir el estiramiento.\nClave: rango de movimiento completo. El punto bajo es tan importante como el alto.');
+  t('press militar con barra','1. Barra a la altura del pecho, agarre prono a la anchura de los hombros.\n2. Empuja la barra hacia arriba hasta extensión completa.\n3. Baja de forma controlada hasta la clavícula.\nClave: activar el core para proteger la lumbar. No arquear excesivamente la espalda.');
+  t('press de hombros con mancuernas','1. Sentado o de pie. Mancuernas a los lados de la cabeza, codos a 90 grados.\n2. Empuja hacia arriba hasta casi extensión.\n3. Baja controladamente.\nClave: mayor rango de movimiento que con barra. Posibilidad de neutro o prono.');
+  t('elevaciones laterales con mancuernas','1. De pie o sentado. Mancuernas a los lados del cuerpo.\n2. Eleva los brazos lateralmente hasta la altura de los hombros (no más).\n3. Baja lentamente contra la resistencia.\nClave: ligera inclinación del torso hacia adelante para aislar el deltoides lateral. No balancear.');
+  t('elevaciones frontales con mancuernas','1. De pie. Mancuernas frente al cuerpo, palmas hacia abajo o neutras.\n2. Eleva un brazo (o ambos) hacia el frente hasta la altura de los hombros.\n3. Baja controladamente.\nClave: activa principalmente el deltoides anterior. No usar impulso del torso.');
+  t('vuelos posteriores con mancuernas','1. Inclinado hacia adelante 45-90 grados. Mancuernas colgando.\n2. Eleva los brazos hacia los lados con ligera flexión de codo.\n3. Contrae el deltoides posterior en el punto máximo.\nClave: mirar hacia abajo para mantener la columna neutra.');
+  t('curl de bíceps con barra','1. De pie. Barra con agarre supino a la anchura de los hombros.\n2. Flexiona los codos llevando la barra hacia los hombros.\n3. Baja de forma lenta y controlada.\nClave: no mover los codos. El movimiento es solo del antebrazo.');
+  t('curl martillo (hammer curl)','1. De pie. Mancuernas con agarre neutro (palmas enfrentadas).\n2. Flexiona los codos hacia los hombros.\n3. Baja controladamente.\nClave: activa el braquial y braquiorradial además del bíceps.');
+  t('curl predicador (preacher curl)','1. Apoya los tríceps sobre el banco predicador. Agarre supino.\n2. Flexiona los codos desde extensión completa hasta máxima contracción.\n3. Baja completamente para máximo estiramiento.\nClave: elimina el momentum. Gran aislamiento del bíceps especialmente en su porción inferior.');
+  t('extensión de tríceps en polea (pushdown)','1. Cable en la polea alta. Agarre prono con barra o cuerda.\n2. Extiende los codos hacia abajo hasta extensión completa.\n3. Baja controladamente sin separar los codos del cuerpo.\nClave: los codos fijos al costado es la clave del aislamiento del tríceps.');
+  t('extensión de tríceps sobre la cabeza','1. Con mancuerna o cable, brazos sobre la cabeza.\n2. Flexiona los codos llevando el peso detrás de la cabeza.\n3. Extiende completamente.\nClave: excelente para la cabeza larga del tríceps al estirarse en posición de máxima elongación.');
+  t('rompecráneos (skull crushers)','1. Tumbado en el banco. Barra con agarre prono a la anchura de los hombros.\n2. Flexiona los codos llevando la barra hacia la frente.\n3. Extiende completamente.\nClave: mantener los codos perpendiculares al suelo durante todo el movimiento.');
+  t('crunch abdominal','1. Tumbado boca arriba, rodillas flexionadas.\n2. Manos en la nuca o cruzadas en el pecho.\n3. Eleva el torso ligeramente del suelo contrayendo los abdominales.\n4. Baja controladamente.\nClave: el movimiento es pequeño. No tirar del cuello con las manos.');
+  t('plancha abdominal','1. Posición de fondo sobre antebrazos o manos extendidas.\n2. Cuerpo en línea recta desde la cabeza hasta los talones.\n3. Mantén la posición el tiempo establecido.\nClave: no dejar caer las caderas ni elevarlas. Contraer abdominales y glúteos constantemente.');
+  t('elevación de piernas tumbado','1. Tumbado boca arriba, manos bajo los glúteos.\n2. Eleva las piernas juntas hasta 90 grados manteniendo la zona lumbar en el suelo.\n3. Baja lentamente sin llegar a tocar el suelo.\nClave: si duele la lumbar, dobla ligeramente las rodillas.');
+  t('russian twist','1. Sentado con el torso a 45 grados y piernas elevadas.\n2. Rota el torso de lado a lado llevando las manos o peso hacia cada cadera.\nClave: el movimiento es de rotación del torso, no de los brazos. Activa oblicuos.');
+  t('calentamiento general (movilidad)','Realiza 5-10 minutos de movilidad articular: circulos de hombros, caderas, tobillos, rotaciones de columna, movilidad de muñecas. Activa el sistema nervioso y prepara las articulaciones para el esfuerzo.');
+  t('sentadilla con peso corporal','1. Pies a la anchura de los hombros, punta ligeramente hacia fuera.\n2. Brazos al frente para equilibrio.\n3. Desciende como si fueras a sentarte, manteniendo el torso erguido.\n4. Sube empujando con los talones.\nClave: rodillas en línea con los pies. Excelente para calentamiento o trabajo de movilidad.');
+  t('carrera suave (trote)','Trote a ritmo conversacional (puedes hablar sin dificultad). FC objetivo: 60-70% de la FC máxima. Aterrizaje en mediopié. Postura erguida. Brazos relajados. Ideal para calentamiento o recuperación activa.');
+  t('salto a la cuerda','1. Cuerda al nivel de las caderas. Saltos con ambos pies o alternando.\n2. Aterrizaje suave en el antepié con ligera flexión de rodilla.\n3. Muñecas girando, no los brazos completos.\nClave: excelente para coordinación y calentamiento cardiovascular. Empieza despacio.');
+  t('remo con mancuernas (bilateral)','1. Inclinado 45 grados. Una mancuerna en cada mano.\n2. Tira de ambas mancuernas hacia las caderas simultáneamente.\n3. Baja completamente.\nClave: igual mecánica que el remo a una mano pero bilateral. Buena opción para variar el estímulo.');
+  t('jalón en polea con cuerda','1. Cable alto con accesorio de cuerda. Agarre neutro.\n2. Tira hacia la clavícula separando la cuerda al final del movimiento.\n3. Controla el retorno.\nClave: la separación de la cuerda al final maximiza la contracción del dorsal.');
+  t('aperturas en polea (crossover inferior)','1. Cables en la parte baja. De pie en el centro.\n2. Tira de los cables hacia arriba y al frente en arco cruzándolos frente al pecho.\nClave: activa principalmente la porción clavicular (superior) del pectoral.');
+  t('face pull con cuerda','1. Cable a altura de ojos. Cuerda de triceps como accesorio.\n2. Tira de la cuerda hacia la cara separando los extremos al llegar.\n3. Contrae los deltoides posteriores y los rotadores externos.\nClave: fundamental para la salud del hombro y el equilibrio muscular del tren superior.');
+  t('press arnold','1. Sentado. Mancuernas frente al pecho, palmas hacia ti.\n2. Al empujar hacia arriba, rota las muñecas para que las palmas queden hacia fuera arriba.\n3. Baja invirtiendo la rotación.\nClave: creado por Arnold para activar las tres porciones del deltoides.');
+  t('curl de muñeca','1. Sentado. Antebrazo apoyado en el muslo o banco, mano colgando.\n2. Flexiona la muñeca hacia arriba manteniendo el antebrazo fijo.\n3. Baja controladamente.\nClave: trabajo de flexores del antebrazo. Útil para grip y prevención de lesiones.');
+  t('fondos en paralelas (triceps)','1. Torso erguido (vertical). Codos pegados al cuerpo.\n2. Desciende hasta que los codos formen 90 grados.\n3. Empuja hasta extensión completa.\nClave: el torso erguido dirige el trabajo al tríceps. Inclinado = más pectoral.');
+  t('dips en banco','1. Manos apoyadas en el borde del banco detrás del cuerpo.\n2. Desciende doblando los codos hasta 90 grados.\n3. Sube empujando con los triceps.\nClave: versión más fácil que los fondos en paralelas. Útil para calentamiento o trabajo de aislamiento de tríceps.');
+  t('pateo de glúteo (donkey kick)','1. En cuadrupedia. Rodillas bajo las caderas. Espalda neutra.\n2. Eleva una pierna con la rodilla en 90 grados hacia el techo.\n3. Contrae el glúteo en el punto máximo. Baja controladamente.\nClave: no rotar la pelvis. El movimiento es solo de extensión de cadera.');
+  t('abducción de cadera tumbado (clamshell)','1. Tumbado de lado con rodillas y caderas flexionadas a 90 grados.\n2. Abre la rodilla superior sin separar los pies.\n3. Cierra controladamente.\nClave: activa glúteo medio. Ideal con banda elástica para aumentar la resistencia.');
+  t('puente de glúteo','1. Tumbado boca arriba. Rodillas flexionadas, pies en el suelo.\n2. Eleva las caderas apretando los glúteos hasta posición horizontal.\n3. Mantén 1-2 segundos y baja.\nClave: versión sin carga del hip thrust. Excelente activación de glúteo mayor.');
+  t('sentadilla bulgara (split squat)','1. Pie trasero apoyado en un banco detrás. Pie delantero avanzado.\n2. Desciende hasta que la rodilla trasera casi toque el suelo.\n3. Empuja con el talón del pie delantero para subir.\nClave: trabajo unilateral intenso. Exige equilibrio y activa glúteos e isquiotibiales.');
+  t('peso muerto a una pierna','1. De pie sobre una pierna. Otra extendida hacia atrás.\n2. Inclina el torso hacia adelante en bisagra de cadera, la pierna libre se eleva.\n3. Baja la mancuerna por la pierna de apoyo.\nClave: trabajo unilateral. Activa isquiotibiales y glúteo. Exige gran estabilización.');
+  t('kickback de tríceps con mancuerna','1. Inclinado hacia adelante con un apoyo. Codo a 90 grados.\n2. Extiende el antebrazo hacia atrás hasta extensión completa.\n3. Baja lentamente.\nClave: el codo debe permanecer fijo y elevado. Solo se mueve el antebrazo.');
+  t('hip abduction con banda (caminata lateral)','1. Banda elástica en las rodillas o tobillos. Rodillas ligeramente flexionadas.\n2. Camina lateralmente manteniendo la tensión en la banda.\nClave: activa glúteo medio. Muy usado en activación de glúteos y prevención de lesiones de rodilla.');
+  t('sentadilla isométrica (wall sit)','1. Espalda apoyada en la pared. Rodillas a 90 grados.\n2. Mantén la posición el tiempo establecido.\nClave: trabajo isométrico de cuádriceps. Bueno para resistencia muscular sin carga axial.');
+  t('plank lateral','1. Apoyado en un antebrazo. Cuerpo en línea recta de lado.\n2. Cadera elevada formando una línea recta.\n3. Mantén el tiempo establecido.\nClave: activa oblicuos y cuadrado lumbar. No dejar caer la cadera.');
+  // ── Más técnicas ──────────────────────────────────────────────────────────
+  t('press de pecho en máquina (sentado)','1. Ajusta el asiento: mangos a la altura del pecho medio.\n2. Empuja directamente hacia adelante hasta casi extensión.\n3. Regresa controladamente sin dejar que las placas toquen.\nClave: mantén la tensión constante. Ideal para bomba final o para principiantes que aprenden el patrón de empuje.');
+  t('remo con mancuerna inclinado a 45°','1. Banco en declive de 45 grados. Apoya el pecho. Mancuernas colgando.\n2. Tira hacia las caderas retrayendo las escapulas.\n3. Baja completamente.\nClave: el soporte del banco elimina el trabajo de los erectores espinales, aislando mejor el dorsal.');
+  t('curl de concentración','1. Sentado en el banco. Codo apoyado en la cara interna del muslo.\n2. Flexiona el codo completamente llevando la mancuerna al hombro.\n3. Baja de forma lenta y completa.\nClave: el apoyo del codo elimina cualquier impulso. Máximo aislamiento del bíceps.');
+  t('press de banca declinado con mancuernas','1. Banco en declive. Mancuernas a los lados del pecho bajo.\n2. Empuja hacia arriba y al centro.\n3. Baja controladamente.\nClave: activa el pectoral inferior. Mayor libertad de movimiento que con barra.');
+  t('elevaciones de talones sentado (calf raise seated)','1. Sentado con las rodillas en 90 grados. Soporte del peso en las rodillas.\n2. Eleva los talones máximo posible.\n3. Baja completamente hasta el estiramiento.\nClave: activa principalmente el soleo (músculo profundo del gemelo) por la posición con rodillas flexionadas.');
+  t('jalón frontal con banda','1. Banda sujeta en un punto alto. Agarre prono amplio.\n2. Tira de la banda hacia la clavícula retrayendo las escapulas.\n3. Controla el retorno.\nClave: versión de bajo impacto del jalón al pecho. Ideal para calentamiento o rehabilitación.');
+  t('fondos en banco con peso','1. Manos en el banco detrás del cuerpo. Pies elevados o en el suelo.\n2. Con mancuerna o disco sobre el muslo.\n3. Desciende hasta 90 grados de codo.\nClave: añadir carga progresiva a los fondos en banco para mayor estímulo del tríceps.');
+  t('peso muerto trap bar','1. Posición central dentro de la trap bar. Agarre neutro.\n2. Caderas más bajas que en el convencional. Torso más erguido.\n3. Empuja el suelo y extiende simultáneamente caderas y rodillas.\nClave: más cuádriceps y espalda baja, menos isquiotibiales que en el convencional. Más segura para principiantes.');
+  t('sentadilla hack','1. Máquina de hack squat. Hombros bajo las almohadillas, pies al frente.\n2. Desciende hasta paralelo o más profundo.\n3. Empuja subiendo sin bloquear las rodillas.\nClave: posición de los pies hacia adelante aísla el cuádriceps. Cuanto más arriba los pies, más glúteos.');
+  t('extensión de cadera en máquina','1. Ajusta el soporte en el muslo trasero. Inclínate hacia adelante.\n2. Extiende la pierna hacia atrás contra la resistencia.\n3. Contrae el glúteo máximo al final.\nClave: excelente para glúteo mayor. No arquear la espalda lumbar.');
+  t('abducción de hombros con cable','1. Cable lateral a la altura de la cadera o el suelo.\n2. Eleva el brazo lateralmente hasta la horizontal.\n3. Baja lentamente.\nClave: mayor tensión que con mancuerna en el rango inferior del movimiento gracias al ángulo del cable.');
+  t('remo en T (T-bar row)','1. Barra anclada en una esquina o en máquina específica. Pecho en el soporte (si aplica).\n2. Agarre prono o neutro.\n3. Tira hacia el pecho o abdomen retrayendo las escapulas.\n4. Baja completamente.\nClave: excelente para la densidad y espesor del dorsal. El anclaje de la barra estabiliza el movimiento.');
+  t('extensiones de espalda en máquina (lower back)','1. Caderas sobre el soporte. Pies sujetos.\n2. Parte del torso cuelga hacia abajo.\n3. Extiende la espalda hasta posición neutra o ligeramente hiperextendida.\nClave: fortalece erectores espinales. No hiperextender en exceso.');
+  t('cable pull-through','1. Cable bajo entre las piernas. Agarre con cuerda mirando de espaldas a la polea.\n2. Inclínate hacia adelante en bisagra de cadera.\n3. Extiende la cadera llevando el peso hacia adelante.\nClave: patrón de bisagra de cadera similar al peso muerto. Excelente para activar isquiotibiales y glúteos sin cargar la columna.');
+  t('nordic curl (curl nórdico)','1. De rodillas con los tobillos sujetos. Cuerpo recto.\n2. Baja el torso hacia el suelo de forma controlada resistiendo con los isquiotibiales.\n3. Usa las manos para frenar si es necesario.\n4. Sube impulsando o asistido por los brazos.\nClave: uno de los mejores ejercicios para isquiotibiales. Muy exigente. Reduce el riesgo de rotura de isquio.');
+  t('glute bridge a una pierna','1. Tumbado boca arriba. Una pierna extendida al aire.\n2. Con la otra pierna en el suelo, eleva las caderas apretando el glúteo.\n3. Mantén 1-2 segundos y baja.\nClave: versión unilateral del puente de glúteo. Mayor demanda de equilibrio y trabajo del glúteo de la pierna de apoyo.');
+  t('sentadilla sissy','1. De pie, sujeta algo para el equilibrio. Pies al frente.\n2. Baja doblando las rodillas hacia adelante mientras el torso se inclina hacia atrás.\n3. Sube extendiendo las rodillas.\nClave: aísla el cuádriceps de forma extrema. Alto estrés en la articulación de la rodilla. Progresar despacio.');
+  t('extensión de tríceps en banco (con mancuerna)','1. Tumbado en el banco. Una mancuerna sujeta con ambas manos sobre el pecho.\n2. Flexiona solo los codos llevando la mancuerna hacia la frente o detrás de la cabeza.\n3. Extiende completamente.\nClave: versión unilateral de los rompecráneos. Los codos deben apuntar al techo sin abrirse.');
+  t('press de hombros unilateral','1. Sentado o de pie. Una mancuerna sobre el hombro.\n2. Empuja hacia arriba hasta extensión.\n3. Baja controladamente.\nClave: el trabajo unilateral corrige desequilibrios entre hombros y demanda mayor estabilización del core.');
+  t('elevaciones laterales con cable','1. Cable al nivel del suelo en el lado contrario al brazo que trabaja.\n2. Pasa el cable por delante del cuerpo.\n3. Eleva el brazo lateralmente hasta los 90 grados.\nClave: tensión constante durante todo el rango, a diferencia de las mancuernas que pierden tensión abajo.');
+  t('remo al cuello con barra (upright row)','1. De pie. Barra con agarre prono estrecho (aprox. 20-30 cm).\n2. Eleva la barra hacia el mentón, codos por encima de las manos.\n3. Baja controladamente.\nClave: activa deltoides lateral y trapecio. Usar agarre no demasiado estrecho para evitar impingement de hombro.');
+  t('curl inverso (reverse curl)','1. De pie. Barra o mancuernas con agarre prono.\n2. Flexiona los codos manteniendo el agarre prono.\n3. Baja controladamente.\nClave: activa braquiorradial y braquial. También trabaja los extensores de la muñeca. Mejora el grip.');
+  t('zancada lateral (lateral lunge)','1. De pie, pies juntos. Da un paso amplio hacia el lado.\n2. Dobla la rodilla del lado al que te mueves, manteniendo la otra pierna recta.\n3. Regresa empujando con el pie apoyado.\nClave: activa aductores y abductores además de glúteos y cuádriceps. Patrón de movimiento lateral poco habitual.');
+  t('sentadilla sumo con mancuerna','1. Pies muy separados, punta hacia fuera 45 grados. Mancuerna colgando entre las piernas.\n2. Desciende hasta que la mancuerna casi toque el suelo.\n3. Sube apretando glúteos e isquiotibiales.\nClave: activa más aductores y glúteos que la sentadilla convencional. Ideal para principiantes por su simplicidad.');
+  t('press de hombros Arnold con cable','1. Cable bajo. Empuña el cable con agarre de supinación a la altura del hombro.\n2. Empuja hacia arriba rotando la muñeca a pronación al extender.\n3. Baja invirtiendo la rotación.\nClave: versión con cable del press Arnold. Tensión constante durante todo el rango del movimiento.');
+  t('hip hinge con barra (bisagra de cadera)','1. De pie con la barra frente a ti o en rack. Rodillas ligeramente flexionadas fijas.\n2. Inclina el torso hacia delante manteniendo la espalda completamente neutra.\n3. Extiende la cadera volviendo a la posición erguida.\nClave: ejercicio para aprender la bisagra de cadera antes de cargar el peso muerto.');
+  t('pull apart con banda','1. Banda elástica sujeta frente al pecho con ambas manos, brazos extendidos.\n2. Separa los brazos horizontalmente hasta que la banda toque el pecho.\n3. Vuelve controladamente.\nClave: activa deltoides posterior y rotadores externos. Fundamental para la salud del hombro.');
+  t('rotación externa de hombro con cable','1. Cable a la altura del codo. Codo a 90 grados pegado al costado.\n2. Rota el antebrazo hacia afuera contra la resistencia.\n3. Vuelve controladamente.\nClave: ejercicio de manguito rotador. Fundamental para la salud del hombro y prevención de lesiones.');
+  t('marcha en el sitio (calentamiento)','1. Eleva las rodillas alternando hasta la altura de las caderas.\n2. Brazos oscilar de forma natural o activamente.\n3. Mantén una postura erguida.\nClave: calentamiento de bajo impacto que activa la circulación y moviliza la articulación de la cadera.');
+  t('rotación de columna tumbado','1. Tumbado boca arriba, rodillas flexionadas.\n2. Lleva ambas rodillas hacia un lado hasta donde sea cómodo.\n3. Regresa al centro y repite al otro lado.\nClave: movilidad de columna torácica y lumbar. Excelente para calentamiento o cooldown.');
+  t('apertura de pecho en banco (ángel)','1. Tumbado en el banco longitudinalmente. Brazos a los lados, palmas arriba.\n2. Eleva los brazos en arco amplio por encima de la cabeza.\n3. Regresa.\nClave: movilidad de hombros y apertura del pecho. Ideal para calentamiento.');
+  t('swing con kettlebell','1. Kettlebell en el suelo entre los pies. Agarre con ambas manos.\n2. Bisagra de cadera hacia atrás cargando la cadena posterior.\n3. Extiende explosivamente la cadera impulsando la kettlebell hacia adelante y arriba hasta la horizontal.\n4. Deja que baje por su propio peso mientras vuelves a la bisagra.\nClave: es un movimiento de cadera, NO de hombros. La potencia viene de los glúteos e isquiotibiales. No squat, es bisagra.');
+  t('turkish get-up (levantamiento turco)','1. Tumbado, kettlebell en la mano derecha, brazo extendido verticalmente, rodilla derecha doblada.\n2. Gira hacia el lado izquierdo apoyando el codo y la mano izquierda.\n3. Levanta la cadera. Pasa la pierna izquierda por debajo del cuerpo.\n4. Pasa a posición de estocada y finalmente a de pie. Invierte el proceso para bajar.\nClave: ejercicio complejo de movilidad, fuerza y coordinación. Aprender sin peso antes de cargar.');
+  t('clean con barra (halterofilia)','1. Barra en el suelo. Posición de inicio similar al peso muerto.\n2. Primera tracción explosiva hasta las caderas (primer tirón).\n3. Segunda extensión explosiva de cadera, rodillas, tobillos (segundo tirón).\n4. Recepción en rack de limpieza con las caderas abajo (sentadilla frontal).\n5. Levantarse.\nClave: ejercicio técnico que requiere mucha práctica. Potencia y coordinación total del cuerpo.');
+  t('snatch (arrancada)','Levantamiento olímpico avanzado. La barra va desde el suelo hasta los brazos extendidos sobre la cabeza en un solo movimiento continuo. Requiere tutor especializado para aprender la técnica. Las fases son: primera tracción, primera rodilla, segundo tirón, recepción en squat overhead.');
+
+
 })();
 // Click outside ANY modal to close
 document.addEventListener('click',function(e){
