@@ -20,12 +20,22 @@ body{background:var(--black);color:var(--white);font-family:var(--sans);font-siz
   .cbox{max-width:95vw!important;width:95vw!important;max-height:88vh!important;font-size:12px}
   .wk-float-panel{max-width:95vw!important;max-height:88vh!important}
   .wk-float-fields{grid-template-columns:repeat(2,1fr)!important}
-  .cardio-type-btn{min-width:60px!important;font-size:7px!important;padding:5px!important}
   .interval-fields{grid-template-columns:repeat(2,1fr)!important}
   .nav{padding:0 8px!important}
   .modal,.mol{padding:0!important}
   .vwbody{max-height:72vh!important}
+  .top-nav{padding:0 8px!important;height:48px!important}
+  .nav-logo{font-size:14px!important;letter-spacing:2px!important}
+  .ntab{padding:0 8px!important;font-size:7px!important}
+  .btn-out{padding:4px 6px!important;font-size:7px!important}
+  .whdr{padding:6px 8px!important;flex-wrap:wrap;gap:4px}
+  .whdr>div:last-child{width:100%;display:flex;gap:4px}
+  .btn-add{padding:5px 8px!important;font-size:7px!important}
+  .cal-viewbar{overflow-x:auto}
 }
+/* Clock icon white */
+input[type=time]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.8;cursor:pointer}
+input[type=time]::-webkit-calendar-picker-indicator:hover{opacity:1}
 body.light-mode{--black:#f5f5f5;--dark:#ffffff;--dark2:#eeeeee;--dark3:#e0e0e0;--dark4:#cccccc;--dark5:#bbbbbb;--white:#111111;--white3:#333333;--white4:#666666;background:#f5f5f5;color:#111}
 body.light-mode .nav{background:#fff;border-color:#ddd}
 body.light-mode .card{background:#fff;border-color:#ddd}
@@ -672,22 +682,22 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
           </optgroup>
         </select>
       </div>
-      <div class="fg" id="wNmWrap"><label class="fl">Nombre del Entrenamiento</label><input type="text" class="fi" id="wNm" placeholder="Ej: Empuje · Pecho & Hombros"></div>
+      <!-- Resistance subtype (shown when cardio type selected) -->
+      <div class="fg" id="wResistanceTypeRow" style="display:none;margin-bottom:8px"><label class="fl">Tipo de entrenamiento de resistencia</label>
+        <select class="fi-sel" id="wCardioTypeSelect">
+          <option value="continuo">🏃 Continuo</option>
+          <option value="intervalos">⚡ Intervalos</option>
+          <option value="fartlek">🌊 Fartlek</option>
+          <option value="tempo">🎯 Tempo</option>
+          <option value="hiit">💥 HIIT</option>
+          <option value="progresivo">📈 Progresivo</option>
+        </select>
+      </div>
+      <div class="fg" id="wNmWrap"><label class="fl">Nombre del Entrenamiento <span style="font-size:8px;color:var(--white4)">(opcional)</span></label><input type="text" class="fi" id="wNm" placeholder="Ej: Empuje · Pecho & Hombros"></div>
       <div class="fg"><label class="fl">Fecha del Entrenamiento</label><input type="date" class="fi-date" id="wDatePick"></div>
       <button class="btnadd-main" id="btnLoadTpl" style="border-color:var(--gold-dim);color:var(--gold-dim);margin-bottom:10px">Cargar Plantilla</button>
       <!-- Cardio fields (shown only for cardio types) -->
       <div id="wCardioFields" style="display:none">
-        <!-- Tipo de entrenamiento -->
-        <div class="fg" style="margin-bottom:8px"><label class="fl">Tipo de entrenamiento de resistencia</label>
-          <div class="cardio-type-row" id="wCardioTypeRow">
-            <button class="cardio-type-btn active" data-ctype="continuo">🏃 Continuo</button>
-            <button class="cardio-type-btn" data-ctype="intervalos">⚡ Intervalos</button>
-            <button class="cardio-type-btn" data-ctype="fartlek">🌊 Fartlek</button>
-            <button class="cardio-type-btn" data-ctype="tempo">🎯 Tempo</button>
-            <button class="cardio-type-btn" data-ctype="hiit">💥 HIIT</button>
-            <button class="cardio-type-btn" data-ctype="progresivo">📈 Progresivo</button>
-          </div>
-        </div>
         <!-- Intervalos (solo visible si tipo=intervalos/hiit) -->
         <div id="wCardioIntervalsWrap" style="display:none">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -698,12 +708,12 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
         </div>
         <div class="cardio-field-row">
           <div class="fg" style="margin-bottom:8px">
-            <label class="fl">Hora inicio <button type="button" style="font-size:7px;padding:1px 5px;background:var(--dark3);border:1px solid var(--dark4);color:var(--white4);cursor:pointer;margin-left:4px" onclick="var n=new Date();G('wCardioStart').value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes()">Ahora</button></label>
-            <input type="time" class="fi" id="wCardioStart">
+            <label class="fl">Hora inicio</label>
+            <input type="time" class="fi" id="wCardioStart" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Toca para registrar la hora actual">
           </div>
           <div class="fg" style="margin-bottom:8px">
-            <label class="fl">Hora fin <button type="button" style="font-size:7px;padding:1px 5px;background:var(--dark3);border:1px solid var(--dark4);color:var(--white4);cursor:pointer;margin-left:4px" onclick="var n=new Date();G('wCardioEnd').value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes()">Ahora</button></label>
-            <input type="time" class="fi" id="wCardioEnd">
+            <label class="fl">Hora fin</label>
+            <input type="time" class="fi" id="wCardioEnd" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Toca para registrar la hora actual">
           </div>
         </div>
         <div class="fg" style="margin-bottom:8px"><label class="fl">Duración total</label>
@@ -937,6 +947,7 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
         </div>
       </div>
       <div class="fg" id="elNotesRow"><label class="fl">Grupos Musculares Involucrados</label><textarea class="fi-ta" id="elNotes" placeholder="Ej: Pectoral mayor, Tríceps, Deltoides anterior"></textarea></div>
+      <div class="fg"><label class="fl">Técnica de ejecución</label><textarea class="fi-ta" id="elTecnica" placeholder="Describe los pasos de la técnica..." style="min-height:90px"></textarea></div>
       <div class="fg"><label class="fl">Video de técnica (URL YouTube)</label><input type="url" class="fi-url" id="elVideo" placeholder="https://www.youtube.com/watch?v=..."></div>
     </div>
     <div class="mftr"><button class="bcanc" id="elCnc">Cancelar</button><button class="bsave" id="elSv">Guardar Ejercicio</button></div>
@@ -2661,6 +2672,20 @@ function _openModWDate(dateStr){
   G('wNm').value='';G('wSaveTpl').checked=false;G('wType').value='';
   exercises=[];
   G('wDatePick').value=dateStr||todayDateStr();
+  // Reset ALL cardio fields
+  G('wCardioStart').value='';G('wCardioEnd').value='';
+  G('wCardioDurH').value='';G('wCardioDurM').value='';
+  G('wCardioDist').value='';G('wCardioRpe').value='';G('wCardioNotes').value='';
+  if(G('wCardioFcMedia'))G('wCardioFcMedia').value='';
+  if(G('wCardioFcMax'))G('wCardioFcMax').value='';
+  _cardioIntervals=[];_cardioType='continuo';
+  if(G('wCardioTypeSelect'))G('wCardioTypeSelect').value='continuo';
+  G('wCardioFields').style.display='none';
+  if(G('wResistanceTypeRow'))G('wResistanceTypeRow').style.display='none';
+  G('wExBtns').style.display='flex';
+  var wrap=G('wCardioIntervalsWrap');if(wrap)wrap.style.display='none';
+  var il=G('wIntervalList');if(il)il.innerHTML='';
+  var sw=G('wCardioSpeedWrap');if(sw)sw.style.display='none';
   renderExs();G('modW').style.display='flex';
 }
 // Open nutrition modal with a specific date pre-selected
@@ -2675,7 +2700,8 @@ function _openModNDate(dateStr){
 function openModW(item){
   G('wTtl').textContent=item?'Editar Entrenamiento':'Nuevo Entrenamiento';
   G('wNm').value=item?item.name:'';G('wSaveTpl').checked=false;
-  G('wType').value='';
+  var savedWType=item?(item.wType||item.name||''):'';
+  G('wType').value=savedWType;
   exercises=item&&item.exercises?JSON.parse(JSON.stringify(item.exercises)):[];
   var defDate=item?(item.date||todayDateStr()):wdToDateStr(weekOff,selDay);
   G('wDatePick').value=defDate;
@@ -2693,19 +2719,17 @@ function openModW(item){
   // Restore intervals and cardio type
   _cardioIntervals=cd&&cd.intervals?JSON.parse(JSON.stringify(cd.intervals)):[];
   _cardioType=cd&&cd.tipo||'continuo';
-  // Set cardio type buttons
+  var isCardio=item&&(CARDIO_TYPES.indexOf(item.wType||'')>=0||CARDIO_TYPES.indexOf(item.name||'')>=0||(item.cardio!==undefined))||false;
+  G('wCardioFields').style.display=isCardio?'block':'none';
+  if(G('wResistanceTypeRow'))G('wResistanceTypeRow').style.display=isCardio?'block':'none';
+  G('wExBtns').style.display=isCardio?'none':'flex';
+  // Set cardio type dropdown
   setTimeout(function(){
-    document.querySelectorAll('.cardio-type-btn').forEach(function(btn){
-      btn.classList.toggle('active',btn.getAttribute('data-ctype')===_cardioType);
-    });
+    var ctSel=G('wCardioTypeSelect');if(ctSel)ctSel.value=_cardioType;
     var showIntervals=(_cardioType==='intervalos'||_cardioType==='hiit');
     var wrap=G('wCardioIntervalsWrap');if(wrap)wrap.style.display=showIntervals?'block':'none';
     if(_cardioIntervals.length>0){if(wrap)wrap.style.display='block';renderCardioIntervals();}
   },100);
-  var isCardio=item&&CARDIO_TYPES.indexOf(item.name||item.type||'')>=0||false;
-  G('wCardioFields').style.display=isCardio?'block':'none';
-  G('wExBtns').style.display=isCardio?'none':'flex';
-  if(item&&item.name)G('wType').value=item.name;
   renderExs();G('modW').style.display='flex';
 }
 var CARDIO_TYPES=['Correr','Ciclismo indoor','Ciclismo exterior','Barre','Body Pump','Zumba','Spinning','Natación','Senderismo','Yoga','Pilates','Boxeo','CrossFit','Escalada','Remo','Elíptica','Caminata','Baile','Cardio'];
@@ -2714,100 +2738,86 @@ var _cardioIntervals=[];
 
 G('wType').onchange=function(){
   var v=this.value;
-  // Type selector only controls which fields show - does NOT affect the name
   var isCardio=CARDIO_TYPES.indexOf(v)>=0;
   G('wCardioFields').style.display=isCardio?'block':'none';
+  if(G('wResistanceTypeRow'))G('wResistanceTypeRow').style.display=isCardio?'block':'none';
   G('wExBtns').style.display=isCardio?'none':'flex';
   if(v==='Fuerza'||v==='Otro'){G('wExBtns').style.display='flex';}
   updateCardioSpeed();
 };
 
-// Cardio type button toggle
+// Cardio type dropdown change
 setTimeout(function(){
-  document.querySelectorAll('.cardio-type-btn').forEach(function(btn){
-    btn.onclick=function(){
-      document.querySelectorAll('.cardio-type-btn').forEach(function(b){b.classList.remove('active');});
-      btn.classList.add('active');
-      _cardioType=btn.getAttribute('data-ctype');
+  var ctSel=G('wCardioTypeSelect');
+  if(ctSel){
+    ctSel.onchange=function(){
+      _cardioType=this.value;
       var showIntervals=(_cardioType==='intervalos'||_cardioType==='hiit');
       var wrap=G('wCardioIntervalsWrap');if(wrap)wrap.style.display=showIntervals?'block':'none';
     };
-  });
+  }
   var addInt=G('wAddInterval');
   if(addInt)addInt.onclick=function(){
-    _cardioIntervals.push({tipo:'trabajo',tiempo:'',dist:'',vel:'',descanso:'',descansotipo:'total',intensidad:''});
+    _cardioIntervals.push({nSeries:1,tiempo:'',dist:'',vel:'',descanso:''});
     renderCardioIntervals();
   };
 },400);
 
+function _calcIntervalStartNum(intervals, idx){
+  var start=1;
+  for(var i=0;i<idx;i++){var n=parseInt(intervals[i].nSeries)||1;start+=n;}
+  return start;
+}
+function _intervalLabel(startNum, nSeries){
+  if(nSeries<=1)return 'Intervalo '+startNum;
+  return 'Intervalos '+startNum+'-'+(startNum+nSeries-1);
+}
 function renderCardioIntervals(){
   var list=G('wIntervalList');if(!list)return;list.innerHTML='';
   _cardioIntervals.forEach(function(intv,idx){
-    if(!intv.series)intv.series=[];
+    var nSeries=parseInt(intv.nSeries)||1;
+    var startNum=_calcIntervalStartNum(_cardioIntervals,idx);
+    var lbl=_intervalLabel(startNum,nSeries);
     var block=mk('div','interval-block');
     var hdr=mk('div','interval-block-hdr');
-    var sel=document.createElement('select');sel.className='fi-sel';sel.style.cssText='padding:4px 8px;font-size:10px;flex:1';
-    [{v:'trabajo',l:'[Trabajo]'},{v:'descanso',l:'[Descanso]'},{v:'descanso_activo',l:'🚶 Descanso activo'}].forEach(function(opt){
-      var o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if(intv.tipo===opt.v)o.selected=true;sel.appendChild(o);
-    });
-    sel.onchange=(function(i){return function(){_cardioIntervals[i].tipo=this.value;renderCardioIntervals();};})(idx);
+    var lblEl=mk('div','interval-lbl',lbl);lblEl.style.flex='1';
+    // nSeries input
+    var nsWrap=mk('div','');nsWrap.style.cssText='display:flex;align-items:center;gap:4px;flex-shrink:0';
+    var nsLbl=mk('span','');nsLbl.style.cssText='font-size:7px;letter-spacing:1px;text-transform:uppercase;color:var(--white4)';nsLbl.textContent='Series:';
+    var nsInp=document.createElement('input');nsInp.type='number';nsInp.min='1';nsInp.max='99';nsInp.className='fi';
+    nsInp.style.cssText='width:52px;padding:4px 6px;font-size:12px;text-align:center';
+    nsInp.value=nSeries;nsInp.inputMode='numeric';
+    nsInp.oninput=(function(i){return function(){_cardioIntervals[i].nSeries=Math.max(1,parseInt(this.value)||1);renderCardioIntervals();};})(idx);
+    nsWrap.appendChild(nsLbl);nsWrap.appendChild(nsInp);
     var bdel=mk('button','btnrm','✕');bdel.onclick=(function(i){return function(){_cardioIntervals.splice(i,1);renderCardioIntervals();};})(idx);
     var bdup=mk('button','btnlib','⧉');bdup.title='Duplicar intervalo';bdup.style.cssText='font-size:10px;padding:2px 6px';
     bdup.onclick=(function(i){return function(){var clone=JSON.parse(JSON.stringify(_cardioIntervals[i]));_cardioIntervals.splice(i+1,0,clone);renderCardioIntervals();};})(idx);
-    hdr.appendChild(mk('div','interval-lbl','Intervalo '+(idx+1)));hdr.appendChild(sel);hdr.appendChild(bdup);hdr.appendChild(bdel);
+    hdr.appendChild(lblEl);hdr.appendChild(nsWrap);hdr.appendChild(bdup);hdr.appendChild(bdel);
     block.appendChild(hdr);
+    // All fields in ONE row
     var fields=mk('div','interval-fields');
+    fields.style.cssText='display:flex;gap:6px;margin-bottom:4px;flex-wrap:nowrap;align-items:flex-end';
     // Time field
-    var tf=mk('div','interval-field');tf.innerHTML='<label>Tiempo (s)</label>';
+    var tf=mk('div','interval-field');tf.style.flex='1';tf.innerHTML='<label>Tiempo (s)</label>';
     var ti=document.createElement('input');ti.type='number';ti.className='fi';ti.placeholder='60';ti.value=intv.tiempo||'';ti.inputMode='numeric';
     ti.oninput=(function(i){return function(){_cardioIntervals[i].tiempo=this.value;};})(idx);
     tf.appendChild(ti);fields.appendChild(tf);
     // Distance
-    var df=mk('div','interval-field');df.innerHTML='<label>Dist (m)</label>';
+    var df=mk('div','interval-field');df.style.flex='1';df.innerHTML='<label>Dist (m)</label>';
     var di=document.createElement('input');di.type='number';di.className='fi';di.placeholder='400';di.value=intv.dist||'';di.inputMode='decimal';
     di.oninput=(function(i){return function(){_cardioIntervals[i].dist=this.value;};})(idx);
     df.appendChild(di);fields.appendChild(df);
-    // Speed/intensity
-    var vf=mk('div','interval-field');vf.innerHTML='<label>'+(intv.tipo==='descanso_activo'?'Intensidad':'Vel km/h')+'</label>';
-    var vi=document.createElement('input');vi.type='number';vi.className='fi';vi.placeholder=intv.tipo==='descanso_activo'?'Z1-Z2':'12';vi.value=intv.vel||'';
+    // Speed
+    var vf=mk('div','interval-field');vf.style.flex='1';vf.innerHTML='<label>Vel km/h</label>';
+    var vi=document.createElement('input');vi.type='number';vi.className='fi';vi.placeholder='12';vi.value=intv.vel||'';
     vi.oninput=(function(i){return function(){_cardioIntervals[i].vel=this.value;};})(idx);
     vf.appendChild(vi);fields.appendChild(vf);
+    // Rest
+    var dl=mk('div','interval-field');dl.style.flex='1';dl.innerHTML='<label>Descanso (s)</label>';
+    var dii=document.createElement('input');dii.type='number';dii.className='fi';dii.placeholder='90';dii.value=intv.descanso||'';
+    dii.oninput=(function(i){return function(){_cardioIntervals[i].descanso=this.value;};})(idx);
+    dl.appendChild(dii);fields.appendChild(dl);
     block.appendChild(fields);
-    // Descanso
-    if(intv.tipo==='trabajo'){
-      var drow=mk('div','');drow.style.cssText='display:flex;gap:6px;align-items:center;margin-top:4px';
-      var dl=mk('div','interval-field');dl.innerHTML='<label>Descanso (s)</label>';
-      var dii=document.createElement('input');dii.type='number';dii.className='fi';dii.placeholder='90';dii.value=intv.descanso||'';
-      dii.oninput=(function(i){return function(){_cardioIntervals[i].descanso=this.value;};})(idx);
-      dl.appendChild(dii);drow.appendChild(dl);
-      var dtsel=document.createElement('select');dtsel.className='fi-sel';dtsel.style.cssText='padding:4px 8px;font-size:10px;margin-top:14px';
-      [{v:'total',l:'Total'},{v:'activo',l:'Activo'}].forEach(function(opt){
-        var o=document.createElement('option');o.value=opt.v;o.textContent=opt.l;if(intv.descansotipo===opt.v)o.selected=true;dtsel.appendChild(o);
-      });
-      dtsel.onchange=(function(i){return function(){_cardioIntervals[i].descansotipo=this.value;};})(idx);
-      drow.appendChild(dtsel);block.appendChild(drow);
-    }
-    // Series within interval
-    var serHdr=mk('div','');serHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-top:8px;margin-bottom:4px';
-    serHdr.textContent='Series del intervalo';
-    block.appendChild(serHdr);
-    var serList=mk('div','');
-    (intv.series||[]).forEach(function(s,si){
-      var sRow=mk('div','');sRow.style.cssText='display:flex;gap:4px;align-items:center;margin-bottom:4px';
-      ['tiempo','dist','vel','descanso'].forEach(function(fk){
-        var inp=document.createElement('input');inp.type='number';inp.className='fi';
-        inp.style.cssText='flex:1;padding:4px;font-size:10px';inp.placeholder=fk;
-        inp.value=s[fk]||'';
-        inp.oninput=(function(i2,s2,k2){return function(){_cardioIntervals[i2].series[s2][k2]=this.value;};})(idx,si,fk);
-        sRow.appendChild(inp);
-      });
-      var bdel=mk('button','btnrm','✕');bdel.onclick=(function(i2,s2){return function(){_cardioIntervals[i2].series.splice(s2,1);renderCardioIntervals();};})(idx,si);
-      sRow.appendChild(bdel);serList.appendChild(sRow);
-    });
-    block.appendChild(serList);
-    var bAddSer=mk('button','btnadd','+ Serie');bAddSer.style.cssText='font-size:8px;padding:4px 8px;margin-top:4px';
-    bAddSer.onclick=(function(i2){return function(){if(!_cardioIntervals[i2].series)_cardioIntervals[i2].series=[];_cardioIntervals[i2].series.push({tiempo:'',dist:'',vel:'',descanso:''});renderCardioIntervals();};})(idx);
-    block.appendChild(bAddSer);
     list.appendChild(block);
   });
 }
@@ -3038,51 +3048,66 @@ function renderExPickList(){
   });
 }
 function saveWorkout(){
-  var name=G('wNm').value.trim();if(!name)return alert('Añade un nombre');
+  var name=G('wNm').value.trim()||G('wType').value||'Entrenamiento';
   var dateStr=G('wDatePick').value||todayDateStr();
   var wd=dateToWD(dateStr);
   var key=gk(wd.weekOff,wd.dayIdx);
   var baseEx=JSON.parse(JSON.stringify(exercises));
   var items=(D.workouts[key]&&D.workouts[key].items||[]).slice();
-
+  var wTypeVal=G('wType').value||'';
+  var isCardio=CARDIO_TYPES.indexOf(wTypeVal)>=0||CARDIO_TYPES.indexOf(name)>=0;
+  // Build cardio object if needed
+  var cardioObj=null;
+  if(isCardio){
+    var distV=parseFloat(G('wCardioDist').value)||0;
+    var durHv=parseFloat(G('wCardioDurH').value)||0;
+    var durMv=parseFloat(G('wCardioDurM').value)||0;
+    var durTotal=durHv+durMv/60;
+    cardioObj={start:G('wCardioStart').value,end:G('wCardioEnd').value,
+      durH:durHv,durM:durMv,dist:distV,
+      speed:durTotal>0&&distV>0?(distV/durTotal).toFixed(2):0,
+      tipo:(G('wCardioTypeSelect')&&G('wCardioTypeSelect').value)||_cardioType||'continuo',
+      intervals:JSON.parse(JSON.stringify(_cardioIntervals)),
+      fcMedia:G('wCardioFcMedia').value,
+      fcMax:G('wCardioFcMax').value,
+      rpe:G('wCardioRpe').value,notes:G('wCardioNotes').value};
+  }
   if(editId){
-    // Remove from old key if different
     if(editKey&&editKey!==key){
       var srcItems=(D.workouts[editKey]&&D.workouts[editKey].items||[]).filter(function(x){return x.id!==editId;});
-      if(srcItems.length===0)delFS('workouts',editKey);
+      if(srcItems.length===0){delete D.workouts[editKey];delFS('workouts',editKey);}
       else{if(!D.workouts[editKey])D.workouts[editKey]={};D.workouts[editKey].items=srcItems;saveFS('workouts',editKey,{items:srcItems});}
-      items.push({id:editId,name:name,exercises:baseEx,date:dateStr,completed:false});
+      var newItem={id:editId,name:name,wType:wTypeVal,exercises:baseEx,date:dateStr,completed:false};
+      if(isCardio){newItem.durH=cardioObj.durH;newItem.durM=cardioObj.durM;newItem.cardio=cardioObj;}
+      items.push(newItem);
     }else{
       var found=false;
-      items=items.map(function(x){if(x.id===editId){found=true;return Object.assign({},x,{name:name,exercises:baseEx,date:dateStr});}return x;});
-      if(!found)items.push({id:editId,name:name,exercises:baseEx,date:dateStr,completed:false});
+      items=items.map(function(x){
+        if(x.id===editId){
+          found=true;
+          var upd=Object.assign({},x,{name:name,wType:wTypeVal,exercises:baseEx,date:dateStr});
+          if(isCardio){upd.durH=cardioObj.durH;upd.durM=cardioObj.durM;upd.cardio=cardioObj;}
+          return upd;
+        }return x;
+      });
+      if(!found){var fi={id:editId,name:name,wType:wTypeVal,exercises:baseEx,date:dateStr,completed:false};if(isCardio){fi.durH=cardioObj.durH;fi.durM=cardioObj.durM;fi.cardio=cardioObj;}items.push(fi);}
     }
   }else{
-    var newItem={id:uid(),name:name,exercises:baseEx,date:dateStr,completed:false};
-    var wTypeVal=G('wType').value||'';
-    if(CARDIO_TYPES.indexOf(wTypeVal)>=0||CARDIO_TYPES.indexOf(name)>=0){
-      var distV=parseFloat(G('wCardioDist').value)||0;
-      var durHv=parseFloat(G('wCardioDurH').value)||0;
-      var durMv=parseFloat(G('wCardioDurM').value)||0;
-      var durTotal=durHv+durMv/60;
-      newItem.durH=durHv;newItem.durM=durMv;// also at top level for easy access
-      newItem.cardio={start:G('wCardioStart').value,end:G('wCardioEnd').value,
-        durH:durHv,durM:durMv,dist:distV,
-        speed:durTotal>0&&distV>0?(distV/durTotal).toFixed(2):0,
-        tipo:_cardioType||'continuo',
-        intervals:JSON.parse(JSON.stringify(_cardioIntervals)),
-        fcMedia:G('wCardioFcMedia').value,
-        fcMax:G('wCardioFcMax').value,
-        rpe:G('wCardioRpe').value,notes:G('wCardioNotes').value};
-    }
-    items.push(newItem);
+    var newItem2={id:uid(),name:name,wType:wTypeVal,exercises:baseEx,date:dateStr,completed:false};
+    if(isCardio){newItem2.durH=cardioObj.durH;newItem2.durM=cardioObj.durM;newItem2.cardio=cardioObj;}
+    items.push(newItem2);
   }
   if(!D.workouts[key])D.workouts[key]={};
   D.workouts[key].items=items;
   saveFS('workouts',key,{items:items});
   if(G('wSaveTpl').checked){var tid=uid();saveFS('wkTpl',tid,{id:tid,name:name,exercises:JSON.parse(JSON.stringify(exercises))});}
-  // If the saved week differs from current view, navigate there
-  if(wd.weekOff!==weekOff&&calView==='week'){weekOff=wd.weekOff;}
+  // Navigate calendar to match saved date
+  if(calView==='week'||calView==='day'){if(wd.weekOff!==weekOff)weekOff=wd.weekOff;}
+  if(calView==='month'){
+    var savedDate=new Date(dateStr+'T00:00:00');
+    var now2=new Date();var mDiff=(savedDate.getFullYear()-now2.getFullYear())*12+(savedDate.getMonth()-now2.getMonth());
+    if(mDiff!==calMonthOff)calMonthOff=mDiff;
+  }
   editId=null;editKey=null;
   closeM('modW');renderCal();
 }
@@ -3814,12 +3839,22 @@ function openExModal(item){
   if(G('elVideo'))G('elVideo').value=item?(item.video||''):'';
   if(G('elVideo'))G('elVideo').value=item?(item.video||''):'';
   if(G('elNotesRow'))G('elNotesRow').style.display=isAdminSession?'':'none';
+  // Load técnica
+  if(G('elTecnica')){
+    var techKey=item?(item.name||'').toLowerCase().trim().replace(/[()]/g,'').replace(/\s+/g,' '):'';
+    var tech=(item&&item.technique)||'';
+    if(!tech&&techKey&&EX_TECHNIQUE)tech=EX_TECHNIQUE[techKey]||'';
+    G('elTecnica').value=tech;
+  }
   G('modEL').style.display='flex';
 }
 function saveEx(){
   var name=G('elNm').value.trim();if(!name)return alert('Añade un nombre');
   var id=elEditId||uid();
-  saveFS('exLib',id,{id:id,name:name,muscleGroup:G('elMus').value,equipment:G('elEquip').value,notes:G('elNotes').value,video:(G('elVideo')&&G('elVideo').value)||''});
+  var tech=(G('elTecnica')&&G('elTecnica').value)||'';
+  var techKey=name.toLowerCase().trim().replace(/[()]/g,'').replace(/\s+/g,' ');
+  if(tech&&EX_TECHNIQUE)EX_TECHNIQUE[techKey]=tech;
+  saveFS('exLib',id,{id:id,name:name,muscleGroup:G('elMus').value,equipment:G('elEquip').value,notes:G('elNotes').value,video:(G('elVideo')&&G('elVideo').value)||'',technique:tech});
   closeM('modEL');
 }
 G('elSv').onclick=saveEx;G('elCnc').onclick=function(){closeM('modEL');};G('elX').onclick=function(){closeM('modEL');};
@@ -4706,21 +4741,12 @@ function showExDetail(item){
     eq.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:4px">Material necesario</div><div style="font-size:13px;color:var(--white);font-weight:500">'+item.equipment+'</div>';
     modal.appendChild(eq);
   }
-  // YouTube
-  if(item.video){
-    var vw=mk('div','');vw.style.cssText='margin-bottom:12px';
-    var vLink=document.createElement('a');vLink.href=item.video;vLink.target='_blank';vLink.rel='noopener';
-    vLink.style.cssText='display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.4);color:#ff5555;text-decoration:none;font-size:10px;letter-spacing:2px;text-transform:uppercase';
-    vLink.textContent='▶ Ver técnica en YouTube';
-    vw.appendChild(vLink);modal.appendChild(vw);
-  }
-  // Technique - editable
+  // Técnica de ejecución shown below (includes YouTube link)
+  // Technique - flat display (same style as other fields)
   var techKey=(item.name||'').toLowerCase().trim().replace(/[()]/g,'').replace(/\s+/g,' ');
   var technique=(item.technique)||'';
   if(!technique&&EX_TECHNIQUE){
-    // Exact match first
     technique=EX_TECHNIQUE[techKey]||'';
-    // Try without accents
     if(!technique){
       var noAccent=techKey.replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n');
       Object.keys(EX_TECHNIQUE).forEach(function(k){
@@ -4731,37 +4757,26 @@ function showExDetail(item){
       });
     }
   }
-  var tw=mk('div','');tw.style.cssText='background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold);padding:14px;margin-top:4px;margin-bottom:12px';
-  var techHdr=mk('div','');techHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';
-  techHdr.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim)">Técnica de ejecución</div>';
-  var bEditTech=mk('button','lib-btn','✎ Editar');bEditTech.style.cssText='font-size:8px;padding:2px 8px';
-  techHdr.appendChild(bEditTech);tw.appendChild(techHdr);
-  var techDisplay=mk('div','');techDisplay.style.cssText='font-size:12px;color:var(--white3);line-height:1.8;white-space:pre-line';techDisplay.textContent=technique||'Sin técnica registrada';
-  var techEdit=document.createElement('textarea');techEdit.style.cssText='width:100%;min-height:120px;background:var(--dark3);border:1px solid var(--dark4);color:var(--white);font-size:11px;padding:8px;display:none;resize:vertical;font-family:var(--sans);line-height:1.6';
-  techEdit.value=technique;
-  var techBtns=mk('div','');techBtns.style.cssText='display:none;gap:6px;margin-top:8px';
-  var bSaveTech=mk('button','bsave','Guardar técnica');
-  var bDelTech=mk('button','bcanc','Eliminar técnica');
-  techBtns.appendChild(bSaveTech);techBtns.appendChild(bDelTech);
-  bEditTech.onclick=function(){techDisplay.style.display='none';techEdit.style.display='block';techBtns.style.display='flex';bEditTech.style.display='none';};
-  bSaveTech.onclick=function(){
-    var newTech=techEdit.value.trim();
-    item.technique=newTech;EX_TECHNIQUE[techKey]=newTech;
-    // Save to Firebase
-    if(D.exLib[item.id])D.exLib[item.id].technique=newTech;
-    saveFS('exLib',item.id,Object.assign({},D.exLib[item.id]||item,{technique:newTech}));
-    lsSave();techDisplay.textContent=newTech||'Sin técnica registrada';
-    techDisplay.style.display='block';techEdit.style.display='none';techBtns.style.display='none';bEditTech.style.display='';
-  };
-  bDelTech.onclick=function(){
-    item.technique='';EX_TECHNIQUE[techKey]='';
-    if(D.exLib[item.id])D.exLib[item.id].technique='';
-    saveFS('exLib',item.id,Object.assign({},D.exLib[item.id]||item,{technique:''}));
-    lsSave();techDisplay.textContent='Sin técnica registrada';
-    techEdit.value='';techDisplay.style.display='block';techEdit.style.display='none';techBtns.style.display='none';bEditTech.style.display='';
-  };
-  tw.appendChild(techDisplay);tw.appendChild(techEdit);tw.appendChild(techBtns);
-  modal.appendChild(tw);
+  // Show técnica in same flat style as other fields
+  var techSec=mk('div','');techSec.style.cssText='margin-bottom:12px';
+  techSec.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:4px">Técnica de ejecución</div>';
+  var techTxt=mk('div','');techTxt.style.cssText='font-size:12px;color:var(--white3);line-height:1.8;white-space:pre-line';
+  techTxt.textContent=technique||'Sin técnica registrada';
+  techSec.appendChild(techTxt);
+  // YouTube link - shown below técnica if video is a URL
+  if(item.video){
+    var isUrl=/^https?:\/\//i.test(item.video);
+    if(isUrl){
+      var vLink=document.createElement('a');vLink.href=item.video;vLink.target='_blank';vLink.rel='noopener';
+      vLink.style.cssText='display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 12px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.4);color:#ff5555;text-decoration:none;font-size:9px;letter-spacing:2px;text-transform:uppercase';
+      vLink.textContent='▶ Ver técnica en YouTube';vLink.onclick=function(e){e.stopPropagation();};
+      techSec.appendChild(vLink);
+    }else{
+      var vTxt=mk('div','');vTxt.style.cssText='margin-top:6px;font-size:10px;color:var(--white4)';vTxt.textContent=item.video;
+      techSec.appendChild(vTxt);
+    }
+  }
+  modal.appendChild(techSec);
   var bRow=mk('div','cbts');
   var bClose=mk('button','bcc','Cerrar');bClose.onclick=function(){document.body.removeChild(overlay);};
   var bHist=mk('button','bco','Historial carga');bHist.onclick=function(){document.body.removeChild(overlay);showLoadHistory(item.name);};
@@ -5000,6 +5015,42 @@ var _actCurIntervalIdx=0;
 var _actRestInt=null,_actRestSec=0;
 var _actIntervalResults=[];
 
+function _showActivitySummary(body){
+  var intervals=(wkModeItem.cardio&&wkModeItem.cardio.intervals)||[];
+  var hdr=mk('div','');hdr.style.cssText='font-family:var(--serif);font-size:20px;font-weight:300;color:var(--gold);text-align:center;margin-bottom:16px;letter-spacing:2px';
+  hdr.textContent='✓ Actividad completada';body.appendChild(hdr);
+  var totalSec=_actTimerSec;
+  var sumDiv=mk('div','');sumDiv.style.cssText='background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold);padding:12px;margin-bottom:12px';
+  sumDiv.innerHTML='<div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px">Resumen</div>'+
+    '<div style="display:flex;gap:12px;flex-wrap:wrap">'+
+    '<div style="flex:1;text-align:center"><div style="font-family:var(--serif);font-size:24px;color:var(--gold)">'+fmtSec(totalSec)+'</div><div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--white4);margin-top:2px">Tiempo total</div></div>'+
+    (intervals.length>0?'<div style="flex:1;text-align:center"><div style="font-family:var(--serif);font-size:24px;color:var(--white)">'+_actIntervalResults.length+'</div><div style="font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--white4);margin-top:2px">Intervalos</div></div>':'')+
+    '</div>';
+  body.appendChild(sumDiv);
+  // Interval results
+  if(_actIntervalResults.length>0){
+    var rHdr=mk('div','');rHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px';rHdr.textContent='Detalle por intervalo';
+    body.appendChild(rHdr);
+    _actIntervalResults.forEach(function(r,i){
+      var row=mk('div','act-interval-row');
+      row.innerHTML='<span class="act-interval-lbl">Int '+(i+1)+'</span><span class="act-interval-val">'+
+        (r.durSec?fmtSec(r.durSec):'—')+(r.dist?' · '+r.dist+'m':'')+(r.fcMedia?' · FC '+r.fcMedia:'')+'</span>';
+      body.appendChild(row);
+    });
+  }
+  // Done button
+  var finBtn=mk('button','wk-float-done','✓ GUARDAR Y CERRAR');
+  finBtn.onclick=function(){
+    if(!wkModeItem.cardio)wkModeItem.cardio={};
+    wkModeItem.cardio.intervalResults=_actIntervalResults;
+    wkModeItem.cardio.timerSec=_actTimerSec;
+    clearInterval(_actTimerInt);clearInterval(_actRestInt);_actTimerRunning=false;
+    var fl=G('wkFloat');if(fl)fl.style.display='none';
+    finishWorkout();
+  };
+  body.appendChild(finBtn);
+}
+
 function renderActivityFloat(body){
   var fex=G('wkFloatEx');var fser=G('wkFloatSer');
   if(fex)fex.textContent=wkModeItem.name||'Actividad';
@@ -5056,7 +5107,7 @@ function renderActivityFloat(body){
     var resHdr=mk('div','');resHdr.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px';resHdr.textContent='Registrar serie';
     intvBlock.appendChild(resHdr);
     var resFields=mk('div','wk-float-fields');
-    [{k:'dist',l:'Dist (m)',p:curIntv.dist||'—'},{k:'vel',l:'Vel km/h',p:curIntv.vel||'—'},
+    [{k:'tiempo',l:'Tiempo (s)',p:curIntv.tiempo||'—'},{k:'dist',l:'Dist (m)',p:curIntv.dist||'—'},{k:'vel',l:'Vel km/h',p:curIntv.vel||'—'},
      {k:'fcMedia',l:'FC Media',p:'150'},{k:'fcMax',l:'FC Máx',p:'180'},{k:'rpe',l:'RPE',p:'7'}].forEach(function(f){
       var wrap=mk('div','wk-float-field');wrap.appendChild(mk('div','wk-float-lbl',f.l));
       var inp=document.createElement('input');inp.type='number';inp.className='wk-float-inp';inp.placeholder=f.p;inp.inputMode='decimal';
