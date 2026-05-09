@@ -4055,7 +4055,7 @@ function saveFoodLib(){
   var name=G('flNm').value.trim();if(!name)return alert('Añade un nombre');
   var id=flEditId||uid();
   saveFS('foodLib',id,{id:id,name:name,foodType:G('flType').value,kcalPer100:parseFloat(G('flKc').value)||0,protPer100:parseFloat(G('flPr').value)||0,carbsPer100:parseFloat(G('flCa').value)||0,fatPer100:parseFloat(G('flFa').value)||0});
-  closeM('modFL');
+  renderLib();closeM('modFL');
 }
 G('flSv').onclick=saveFoodLib;G('flCnc').onclick=function(){closeM('modFL');};G('flX').onclick=function(){closeM('modFL');};
 
@@ -4099,7 +4099,7 @@ function saveDish(){
   var name=G('dlNm').value.trim();if(!name)return alert('Añade un nombre');
   var id=dlEditId||uid();
   saveFS('dishLib',id,{id:id,name:name,notes:G('dlNotes').value,foods:JSON.parse(JSON.stringify(dishFoods))});
-  closeM('modDL');
+  renderLib();closeM('modDL');
 }
 G('dlSv').onclick=saveDish;G('dlCnc').onclick=function(){closeM('modDL');};G('dlX').onclick=function(){closeM('modDL');};
 
@@ -4114,8 +4114,9 @@ function openExModal(item){
   // Load técnica
   if(G('elTecnica')){
     var techKey=item?(item.name||'').toLowerCase().trim().replace(/[()]/g,'').replace(/\s+/g,' '):'';
-    var tech=(item&&item.technique)||'';
-    if(!tech&&techKey&&EX_TECHNIQUE)tech=EX_TECHNIQUE[techKey]||'';
+    var hasTechField=item&&('technique' in item);
+    var tech=hasTechField?(item.technique||''):'';
+    if(!tech&&!hasTechField&&techKey&&EX_TECHNIQUE)tech=EX_TECHNIQUE[techKey]||'';
     G('elTecnica').value=tech;
   }
   G('modEL').style.display='flex';
@@ -4125,9 +4126,9 @@ function saveEx(){
   var id=elEditId||uid();
   var tech=(G('elTecnica')&&G('elTecnica').value)||'';
   var techKey=name.toLowerCase().trim().replace(/[()]/g,'').replace(/\s+/g,' ');
-  if(tech&&EX_TECHNIQUE)EX_TECHNIQUE[techKey]=tech;
+  if(EX_TECHNIQUE){if(tech)EX_TECHNIQUE[techKey]=tech;else delete EX_TECHNIQUE[techKey];}
   saveFS('exLib',id,{id:id,name:name,muscleGroup:G('elMus').value,equipment:G('elEquip').value,notes:G('elNotes').value,video:(G('elVideo')&&G('elVideo').value)||'',technique:tech});
-  closeM('modEL');
+  renderLib();closeM('modEL');
 }
 G('elSv').onclick=saveEx;G('elCnc').onclick=function(){closeM('modEL');};G('elX').onclick=function(){closeM('modEL');};
 
@@ -5037,8 +5038,9 @@ function showExDetail(item){
   // Técnica de ejecución shown below (includes YouTube link)
   // Technique - flat display (same style as other fields)
   var techKey=(item.name||'').toLowerCase().trim().replace(/[()]/g,'').replace(/\s+/g,' ');
-  var technique=(item.technique)||'';
-  if(!technique&&EX_TECHNIQUE){
+  var hasTechField=('technique' in item);
+  var technique=hasTechField?(item.technique||''):'';
+  if(!technique&&!hasTechField&&EX_TECHNIQUE){
     technique=EX_TECHNIQUE[techKey]||'';
     if(!technique){
       var noAccent=techKey.replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n');
