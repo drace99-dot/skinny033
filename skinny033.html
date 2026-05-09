@@ -698,9 +698,17 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
       <!-- Hora inicio / fin para TODOS los tipos -->
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <div class="fg" style="flex:1;margin-bottom:0"><label class="fl">⏱ Hora inicio</label>
-          <input type="time" class="fi" id="wStartTime" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Toca para registrar la hora actual de inicio"></div>
+          <div style="display:flex;gap:4px;align-items:center">
+            <select class="fi-sel" id="wStartTime" style="flex:1;padding:8px 4px;font-size:12px"></select>
+            <button type="button" style="padding:8px;background:var(--dark3);border:1px solid var(--dark4);color:var(--gold);font-size:14px;cursor:pointer;flex-shrink:0" onclick="(function(){var n=new Date();var hh=(n.getHours()<10?'0':'')+n.getHours();var mm=n.getMinutes()<30?'00':'30';var v=hh+':'+mm;G('wStartTime').value=v;if(G('wCardioStart'))G('wCardioStart').value=v;})()" title="Registrar hora actual">🕐</button>
+          </div>
+        </div>
         <div class="fg" style="flex:1;margin-bottom:0"><label class="fl">⏱ Hora fin</label>
-          <input type="time" class="fi" id="wEndTime" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Toca para registrar la hora actual de fin"></div>
+          <div style="display:flex;gap:4px;align-items:center">
+            <select class="fi-sel" id="wEndTime" style="flex:1;padding:8px 4px;font-size:12px"></select>
+            <button type="button" style="padding:8px;background:var(--dark3);border:1px solid var(--dark4);color:var(--gold);font-size:14px;cursor:pointer;flex-shrink:0" onclick="(function(){var n=new Date();var hh=(n.getHours()<10?'0':'')+n.getHours();var mm=n.getMinutes()<30?'00':'30';var v=hh+':'+mm;G('wEndTime').value=v;if(G('wCardioEnd'))G('wCardioEnd').value=v;})()" title="Registrar hora actual">🕐</button>
+          </div>
+        </div>
       </div>
       <button class="btnadd-main" id="btnLoadTpl" style="border-color:var(--gold-dim);color:var(--gold-dim);margin-bottom:10px">Cargar Plantilla</button>
       <!-- Cardio fields (shown only for cardio types) -->
@@ -733,15 +741,15 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
       </div>
       <div id="wExs"></div>
       <div id="wExBtns" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-        <button class="btnadd-main" id="btnEx" style="flex:1;margin-bottom:0;min-width:120px">+ Ejercicio</button>
-        <button class="btnadd-main" id="btnExLib" style="flex:1;margin-bottom:0;min-width:120px;border-color:var(--gold-dim);color:var(--gold-dim)">· Biblioteca</button>
-        <button class="btnadd-main" id="btnWarmup" style="flex:1;margin-bottom:0;min-width:100px;border-color:#3498db;color:#3498db">🔥 Calentamiento</button>
-        <button class="btnadd-main" id="btnStretch" style="flex:1;margin-bottom:0;min-width:100px;border-color:#27ae60;color:#27ae60">🤸 Estiramientos</button>
+        <button class="btnadd-main" id="btnEx" style="flex:1;margin-bottom:0;min-width:140px">+ Añadir Ejercicio</button>
+        <button class="btnadd-main" id="btnExLib" style="flex:1;margin-bottom:0;min-width:130px;border-color:var(--gold-dim);color:var(--gold-dim)">· Desde Biblioteca</button>
       </div>
-      <!-- For cardio: warmup/stretch exercise buttons always visible -->
+      <!-- For cardio: warmup/stretch exercise buttons -->
       <div id="wCardioExBtns" style="display:none;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-        <button class="btnadd-main" id="btnCardioWarmup" style="flex:1;margin-bottom:0;border-color:#3498db;color:#3498db">🔥 Añadir Calentamiento</button>
-        <button class="btnadd-main" id="btnCardioStretch" style="flex:1;margin-bottom:0;border-color:#27ae60;color:#27ae60">🤸 Añadir Estiramientos</button>
+        <button class="btnadd-main" id="btnCardioWarmup" style="flex:1;margin-bottom:0;border-color:#3498db;color:#3498db">🔥 Calentamiento</button>
+        <button class="btnadd-main" id="btnCardioWarmupLib" style="flex:1;margin-bottom:0;border-color:#3498db;color:#3498db;opacity:.7">🔥 Cal. · Biblioteca</button>
+        <button class="btnadd-main" id="btnCardioStretch" style="flex:1;margin-bottom:0;border-color:#27ae60;color:#27ae60">🤸 Estiramientos</button>
+        <button class="btnadd-main" id="btnCardioStretchLib" style="flex:1;margin-bottom:0;border-color:#27ae60;color:#27ae60;opacity:.7">🤸 Est. · Biblioteca</button>
       </div>
       <label class="tpl-row">
         <input type="checkbox" class="tpl-check" id="wSaveTpl">
@@ -808,10 +816,25 @@ body.light-mode .modal,.light-mode .cbox{background:#fff}
   <div class="modal">
     <div class="mhdr"><div class="mttl" id="nTtl">Nueva Comida</div><button class="mclose" id="nX">&#x2715;</button></div>
     <div class="mbody">
-      <div class="fg"><label class="fl">Nombre del Plato / Comida</label><input type="text" class="fi" id="nNm" placeholder="Ej: Desayuno · Tortilla de Patata"></div>
+      <div class="fg"><label class="fl">Tipo de Comida</label>
+        <select class="fi-sel" id="nNm" style="font-size:13px">
+          <option value="">— Seleccionar —</option>
+          <option value="Desayuno">☀️ Desayuno</option>
+          <option value="Almuerzo">🥪 Almuerzo</option>
+          <option value="Comida">🍽️ Comida</option>
+          <option value="Merienda">🍎 Merienda</option>
+          <option value="Cena">🌙 Cena</option>
+          <option value="Snack">🥜 Snack</option>
+          <option value="Alcohol">🍷 Alcohol</option>
+          <option value="Suplemento">💊 Suplemento</option>
+        </select>
+      </div>
       <div style="display:flex;gap:8px">
         <div class="fg" style="flex:1"><label class="fl">Fecha</label><input type="date" class="fi-date" id="nDatePick"></div>
-        <div class="fg" style="flex:0 0 110px"><label class="fl">⏱ Hora</label><input type="time" class="fi" id="nTimePick" onclick="if(!this.value){var n=new Date();this.value=(n.getHours()<10?'0':'')+n.getHours()+':'+(n.getMinutes()<10?'0':'')+n.getMinutes();}" title="Hora de la comida"></div>
+        <div class="fg" style="flex:0 0 130px">
+          <label class="fl">⏱ Hora</label>
+          <select class="fi-sel" id="nTimePick" style="font-size:12px;padding:8px 4px"></select>
+        </div>
       </div>
       <div class="fg"><label class="fl">Notas (opcional)</label><textarea class="fi-ta" id="nNotes" placeholder="Ej: Post-entrenamiento, preparación, alergias..."></textarea></div>
       <div id="nFds"></div>
@@ -2254,7 +2277,11 @@ function makeWorkoutCard(item,key){
     if(cd.dist)cdParts.push(cd.dist+'km');
     if(cd.tipo&&cd.tipo!=='continuo')cdParts.push(cd.tipo);
     var iCount=(cd.intervals&&cd.intervals.length)||(cd.intervalResults&&cd.intervalResults.length)||0;
-    if(iCount)cdParts.push(iCount+' series');
+    // Total series = sum of nSeries per interval
+    var totalSeries=0;var srcArr=cd.intervals||cd.intervalResults||[];
+    srcArr.forEach(function(iv){totalSeries+=parseInt(iv.nSeries)||1;});
+    if(totalSeries>0)cdParts.push(totalSeries+' serie'+(totalSeries!==1?'s':''));
+    else if(iCount)cdParts.push(iCount+' intervalo'+(iCount!==1?'s':''));
     mt=mk('div','cmeta',(cdParts.length?cdParts.join(' · '):'Actividad')+(done?' · Realizado':''));
   }else{
     var ex=(item.exercises||[]).length,ser=(item.exercises||[]).reduce(function(a,e){return a+(e.series||[]).length;},0);
@@ -2587,6 +2614,17 @@ function showVW(item,key){
     }
     if(cd.notes){var cn=mk('div','');cn.style.cssText='font-size:10px;color:var(--white3);margin-top:6px';cn.textContent=cd.notes;ci.appendChild(cn);}
     body.appendChild(ci);
+    // Show warmup exercises before intervals
+    var exs2=item.exercises||[];
+    var warmupExs=exs2.filter(function(e){return e.sectionType==='warmup';});
+    if(warmupExs.length){
+      var wHdr=mk('div','');wHdr.style.cssText='font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#3498db;border-left:3px solid #3498db;padding-left:8px;margin-bottom:6px;margin-top:4px';wHdr.textContent='🔥 Calentamiento';body.appendChild(wHdr);
+      warmupExs.forEach(function(ex){
+        var d=mk('div','view-ex');d.style.borderLeftColor='#3498db';d.appendChild(mk('div','view-ex-name',ex.name||'Ejercicio'));
+        (ex.series||[]).forEach(function(s,si){var r2=mk('div','');r2.style.cssText='font-size:9px;color:var(--white3);padding:2px 0';r2.textContent=(si+1)+'. '+(s.reps?s.reps+' reps':s.time?s.time+'s':'—');body.appendChild(r2);});
+        body.appendChild(d);
+      });
+    }
   }
   // Build superserie groups
   var exs=item.exercises||[];var groups=[],gi=0;
@@ -2660,8 +2698,36 @@ function showVW(item,key){
     }); // close exIdx forEach
   }); // close section.groups forEach
   }); // close sections forEach
-  G('vwToggle').textContent=done?'↺ Marcar pendiente':'✓ Marcar hecho';
+  // For cardio: also show stretch exercises at end
+  if(item.cardio){
+    var stretchExs=(item.exercises||[]).filter(function(e){return e.sectionType==='stretch';});
+    if(stretchExs.length){
+      var sHdr=mk('div','');sHdr.style.cssText='font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#27ae60;border-left:3px solid #27ae60;padding-left:8px;margin-bottom:6px;margin-top:8px';sHdr.textContent='🤸 Estiramientos';body.appendChild(sHdr);
+      stretchExs.forEach(function(ex){
+        var d=mk('div','view-ex');d.style.borderLeftColor='#27ae60';d.appendChild(mk('div','view-ex-name',ex.name||'Ejercicio'));
+        (ex.series||[]).forEach(function(s,si){var r3=mk('div','');r3.style.cssText='font-size:9px;color:var(--white3);padding:2px 0';r3.textContent=(si+1)+'. '+(s.time?s.time+'s':'—');d.appendChild(r3);});
+        body.appendChild(d);
+      });
+    }
+  }
   G('vwToggle').onclick=function(){toggleCompleted('workouts',key,item.id);closeM('modVW');if(mainTab==='prof')renderProf();};
+  // Carga total de la sesión (Tonelaje = series × reps × kg)
+  if(!item.cardio){
+    var totalLoad=0;var totalSer=0;var totalReps2=0;
+    (item.exercises||[]).forEach(function(ex){
+      (ex.series||[]).forEach(function(s){
+        totalSer++;var kg=parseFloat(s['_usr_weight']||s.weight)||0;var rps=parseFloat(s['_usr_reps']||s.reps)||0;
+        if(kg&&rps){totalLoad+=kg*rps;totalReps2+=rps;}
+      });
+    });
+    if(totalSer>0){
+      var loadDiv=mk('div','');loadDiv.style.cssText='background:var(--dark2);border:1px solid var(--dark4);border-left:3px solid var(--gold-dim);padding:8px 12px;margin-bottom:8px;margin-top:4px;display:flex;gap:16px;flex-wrap:wrap';
+      [{l:'Tonelaje',v:totalLoad?Math.round(totalLoad)+'kg':'—'},{l:'Series',v:totalSer},{l:'Reps totales',v:totalReps2||'—'}].forEach(function(f){
+        var c=mk('div','');c.innerHTML='<div style="font-size:6px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim)">'+f.l+'</div><div style="font-size:16px;font-family:var(--serif);color:var(--white)">'+f.v+'</div>';loadDiv.appendChild(c);
+      });
+      G('vwBody').insertBefore(loadDiv,G('vwBody').children[1]||G('vwBody').children[0]);
+    }
+  }
   G('vwEdit').onclick=function(){closeM('modVW');editItem(item.id,key);};
   G('vwDel').onclick=function(){closeM('modVW');deleteItem(item.id,key);};
   // Start workout button
@@ -2754,7 +2820,7 @@ function _openModWDate(dateStr){
 function _openModNDate(dateStr){
   editId=null;editKey=null;
   G('nTtl').textContent='Nueva Comida';
-  G('nNm').value='';G('nNotes').value='';
+  G('nNm').value=item&&item.name||'';G('nNotes').value='';
   foods=[];
   G('nDatePick').value=dateStr||todayDateStr();
   renderFds();G('modN').style.display='flex';
@@ -2799,10 +2865,6 @@ function openModW(item){
     var showIntervals=(_cardioType==='intervalos'||_cardioType==='hiit');
     var wrap=G('wCardioIntervalsWrap');if(wrap)wrap.style.display=showIntervals?'block':'none';
     if(_cardioIntervals.length>0){if(wrap)wrap.style.display='block';renderCardioIntervals();}
-  // Cardio warmup/stretch buttons
-  var bCW=G('btnCardioWarmup');var bCS=G('btnCardioStretch');
-  if(bCW)bCW.onclick=function(){exercises.push({name:'',sectionType:'warmup',series:[{reps:'',time:'',rest:'30',type:'warmup'}]});renderExs();};
-  if(bCS)bCS.onclick=function(){exercises.push({name:'',sectionType:'stretch',series:[{time:'30',rest:''}]});renderExs();};
   },100);
   renderExs();G('modW').style.display='flex';
 }
@@ -2988,62 +3050,53 @@ function addDragToSer(sb,ei,si){
 
 function renderExs(){
   var cont=G('wExs');cont.innerHTML='';
+  // Group exercises by section type
+  var SEC_ORDER=['warmup','main','stretch'];
+  var SEC_LABELS={warmup:'🔥 Calentamiento',main:'🏋️ Fuerza / Trabajo',stretch:'🤸 Estiramientos'};
+  var SEC_COLORS={warmup:'#3498db',main:'var(--gold)',stretch:'#27ae60'};
+  var groups={warmup:[],main:[],stretch:[]};
   exercises.forEach(function(ex,ei){
-    var blk=mk('div','exblk');
-    var hdr=mk('div','exhdr');
-    var lbl=mk('div','exlbl','☰ Ejercicio '+(ei+1));lbl.style.cursor='grab';lbl.title='Arrastrar para reordenar';
-    var actRow=mk('div');actRow.style.cssText='display:flex;gap:4px';
-    var bLib=mk('button','btnlib','💾');bLib.title='Guardar en biblioteca';
-    bLib.onclick=(function(i){return function(){var nm=exercises[i].name;if(!nm)return alert('Añade un nombre primero');var id=uid();saveFS('exLib',id,{id:id,name:nm,muscleGroup:'',equipment:'',notes:''});alert('Guardado en biblioteca: '+nm);}})(ei);
-    // Superserie toggle (only shown if not the last exercise)
-    if(ei<exercises.length-1){
-      var bSS=mk('button','btnlib','');bSS.style.cssText='font-size:8px;letter-spacing:1px;padding:3px 7px';
-      var ssActive=!!exercises[ei].supersetNext;
-      bSS.textContent=ssActive?'⚡ Superserie':'⚡ Unir';
-      bSS.title=ssActive?'Quitar de superserie':'Unir con siguiente como superserie';
-      bSS.style.borderColor=ssActive?'var(--gold)':'var(--dark4)';
-      bSS.style.color=ssActive?'var(--gold)':'var(--white4)';
-      bSS.onclick=(function(i){return function(){exercises[i].supersetNext=!exercises[i].supersetNext;renderExs();};})(ei);
-      actRow.appendChild(bSS);
-    }
-    var rm=mk('button','btnrm','✕');rm.onclick=(function(i){return function(){exercises.splice(i,1);renderExs();};})(ei);
-    actRow.appendChild(bLib);actRow.appendChild(rm);hdr.appendChild(lbl);hdr.appendChild(actRow);
-    var ni=document.createElement('input');ni.type='text';ni.className='fi';ni.placeholder='Nombre del ejercicio';ni.value=ex.name||'';ni.style.cssText='margin-bottom:8px;width:100%';
-    ni.setAttribute('draggable','false');
-    ni.oninput=(function(i){return function(){exercises[i].name=this.value;};})(ei);
-    var sc=mk('div');sc.id='sc'+ei;
-    var rowBtns=mk('div','row-btns');
-    var aN=mk('button','btnadd','+ Serie');aN.onclick=(function(i){return function(){if(!exercises[i].series)exercises[i].series=[];exercises[i].series.push({reps:'',weight:'',rir:'',rpe:'',rest:'',type:'normal'});renderSer(i);};})(ei);
-    var aC=mk('button','btnadd','= Igual');aC.onclick=(function(i){return function(){if(!exercises[i].series)exercises[i].series=[];var s=exercises[i].series;var last=s.length>0?JSON.parse(JSON.stringify(s[s.length-1])):{reps:'',weight:'',rir:'',rpe:'',rest:'',type:'normal'};s.push(last);renderSer(i);};})(ei);
-    var aW=mk('button','btnadd','Calentamiento');aW.style.cssText='border-color:rgba(52,152,219,.4);color:#3498db;margin:0';
-    aW.onclick=(function(i){return function(){if(!exercises[i].series)exercises[i].series=[];exercises[i].series.unshift({reps:'',weight:'',rir:'',rpe:'',rest:'',type:'warmup'});renderSer(i);};})(ei);
-    rowBtns.appendChild(aN);rowBtns.appendChild(aC);rowBtns.appendChild(aW);
-    blk.appendChild(hdr);blk.appendChild(ni);blk.appendChild(sc);blk.appendChild(rowBtns);
-    cont.appendChild(blk);addDragToExBlk(blk,ei);renderSer(ei);
-    // Visual connector if this exercise is part of a superserie with the next
-    if(ex.supersetNext&&ei<exercises.length-1){
-      var link=mk('div','superset-link','⚡ SUPERSERIE — descanso solo al final del grupo');
-      // Duplicate superserie button
-      var bDupSS=mk('button','');bDupSS.style.cssText='float:right;background:none;border:1px solid var(--gold-dim);color:var(--gold-dim);font-size:7px;padding:2px 7px;cursor:pointer;font-family:var(--sans);margin-top:-2px';
-      bDupSS.textContent='⧉ Duplicar biserie/superserie';
-      bDupSS.onclick=(function(startIdx){return function(){
-        // Find the full group starting from startIdx
-        var grp=[];var gi=startIdx;
-        while(gi<exercises.length){grp.push(gi);if(!exercises[gi].supersetNext)break;gi++;}
-        // Clone all exercises in group
-        var clones=grp.map(function(idx){
-          var clone=JSON.parse(JSON.stringify(exercises[idx]));
-          clone.id=uid();
-          return clone;
-        });
-        // Insert after the group
-        var insertAt=grp[grp.length-1]+1;
-        exercises.splice.apply(exercises,[insertAt,0].concat(clones));
-        renderExs();
-      };})(ei);
-      link.appendChild(bDupSS);
-      cont.appendChild(link);
-    }
+    var s=ex.sectionType||'main';
+    if(!groups[s])groups[s]=[];
+    groups[s].push({ex:ex,ei:ei});
+  });
+  SEC_ORDER.forEach(function(sType){
+    var gList=groups[sType];if(!gList||!gList.length)return;
+    var secHdr=mk('div','');
+    secHdr.style.cssText='font-size:8px;letter-spacing:3px;text-transform:uppercase;color:'+SEC_COLORS[sType]+';padding:6px 10px;background:rgba(0,0,0,.2);border-left:3px solid '+SEC_COLORS[sType]+';margin-bottom:6px;margin-top:8px';
+    secHdr.textContent=SEC_LABELS[sType];cont.appendChild(secHdr);
+    gList.forEach(function(entry){
+      var ex=entry.ex;var ei=entry.ei;
+      var blk=mk('div','exblk');
+      var hdr=mk('div','exhdr');
+      var lbl=mk('div','exlbl','☰ Ejercicio '+(ei+1));lbl.style.cursor='grab';lbl.title='Arrastrar para reordenar';
+      var actRow=mk('div');actRow.style.cssText='display:flex;gap:4px';
+      var bLib=mk('button','btnlib','💾');bLib.title='Guardar en biblioteca';
+      bLib.onclick=(function(i){return function(){var nm=exercises[i].name;if(!nm)return alert('Añade un nombre primero');var id=uid();saveFS('exLib',id,{id:id,name:nm,muscleGroup:'',equipment:'',notes:''});alert('Guardado en biblioteca: '+nm);}})(ei);
+      if(ei<exercises.length-1){
+        var bSS=mk('button','btnlib','');bSS.style.cssText='font-size:8px;letter-spacing:1px;padding:3px 7px';
+        var ssActive=!!exercises[ei].supersetNext;
+        bSS.textContent=ssActive?'⚡ Superserie':'⚡ Unir';bSS.title=ssActive?'Quitar de superserie':'Unir con siguiente como superserie';
+        bSS.style.borderColor=ssActive?'var(--gold)':'var(--dark4)';bSS.style.color=ssActive?'var(--gold)':'var(--white4)';
+        bSS.onclick=(function(i){return function(){exercises[i].supersetNext=!exercises[i].supersetNext;renderExs();};})(ei);
+        actRow.appendChild(bSS);
+      }
+      var rm=mk('button','btnrm','✕');rm.onclick=(function(i){return function(){exercises.splice(i,1);renderExs();};})(ei);
+      actRow.appendChild(bLib);actRow.appendChild(rm);hdr.appendChild(lbl);hdr.appendChild(actRow);
+      var ni=document.createElement('input');ni.type='text';ni.className='fi';ni.placeholder='Nombre del ejercicio';ni.value=ex.name||'';ni.style.cssText='margin-bottom:8px;width:100%';
+      ni.setAttribute('draggable','false');
+      ni.oninput=(function(i){return function(){exercises[i].name=this.value;};})(ei);
+      var sc=mk('div');sc.id='sc'+ei;
+      var rowBtns=mk('div','row-btns');
+      var aN=mk('button','btnadd','+ Serie');aN.onclick=(function(i){return function(){if(!exercises[i].series)exercises[i].series=[];exercises[i].series.push({reps:'',weight:'',rir:'',rpe:'',rest:'',type:'normal'});renderSer(i);};})(ei);
+      var aC=mk('button','btnadd','= Igual');aC.onclick=(function(i){return function(){if(!exercises[i].series)exercises[i].series=[];var s=exercises[i].series;var last=s.length>0?JSON.parse(JSON.stringify(s[s.length-1])):{reps:'',weight:'',rir:'',rpe:'',rest:'',type:'normal'};s.push(last);renderSer(i);};})(ei);
+      rowBtns.appendChild(aN);rowBtns.appendChild(aC);
+      blk.appendChild(hdr);blk.appendChild(ni);blk.appendChild(sc);blk.appendChild(rowBtns);
+      cont.appendChild(blk);addDragToExBlk(blk,ei);renderSer(ei);
+      if(ex.supersetNext&&ei<exercises.length-1){
+        var link=mk('div','superset-link','⚡ SUPERSERIE — descanso solo al final del grupo');cont.appendChild(link);
+      }
+    });
   });
 }
 function renderSer(ei){
@@ -3074,32 +3127,37 @@ function renderSer(ei){
     addDragToSer(sb,ei,si);cont.appendChild(sb);
   });
 }
-G('btnEx').onclick=function(){exercises.push({name:'',series:[{reps:'',weight:'',rir:'',rpe:'',rest:''}]});renderExs();};
-G('btnExLib').onclick=function(){openExPick();};
-// Warmup section
-G('btnWarmup').onclick=function(){
-  // Add a section header if not already present
-  var hasSection=exercises.some(function(e){return e.sectionType==='warmup';});
-  if(!hasSection){
-    exercises.push({id:uid(),name:'',sectionType:'warmup',sectionLabel:'Calentamiento',series:[{reps:'',weight:'',rir:'',rpe:'',rest:'',type:'warmup'}]});
-    renderExs();
-  }else{
-    // Just add a warmup exercise
-    exercises.push({id:uid(),name:'',sectionType:'warmup',series:[{reps:'',weight:'',rir:'',rpe:'',rest:'',type:'warmup'}]});
-    renderExs();
-  }
-};
-// Stretching section
-G('btnStretch').onclick=function(){
-  exercises.push({id:uid(),name:'',sectionType:'stretch',series:[{reps:'',time:'30',weight:'',rir:'',rpe:'',rest:'',type:'normal'}]});
+G('btnEx').onclick=function(){
+  // Ask for section type via a small inline sheet
+  var sType=prompt('Sección del ejercicio:\n1 = Calentamiento\n2 = Fuerza/Trabajo\n3 = Estiramientos\n\nEscribe 1, 2 o 3:','2');
+  var typeMap={'1':'warmup','2':'main','3':'stretch'};
+  var sect=typeMap[String(sType).trim()]||'main';
+  exercises.push({id:uid(),name:'',sectionType:sect,series:[{reps:'',weight:'',rir:'',rpe:'',rest:'',type:sect==='warmup'?'warmup':'normal'}]});
   renderExs();
 };
+G('btnExLib').onclick=function(){
+  var sType=prompt('Sección del ejercicio:\n1 = Calentamiento\n2 = Fuerza/Trabajo\n3 = Estiramientos\n\nEscribe 1, 2 o 3:','2');
+  var typeMap={'1':'warmup','2':'main','3':'stretch'};
+  var sect=typeMap[String(sType).trim()]||'main';
+  openExPick(sect);
+};
+// Cardio exercise buttons
+(function(){
+  var bCW=G('btnCardioWarmup');var bCS=G('btnCardioStretch');
+  var bCWL=G('btnCardioWarmupLib');var bCSL=G('btnCardioStretchLib');
+  if(bCW)bCW.onclick=function(){exercises.push({id:uid(),name:'',sectionType:'warmup',series:[{reps:'',time:'',rest:'30',type:'warmup'}]});renderExs();};
+  if(bCS)bCS.onclick=function(){exercises.push({id:uid(),name:'',sectionType:'stretch',series:[{time:'30',rest:''}]});renderExs();};
+  if(bCWL)bCWL.onclick=function(){openExPick('warmup');};
+  if(bCSL)bCSL.onclick=function(){openExPick('stretch');};
+})();
 G('btnLoadTpl').onclick=function(){openTplSel();};
 
 // Exercise picker
 G('exPickX').onclick=function(){G('modExPick').style.display='none';};
 G('exPickSearch').oninput=function(){renderExPickList();};
-function openExPick(){
+var _exPickSectionType='main';
+function openExPick(sType){
+  _exPickSectionType=sType||'main';
   G('exPickSearch').value='';
   if(G('exPickFilterMus'))G('exPickFilterMus').value='';
   if(G('exPickFilterEquip'))G('exPickFilterEquip').value='';
@@ -3140,7 +3198,7 @@ function renderExPickList(){
       var opt=mk('div','lib-opt');
       opt.innerHTML='<div style="font-size:12px">'+item.name+'</div><div class="lib-opt-meta" style="font-size:9px">'+(item.equipment||'')+'</div>';
       opt.onclick=function(){
-        exercises.push({name:item.name,exLibId:item.id,series:[{reps:'',weight:'',rir:'',rpe:'',rest:''}]});
+        exercises.push({name:item.name,exLibId:item.id,sectionType:_exPickSectionType,series:[{reps:'',weight:'',rir:'',rpe:'',rest:''}]});
         renderExs();G('modExPick').style.display='none';
       };list.appendChild(opt);
     });
@@ -3151,6 +3209,8 @@ function saveWorkout(){
   var dateStr=G('wDatePick').value||todayDateStr();
   var startTimeV=G('wStartTime')?G('wStartTime').value:'';
   var endTimeV=G('wEndTime')?G('wEndTime').value:'';
+  if(G('wCardioStart'))G('wCardioStart').value=startTimeV;
+  if(G('wCardioEnd'))G('wCardioEnd').value=endTimeV;
   var wd=dateToWD(dateStr);
   var key=gk(wd.weekOff,wd.dayIdx);
   var baseEx=JSON.parse(JSON.stringify(exercises));
@@ -3215,10 +3275,45 @@ function saveWorkout(){
 }
 G('wSv').onclick=saveWorkout;G('wCnc').onclick=function(){closeM('modW');};G('wX').onclick=function(){closeM('modW');};
 
-// ══ NUTRITION MODAL ═════════════════════════════════════
+// Populate workout time selects
+(function(){
+  ['wStartTime','wEndTime'].forEach(function(id){
+    var sel=G(id);if(!sel||sel.tagName!=='SELECT')return;
+    sel.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'Sin hora'}));
+    for(var h=0;h<24;h++){
+      for(var m2=0;m2<60;m2+=15){
+        var hh=(h<10?'0':'')+h;var mm=(m2===0?'00':(m2===15?'15':(m2===30?'30':'45')));
+        var v=hh+':'+mm;
+        sel.appendChild(Object.assign(document.createElement('option'),{value:v,textContent:v}));
+      }
+    }
+  });
+})();
+// Populate nutrition time select (already declared above in another block)
+// Populate hour select for nutrition
+(function(){
+  var sel=G('nTimePick');if(!sel)return;
+  var MEAL_DEFAULTS={Desayuno:'08:00',Almuerzo:'11:00',Comida:'14:00',Merienda:'17:30',Cena:'21:00',Snack:'16:00',Alcohol:'21:00',Suplemento:'08:00'};
+  // Empty option
+  sel.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'Sin hora'}));
+  for(var h=5;h<24;h++){
+    for(var m=0;m<60;m+=15){
+      var hh=(h<10?'0':'')+h;var mm=(m===0?'00':'30');if(m===30){mm='30';}else{mm=m===0?'00':(m<10?'0':'')+m;}
+      var v=hh+':'+mm;
+      sel.appendChild(Object.assign(document.createElement('option'),{value:v,textContent:v}));
+    }
+  }
+  // When meal type changes, auto-set time
+  var nmSel=G('nNm');
+  if(nmSel)nmSel.onchange=function(){
+    var def=MEAL_DEFAULTS[this.value];
+    if(def&&!sel.value)sel.value=def;
+  };
+})();
 function openModN(item){
   G('nTtl').textContent=item?'Editar Comida':'Nueva Comida';
-  G('nNm').value=item?item.name:'';G('nNotes').value=item?(item.notes||''):'';
+  var nmSel2=G('nNm');if(nmSel2&&nmSel2.tagName==='SELECT'){nmSel2.value=item?item.name:'';}else if(nmSel2){nmSel2.value=item?item.name:'';}
+  G('nNotes').value=item?(item.notes||''):'';
   foods=item&&item.foods?JSON.parse(JSON.stringify(item.foods)):[];
   var defDate;
   if(item&&editKey){
@@ -5168,6 +5263,25 @@ function _showActivitySummary(body){
   body.appendChild(finBtn);
 }
 
+function _renderStrengthSerieInFloat(body,ex,serIdx,onDone){
+  var s=ex.series&&ex.series[serIdx];if(!s)return;
+  var block=mk('div','wk-float-ex-block');
+  var nm=mk('div','wk-float-ex-nm',ex.name||'Ejercicio');body.appendChild(nm);
+  var flds=mk('div','wk-float-fields');
+  var isStretch=ex.sectionType==='stretch';
+  var fields=isStretch?[{k:'time',l:'Tiempo (s)',p:'30'}]:[{k:'reps',l:'Reps',p:'—'},{k:'weight',l:'Kg',p:'—'},{k:'rir',l:'RIR',p:'—'},{k:'rpe',l:'RPE',p:'—'},{k:'rest',l:'Desc(s)',p:'90'}];
+  fields.forEach(function(f){
+    var w=mk('div','wk-float-field');w.appendChild(mk('div','wk-float-lbl',f.l));
+    var inp=document.createElement('input');inp.type='number';inp.className='wk-float-inp';inp.placeholder=f.p;inp.inputMode='decimal';
+    inp.value=s['_usr_'+f.k]!==undefined?s['_usr_'+f.k]:(s[f.k]||'');
+    inp.oninput=(function(fk){return function(){s['_usr_'+fk]=this.value;s[fk]=this.value;};})(f.k);
+    w.appendChild(inp);flds.appendChild(w);
+  });
+  body.appendChild(flds);
+  var doneBtn=mk('button','wk-float-done','✓ COMPLETAR');
+  doneBtn.onclick=function(){if(onDone)onDone();};
+  body.appendChild(doneBtn);
+}
 function renderWkModeCardio(){
   // Background page showing full interval plan with editable result fields
   var body=G('wkModeBody');body.innerHTML='';
@@ -5464,13 +5578,47 @@ function renderWkFloat(){
   var body=G('wkFloatBody');if(!body)return;
   body.innerHTML='';
   var exs=wkModeItem.exercises||[];
-  // Check if this is a cardio activity
   var isCardioAct=!!(wkModeItem&&(wkModeItem.cardio!==undefined||CARDIO_TYPES.indexOf(wkModeItem.name||'')>=0));
   if(isCardioAct){
-    var actBody=G('wkFloatBody');
-    renderActivityFloat(actBody||body);
-    G('wkFloat').style.display='flex';
-    return;
+    // Check if we are in warmup/stretch exercise phase before/after intervals
+    var warmupExs=exs.filter(function(e){return e.sectionType==='warmup';});
+    var stretchExs=exs.filter(function(e){return e.sectionType==='stretch';});
+    var warmupDone=warmupExs.every(function(ex){return (ex.series||[]).every(function(s){return !!s.done;});});
+    var intervals=(wkModeItem.cardio&&wkModeItem.cardio.intervals)||[];
+    var intervalsDone=_actCurIntervalIdx>=(intervals.length||Infinity)&&(!intervals.length||_actIntervalResults.length>=intervals.length);
+    // If warmup exercises exist and not done yet, show strength-mode float for warmup
+    if(warmupExs.length&&!warmupDone){
+      var fex=G('wkFloatEx');var fser=G('wkFloatSer');
+      if(fex)fex.textContent='🔥 Calentamiento';
+      // Show current warmup exercise
+      var curWU=null,curWUSer=0,curWUIdx=0;
+      for(var wi=0;wi<warmupExs.length;wi++){for(var wsi=0;wsi<(warmupExs[wi].series||[]).length;wsi++){if(!warmupExs[wi].series[wsi].done){curWU=warmupExs[wi];curWUSer=wsi;curWUIdx=wi;break;}}if(curWU)break;}
+      if(fser&&curWU)fser.textContent=curWU.name+' — Serie '+(curWUSer+1);
+      if(curWU){
+        _renderStrengthSerieInFloat(body,curWU,curWUSer,function(){
+          curWU.series[curWUSer].done=true;
+          renderWkModeCardio();renderWkFloat();
+        });
+      }
+      G('wkFloat').style.display='flex';return;
+    }
+    // If intervals are done but stretch exercises exist, show stretch
+    if(intervalsDone&&stretchExs.length&&!stretchExs.every(function(ex){return (ex.series||[]).every(function(s){return !!s.done;});})){
+      var fex2=G('wkFloatEx');var fser2=G('wkFloatSer');
+      if(fex2)fex2.textContent='🤸 Estiramientos';
+      var curST=null,curSTSer=0;
+      for(var si2=0;si2<stretchExs.length;si2++){for(var ssi=0;ssi<(stretchExs[si2].series||[]).length;ssi++){if(!stretchExs[si2].series[ssi].done){curST=stretchExs[si2];curSTSer=ssi;break;}}if(curST)break;}
+      if(fser2&&curST)fser2.textContent=curST.name+' — Serie '+(curSTSer+1);
+      if(curST){
+        _renderStrengthSerieInFloat(body,curST,curSTSer,function(){
+          curST.series[curSTSer].done=true;renderWkModeCardio();renderWkFloat();
+        });
+      }
+      G('wkFloat').style.display='flex';return;
+    }
+    // Otherwise render activity float (intervals)
+    var actBody=G('wkFloatBody');renderActivityFloat(actBody||body);
+    G('wkFloat').style.display='flex';return;
   }
   var cur=_wkGetCurrent();
   var groups=cur.groups,curGrpIdx=cur.curGrpIdx,curSerIdx=cur.curSerIdx;
