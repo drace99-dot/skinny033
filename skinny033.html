@@ -858,7 +858,7 @@ function dateToWD(dateStr){
   return {weekOff:wOff,dayIdx:dayIdx};
 }
 function wdToDateStr(wOff,dayIdx){
-  var days=getWeekDays(wOff);return days[dayIdx]?days[dayIdx].toISOString().slice(0,10):todayDateStr();
+  var days=getWeekDays(wOff);return days[dayIdx]?localDateStr(days[dayIdx]):todayDateStr();
 }
 function getMonthDays(mOff){
   var now=new Date();
@@ -886,6 +886,7 @@ function mk(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cl
 function r(n){return Math.round(n)||0;}
 function r2(n){return Math.round(parseFloat(n)*100)/100||0;}
 function todayDateStr(){return new Date().toISOString().slice(0,10);}
+function localDateStr(d){var y=d.getFullYear(),mo=d.getMonth()+1,dy=d.getDate();return y+'-'+(mo<10?'0':'')+mo+'-'+(dy<10?'0':'')+dy;}
 function todayDayIdx(){return (new Date().getDay()+6)%7;}
 function todayKey(){return gk(0,todayDayIdx());}
 function isToday(d){return d.toDateString()===new Date().toDateString();}
@@ -1590,7 +1591,7 @@ function renderCal(){
 function _buildDayCol(d,wOff,dayIdx){
   var dayIdx7=(d.getDay()+6)%7;
   var key=gk(wOff,dayIdx7);
-  var dateStr=d.toISOString().slice(0,10);
+  var dateStr=localDateStr(d);
   var wItems=(D.workouts[key]&&D.workouts[key].items)||[];
   var nItems=(D.nutrition[key]&&D.nutrition[key].items)||[];
   var habits=Object.values(D.habitDefs||{});
@@ -1629,7 +1630,7 @@ function renderCalDay(){
   G('wInd').textContent=dayOff===0?'HOY':dayOff===1?'MAÑANA':dayOff===-1?'AYER':(dayOff>0?'+'+dayOff+' días':dayOff+' días');
   var scroll=G('calScroll');scroll.style.overflowX='hidden';
   var grid=G('cgrid');grid.className='day-view-grid';grid.innerHTML='';
-  var wOff2=dateToWD(now.toISOString().slice(0,10)).weekOff;
+  var wOff2=dateToWD(localDateStr(now)).weekOff;
   var dayIdx=(now.getDay()+6)%7;
   grid.appendChild(_buildDayCol(now,wOff2,dayIdx));
 }
@@ -1663,7 +1664,7 @@ function renderCalMonth(){
       if(!day){
         var empty=mk('div','dcol dcol-empty');weekRow.appendChild(empty);
       }else{
-        var wOff2=dateToWD(day.toISOString().slice(0,10)).weekOff;
+        var wOff2=dateToWD(localDateStr(day)).weekOff;
         weekRow.appendChild(_buildDayCol(day,wOff2,d2));
       }
     }
