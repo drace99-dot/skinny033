@@ -1674,16 +1674,97 @@ function renderCalWeek(){
 }
 
 function renderCalDay(){
-  var now=new Date();
-  now.setDate(now.getDate()+dayOff);
+  var now=new Date();now.setDate(now.getDate()+dayOff);
+  var dateStr=localDateStr(now);
   var label=now.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
   G('wLbl').textContent=label.charAt(0).toUpperCase()+label.slice(1);
   G('wInd').textContent=dayOff===0?'HOY':dayOff===1?'MAÑANA':dayOff===-1?'AYER':(dayOff>0?'+'+dayOff+' días':dayOff+' días');
   var scroll=G('calScroll');scroll.style.overflowX='hidden';
   var grid=G('cgrid');grid.className='day-view-grid';grid.innerHTML='';
-  var wOff2=dateToWD(localDateStr(now)).weekOff;
-  var dayIdx=(now.getDay()+6)%7;
-  grid.appendChild(_buildDayCol(now,wOff2,dayIdx));
+  var key=gk(dateStr);
+  var wItems=(D.workouts[key]&&D.workouts[key].items)||[];
+  var nItems=(D.nutrition[key]&&D.nutrition[key].items)||[];
+  var habits=Object.values(D.habitDefs||{});
+  // Build timeline
+  var timeline=[];
+  wItems.forEach(function(it){
+    var exs=it.exercises||[];var mainEx=exs.filter(function(e){return !e.sectionType||e.sectionType==='main';});
+    var totalSer=0;exs.forEach(function(e){totalSer+=(e.series||[]).length;});
+    timeline.push({type:'workout',time:it.time||'00:00',name:it.name||'Entrenamiento',done:!!it.completed,id:it.id,key:key,
+      meta:mainEx.length+' ej. fuerza · '+totalSer+' series'+(it.duration?' · '+it.duration+'min':''),item:it});
+  });
+  nItems.forEach(function(it){
+    var tot={kcal:0,p:0,c:0,f:0};(it.foods||[]).forEach(function(fd){var g=(fd.grams||0)/100;tot.kcal+=r(fd.kcal*g);tot.p+=r2(fd.protein*g);tot.c+=r2(fd.carbs*g);tot.f+=r2(fd.fat*g);});
+    timeline.push({type:'meal',time:it.time||'00:00',name:it.name||'Comida',done:!!it.completed,id:it.id,key:key,
+      meta:r(tot.kcal)+' kcal · P:'+r(tot.p)+'g · C:'+r(tot.c)+'g · G:'+r(tot.f)+'g',item:it});
+  });
+  habits.forEach(function(h){
+    var hKey=h.id+'_'+dateStr;var done=!!(D.habitLogs&&D.habitLogs[hKey]&&D.habitLogs[hKey].done);
+    var cat=(h.name||'').toLowerCase().indexOf('dorm')>=0||(h.name||'').toLowerCase().indexOf('sueño')>=0?'sleep':'habit';
+    timeline.push({type:'habit',cat:cat,time:h.time||'00:00',name:h.name||'Hábito',done:done,habitId:h.id,dateStr:dateStr,hKey:hKey,color:h.color||'var(--blue)',icon:h.icon||'●'});
+  });
+  timeline.sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
+  // Progress calc
+  var wkTotal=wItems.length,wkDone=wItems.filter(function(x){return x.completed;}).length;
+  var mlTotal=nItems.length,mlDone=nItems.filter(function(x){return x.completed;}).length;
+  var habNonSleep=habits.filter(function(h){var n=(h.name||'').toLowerCase();return n.indexOf('dorm')<0&&n.indexOf('sueño')<0;});
+  var habSleep=habits.filter(function(h){var n=(h.name||'').toLowerCase();return n.indexOf('dorm')>=0||n.indexOf('sueño')>=0;});
+  var habTotal=habNonSleep.length,habDone=habNonSleep.filter(function(h){return !!(D.habitLogs&&D.habitLogs[h.id+'_'+dateStr]&&D.habitLogs[h.id+'_'+dateStr].done);}).length;
+  var slpTotal=habSleep.length,slpDone=habSleep.filter(function(h){return !!(D.habitLogs&&D.habitLogs[h.id+'_'+dateStr]&&D.habitLogs[h.id+'_'+dateStr].done);}).length;
+  // Rings
+  function mkRing(pct,color,label,count){
+    var sz=64,sw=6,r2=sz/2-sw/2,circ=2*Math.PI*r2,off=circ-(pct/100*circ);
+    var wrap=mk('div','ring-item');
+    var svg='<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 '+sz+' '+sz+'"><circle cx="'+sz/2+'" cy="'+sz/2+'" r="'+r2+'" class="ring-bg" stroke-width="'+sw+'"/><circle cx="'+sz/2+'" cy="'+sz/2+'" r="'+r2+'" class="ring-fg" stroke="'+color+'" stroke-width="'+sw+'" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+sz/2+' '+sz/2+')"/><text x="'+sz/2+'" y="'+sz/2+'" class="ring-center-text" font-size="13">'+(pct>0?pct+'%':'—')+'</text></svg>';
+    wrap.innerHTML=svg+'<div class="ring-label">'+label+'</div>';
+    return wrap;
+  }
+  var hdr=mk('div','');hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:4px 0 6px';
+  var hdrL=mk('div','');hdrL.style.cssText='font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--white4)';hdrL.textContent=dayOff===0?'HOY':'';
+  var hdrR=mk('div','');hdrR.style.cssText='font-size:9px;color:var(--white4)';
+  hdrR.textContent=(wkDone+mlDone+habDone+slpDone)+' / '+(wkTotal+mlTotal+habTotal+slpTotal);
+  hdr.appendChild(hdrL);hdr.appendChild(hdrR);grid.appendChild(hdr);
+  var ringRow=mk('div','');ringRow.style.cssText='display:flex;gap:12px;justify-content:center;padding:10px 0 16px;flex-wrap:wrap';
+  ringRow.appendChild(mkRing(wkTotal?Math.round(wkDone/wkTotal*100):0,'#b8d44f','Mover'));
+  ringRow.appendChild(mkRing(mlTotal?Math.round(mlDone/mlTotal*100):0,'#e8702a','Comer'));
+  ringRow.appendChild(mkRing(habTotal?Math.round(habDone/habTotal*100):0,'#2980b9','Hábitos'));
+  ringRow.appendChild(mkRing(slpTotal?Math.round(slpDone/slpTotal*100):0,'#666','Dormir'));
+  grid.appendChild(ringRow);
+  // Timeline items
+  if(!timeline.length){grid.appendChild(mk('div','empty-state','Sin registros para este día'));return;}
+  timeline.forEach(function(t){
+    var colors={workout:'var(--gold)',meal:'var(--green)',habit:t.color||'var(--blue)'};
+    var icons={workout:'🏋️',meal:'🍽️',habit:t.icon||'●'};
+    var types={workout:'Entrenamiento',meal:'Comida',habit:(t.cat==='sleep'?'Dormir':'Hábito')};
+    var row=mk('div','today-item'+(t.type==='meal'?' n':'')+(t.done?' done':''));
+    row.style.borderLeftColor=colors[t.type];
+    var timeEl=mk('div','');timeEl.style.cssText='font-family:var(--serif);font-size:15px;color:var(--white);min-width:40px;text-align:center';timeEl.textContent=t.time||'--:--';
+    row.appendChild(timeEl);
+    var info=mk('div','today-item-info');
+    var typeBadge=mk('div','');typeBadge.style.cssText='font-size:7px;letter-spacing:2px;text-transform:uppercase;color:'+colors[t.type]+';margin-bottom:2px';
+    typeBadge.textContent=icons[t.type]+' '+types[t.type];
+    info.appendChild(typeBadge);
+    info.appendChild(mk('div','today-item-name',t.name));
+    if(t.meta)info.appendChild(mk('div','today-item-meta',t.meta));
+    row.appendChild(info);
+    var chk=mk('button','today-done-btn'+(t.done?' is-done':''),t.done?'✓':'');
+    chk.style.cssText+='width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;border-radius:2px';
+    if(!t.done)chk.style.borderColor='var(--dark5)';
+    chk.onclick=function(){
+      if(t.type==='habit'){
+        toggleHabit(t.habitId,t.dateStr);
+      }else{
+        toggleCompleted(t.type==='workout'?'workouts':'nutrition',t.key,t.id);
+      }
+      renderCalDay();
+    };
+    row.appendChild(chk);
+    if(t.type==='workout'||t.type==='meal'){
+      row.style.cursor='pointer';
+      row.onclick=function(e){if(e.target.closest('button'))return;t.type==='workout'?showVW(t.item,t.key):showVN(t.item,t.key);};
+    }
+    grid.appendChild(row);
+  });
 }
 
 function renderCalMonth(){
