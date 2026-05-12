@@ -2318,7 +2318,17 @@ function exportWorkoutPdf(item,key){
     });
     y+=4;
   });
-  doc.save((item.name||'entrenamiento').replace(/[^a-zA-Z0-9]/g,'_')+'.pdf');
+  var blob=doc.output('blob');
+  var blobUrl=URL.createObjectURL(blob);
+  var fileName=(item.name||'entrenamiento').replace(/[^a-zA-Z0-9]/g,'_')+'.pdf';
+  var ov=mk('div','mol');ov.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:950;align-items:center;justify-content:center;flex-direction:column;padding:16px';
+  var cl=mk('button','btn-out','✕');cl.style.cssText='position:absolute;top:12px;right:16px;z-index:2';cl.onclick=function(){URL.revokeObjectURL(blobUrl);ov.remove();};ov.appendChild(cl);
+  var fr=document.createElement('iframe');fr.src=blobUrl;fr.style.cssText='width:90vw;max-width:600px;height:70vh;border:1px solid var(--dark4);background:#fff;border-radius:4px';ov.appendChild(fr);
+  var dlBtn=mk('button','bsave','DESCARGAR PDF');dlBtn.style.cssText='margin-top:12px;padding:12px 24px;border:1px solid var(--gold);color:var(--gold);background:transparent;font-size:9px;letter-spacing:3px;cursor:pointer;font-family:var(--sans)';
+  dlBtn.onclick=function(){var a=document.createElement('a');a.href=blobUrl;a.download=fileName;a.click();};
+  ov.appendChild(dlBtn);
+  ov.onclick=function(e){if(e.target===ov){URL.revokeObjectURL(blobUrl);ov.remove();}};
+  document.body.appendChild(ov);
 }
 
 function showVN(item,key){
@@ -5110,7 +5120,7 @@ function renderWkFloat(){
     nextDiv.innerHTML='<span style="letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);font-size:7px">A continuación: </span><span style="color:var(--white3)">'+nextInfo.label+'</span>';
     body.appendChild(nextDiv);
   }
-  var serTimerWrap=mk('div','');serTimerWrap.style.cssText='background:var(--dark);border:1px solid var(--dark4);border-top:2px solid var(--gold-dim);padding:10px 14px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:910;box-shadow:0 -4px 20px rgba(0,0,0,.5)';
+  var serTimerWrap=mk('div','');serTimerWrap.id='serTimerBar';serTimerWrap.style.cssText='background:var(--dark);border:1px solid var(--dark4);border-top:2px solid var(--gold-dim);padding:10px 14px;width:100%;max-width:480px;margin-top:4px';
   var serTimerDisp=mk('div','');serTimerDisp.style.cssText='text-align:center;font-family:var(--serif);font-size:22px;color:var(--gold);margin-bottom:6px';
   serTimerDisp.id='serTimerDisp';serTimerDisp.textContent='00:00';
   var lapLog=mk('div','');lapLog.style.cssText='font-size:9px;color:var(--white4);text-align:center;margin-bottom:6px;max-height:50px;overflow-y:auto';lapLog.id='lapLog';
@@ -5144,7 +5154,13 @@ function renderWkFloat(){
   };
   serTimerBtns.appendChild(bStartSer);serTimerBtns.appendChild(bLap);
   serTimerWrap.appendChild(serTimerDisp);serTimerWrap.appendChild(lapLog);serTimerWrap.appendChild(serTimerBtns);
-  var _wkFloatEl=document.querySelector('.wk-float');if(_wkFloatEl)_wkFloatEl.appendChild(serTimerWrap);
+  var _wkFloatEl=document.querySelector('.wk-float');
+  var _wkInner=document.querySelector('.wk-float-inner');
+  if(_wkFloatEl&&_wkInner){
+    var _colWrap=mk('div','');_colWrap.style.cssText='display:flex;flex-direction:column;align-items:center;max-height:92vh;width:100%;max-width:480px';
+    _wkInner.parentNode.insertBefore(_colWrap,_wkInner);
+    _colWrap.appendChild(_wkInner);_colWrap.appendChild(serTimerWrap);
+  }
   var doneBtn=mk('button','wk-float-done','✓  SERIE COMPLETADA');
   doneBtn.onclick=function(){
     clearInterval(_serIntLocal);_serRunning=false;
