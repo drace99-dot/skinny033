@@ -888,9 +888,28 @@ function r(n){return Math.round(n)||0;}
 function r2(n){return Math.round(parseFloat(n)*100)/100||0;}
 function todayDateStr(){return new Date().toISOString().slice(0,10);}
 function localDateStr(d){var y=d.getFullYear(),mo=d.getMonth()+1,dy=d.getDate();return y+'-'+(mo<10?'0':'')+mo+'-'+(dy<10?'0':'')+dy;}
-function _getYtId(url){if(!url)return null;var m=url.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|m\.youtube\.com\/watch\?.*v=)([a-zA-Z0-9_-]{11})/);return m?m[1]:null;}
+function _getYtId(url){if(!url)return null;url=String(url).trim();var m=url.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|m\.youtube\.com\/watch\?.*v=)([a-zA-Z0-9_-]{11})/);if(m)return m[1];var m2=url.match(/^([a-zA-Z0-9_-]{11})$/);return m2?m2[1]:null;}
 function _getExVideo(name){var el=Object.values(D.exLib||{}).find(function(e){return (e.name||'').toLowerCase()===(name||'').toLowerCase();});return el&&el.video?el.video:null;}
-function openYtPopup(url){var vid=_getYtId(url);var ov=mk('div','');ov.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;align-items:center;justify-content:center;flex-direction:column';var cl=mk('button','btn-out','✕');cl.style.cssText='position:absolute;top:12px;right:16px;z-index:2';cl.onclick=function(){ov.remove();};ov.appendChild(cl);var fr=document.createElement('iframe');fr.setAttribute('src',vid?'https://www.youtube.com/embed/'+vid+'?autoplay=1&rel=0':url);fr.setAttribute('allowfullscreen','');fr.setAttribute('allow','autoplay; encrypted-media; fullscreen');fr.style.cssText='width:90vw;max-width:640px;height:50vw;max-height:360px;border:none;border-radius:8px';ov.appendChild(fr);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);}
+function openYtPopup(url){
+  var vid=_getYtId(url);
+  var embedSrc=vid?'https://www.youtube.com/embed/'+vid+'?autoplay=1&rel=0':null;
+  var ov=mk('div','');ov.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:10px';
+  var cl=mk('button','btn-out','✕');cl.style.cssText='position:absolute;top:12px;right:16px;z-index:2;font-size:16px';cl.onclick=function(){ov.remove();};ov.appendChild(cl);
+  if(embedSrc){
+    var fr=document.createElement('iframe');
+    fr.setAttribute('src',embedSrc);
+    fr.setAttribute('allowfullscreen','true');
+    fr.setAttribute('allow','autoplay; encrypted-media; fullscreen; picture-in-picture');
+    fr.setAttribute('frameborder','0');
+    fr.style.cssText='width:92vw;max-width:720px;aspect-ratio:16/9;border:none;border-radius:8px;background:#000';
+    ov.appendChild(fr);
+  }
+  var linkBtn=mk('button','bsave','▶ Abrir en YouTube');linkBtn.style.cssText='padding:10px 20px;border:1px solid var(--gold);color:var(--gold);background:transparent;font-size:9px;letter-spacing:2px;cursor:pointer;font-family:var(--sans)';
+  linkBtn.onclick=function(e){e.stopPropagation();window.open(vid?'https://www.youtube.com/watch?v='+vid:url,'_blank');};
+  ov.appendChild(linkBtn);
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);
+}
 function todayDayIdx(){return (new Date().getDay()+6)%7;}
 function todayKey(){return gk(todayDateStr());}
 function isToday(d){return d.toDateString()===new Date().toDateString();}
@@ -3443,7 +3462,7 @@ function renderLibEjercicios(cont){
     info.appendChild(mk('div','lib-item-name',item.name));
     var meta=[item.muscleGroup,item.equipment].filter(Boolean).join(' · ')+(item.notes?' · '+item.notes.slice(0,35):'');
     info.appendChild(mk('div','lib-item-meta',meta||'Sin categoría'));
-    if(item.video){var vLink=document.createElement('a');vLink.href=item.video;vLink.target='_blank';vLink.style.cssText='font-size:8px;color:var(--blue);text-decoration:none;display:inline-block;margin-top:2px';vLink.textContent='▶ Ver técnica en YouTube';vLink.onclick=function(e){e.stopPropagation();};info.appendChild(vLink);}
+    if(item.video){var vLink=document.createElement('button');vLink.style.cssText='font-size:8px;color:var(--blue);background:none;border:none;cursor:pointer;display:inline-block;margin-top:2px;font-family:var(--sans);padding:0';vLink.textContent='▶ Ver técnica en YouTube';vLink.onclick=function(e){e.stopPropagation();openYtPopup(item.video);};info.appendChild(vLink);}
 
     var acts=mk('div','lib-item-acts');
     var be=mk('button','lib-btn','✎');be.onclick=function(e){e.stopPropagation();openExModal(item);};
@@ -4409,9 +4428,9 @@ function showExDetail(item){
   if(item.video){
     var isUrl=/^https?:\/\//i.test(item.video);
     if(isUrl){
-      var vLink=document.createElement('a');vLink.href=item.video;vLink.target='_blank';vLink.rel='noopener';
-      vLink.style.cssText='display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 12px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.4);color:#ff5555;text-decoration:none;font-size:9px;letter-spacing:2px;text-transform:uppercase';
-      vLink.textContent='▶ Ver técnica en YouTube';vLink.onclick=function(e){e.stopPropagation();};
+      var vLink=document.createElement('button');
+      vLink.style.cssText='display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:6px 12px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.4);color:#ff5555;font-size:9px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:var(--sans)';
+      vLink.textContent='▶ Ver técnica en YouTube';vLink.onclick=function(e){e.stopPropagation();openYtPopup(item.video);};
       techSec.appendChild(vLink);
     }else{
       var vTxt=mk('div','');vTxt.style.cssText='margin-top:6px;font-size:10px;color:var(--white4)';vTxt.textContent=item.video;
@@ -5091,9 +5110,11 @@ function renderWkFloat(){
     nmDiv.style.color=_fNameColor;
     var exLibItem=Object.values(D.exLib||{}).find(function(e2){return (e2.name||'').toLowerCase()===(ex.name||'').toLowerCase();});
     if(exLibItem&&exLibItem.video){
-      var vFloatLink=document.createElement('a');vFloatLink.href=exLibItem.video;vFloatLink.target='_blank';vFloatLink.rel='noopener';
-      vFloatLink.style.cssText='display:inline-block;font-size:8px;color:#ff5555;text-decoration:none;margin-bottom:6px;letter-spacing:1px';
-      vFloatLink.textContent='▶ Ver técnica en YouTube';
+      var _vidUrl=exLibItem.video;
+      var vFloatLink=document.createElement('button');
+      vFloatLink.style.cssText='display:inline-block;font-size:8px;color:#ff5555;background:none;border:none;cursor:pointer;margin-bottom:6px;letter-spacing:1px;font-family:var(--sans);padding:0';
+      vFloatLink.textContent='▶ Ver técnica';
+      vFloatLink.onclick=function(e){e.stopPropagation();openYtPopup(_vidUrl);};
       block.appendChild(nmDiv);block.appendChild(vFloatLink);
     }else{block.appendChild(nmDiv);}
     var _fSerColor=isWarmupSer?'#3498db':(isStretchSer2?'#8fc9a3':'var(--gold-dim)');
