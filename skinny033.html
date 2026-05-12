@@ -888,9 +888,9 @@ function r(n){return Math.round(n)||0;}
 function r2(n){return Math.round(parseFloat(n)*100)/100||0;}
 function todayDateStr(){return new Date().toISOString().slice(0,10);}
 function localDateStr(d){var y=d.getFullYear(),mo=d.getMonth()+1,dy=d.getDate();return y+'-'+(mo<10?'0':'')+mo+'-'+(dy<10?'0':'')+dy;}
-function _getYtId(url){if(!url)return null;var m=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);return m?m[1]:null;}
+function _getYtId(url){if(!url)return null;var m=url.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|m\.youtube\.com\/watch\?.*v=)([a-zA-Z0-9_-]{11})/);return m?m[1]:null;}
 function _getExVideo(name){var el=Object.values(D.exLib||{}).find(function(e){return (e.name||'').toLowerCase()===(name||'').toLowerCase();});return el&&el.video?el.video:null;}
-function openYtPopup(url){var vid=_getYtId(url);if(!vid)return window.open(url,'_blank');var ov=mk('div','mol');ov.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:950;align-items:center;justify-content:center;flex-direction:column';var cl=mk('button','btn-out','✕');cl.style.cssText='position:absolute;top:12px;right:16px;z-index:2';cl.onclick=function(){ov.remove();};ov.appendChild(cl);var fr=document.createElement('iframe');fr.src='https://www.youtube.com/embed/'+vid+'?autoplay=1';fr.style.cssText='width:90vw;max-width:640px;height:50vw;max-height:360px;border:none;border-radius:8px';fr.allow='autoplay;encrypted-media';fr.allowFullscreen=true;ov.appendChild(fr);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);}
+function openYtPopup(url){var vid=_getYtId(url);var ov=mk('div','');ov.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;align-items:center;justify-content:center;flex-direction:column';var cl=mk('button','btn-out','✕');cl.style.cssText='position:absolute;top:12px;right:16px;z-index:2';cl.onclick=function(){ov.remove();};ov.appendChild(cl);var fr=document.createElement('iframe');fr.setAttribute('src',vid?'https://www.youtube.com/embed/'+vid+'?autoplay=1&rel=0':url);fr.setAttribute('allowfullscreen','');fr.setAttribute('allow','autoplay; encrypted-media; fullscreen');fr.style.cssText='width:90vw;max-width:640px;height:50vw;max-height:360px;border:none;border-radius:8px';ov.appendChild(fr);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);}
 function todayDayIdx(){return (new Date().getDay()+6)%7;}
 function todayKey(){return gk(todayDateStr());}
 function isToday(d){return d.toDateString()===new Date().toDateString();}
@@ -2281,7 +2281,10 @@ function showVW(item,key){
 }
 
 function exportWorkoutPdf(item,key){
-  if(typeof jspdf==='undefined'&&typeof window.jspdf==='undefined'){alert('Cargando PDF...');return;}
+  if(!window.jspdf){
+    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=function(){exportWorkoutPdf(item,key);};document.head.appendChild(s);return;
+  }
   var jsPDF=window.jspdf.jsPDF;
   var doc=new jsPDF({unit:'mm',format:'a4'});
   var W=210,M=15,CW=W-2*M,y=20;
@@ -2321,7 +2324,7 @@ function exportWorkoutPdf(item,key){
   var blob=doc.output('blob');
   var blobUrl=URL.createObjectURL(blob);
   var fileName=(item.name||'entrenamiento').replace(/[^a-zA-Z0-9]/g,'_')+'.pdf';
-  var ov=mk('div','mol');ov.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:950;align-items:center;justify-content:center;flex-direction:column;padding:16px';
+  var ov=mk('div','');ov.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;align-items:center;justify-content:center;flex-direction:column;padding:16px';
   var cl=mk('button','btn-out','✕');cl.style.cssText='position:absolute;top:12px;right:16px;z-index:2';cl.onclick=function(){URL.revokeObjectURL(blobUrl);ov.remove();};ov.appendChild(cl);
   var fr=document.createElement('iframe');fr.src=blobUrl;fr.style.cssText='width:90vw;max-width:600px;height:70vh;border:1px solid var(--dark4);background:#fff;border-radius:4px';ov.appendChild(fr);
   var dlBtn=mk('button','bsave','DESCARGAR PDF');dlBtn.style.cssText='margin-top:12px;padding:12px 24px;border:1px solid var(--gold);color:var(--gold);background:transparent;font-size:9px;letter-spacing:3px;cursor:pointer;font-family:var(--sans)';
@@ -5120,6 +5123,7 @@ function renderWkFloat(){
     nextDiv.innerHTML='<span style="letter-spacing:2px;text-transform:uppercase;color:var(--gold-dim);font-size:7px">A continuación: </span><span style="color:var(--white3)">'+nextInfo.label+'</span>';
     body.appendChild(nextDiv);
   }
+  var _oldBar=document.getElementById('serTimerBar');if(_oldBar)_oldBar.remove();
   var serTimerWrap=mk('div','');serTimerWrap.id='serTimerBar';serTimerWrap.style.cssText='background:var(--dark);border:1px solid var(--dark4);border-top:2px solid var(--gold-dim);padding:10px 14px;width:100%;max-width:480px;margin-top:4px';
   var serTimerDisp=mk('div','');serTimerDisp.style.cssText='text-align:center;font-family:var(--serif);font-size:22px;color:var(--gold);margin-bottom:6px';
   serTimerDisp.id='serTimerDisp';serTimerDisp.textContent='00:00';
