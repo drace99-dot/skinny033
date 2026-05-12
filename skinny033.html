@@ -792,6 +792,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 <script>
 window.G=function(id){return document.getElementById(id);};
@@ -2297,47 +2298,48 @@ function showVW(item,key){
 }
 
 function exportWorkoutPdf(item,key){
+  if(!window.jspdf){
+    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=function(){exportWorkoutPdf(item,key);};
+    document.head.appendChild(s);return;
+  }
+  var jsPDF=window.jspdf.jsPDF;
+  var doc=new jsPDF({unit:'mm',format:'a4'});
+  var W=210,M=15,CW=W-2*M,y=20;
   var exs=item.exercises||[];
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+(item.name||'Entrenamiento')+'</title><style>';
-  html+='*{margin:0;padding:0;box-sizing:border-box}body{font-family:Helvetica,Arial,sans-serif;padding:20mm 15mm;color:#111;font-size:10px}';
-  html+='h1{font-size:20px;margin-bottom:4px}h2{font-size:12px;color:#666;margin:14px 0 6px;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid #ccc;padding-bottom:3px}';
-  html+='.meta{font-size:9px;color:#888;margin-bottom:12px}.ex{margin-bottom:10px;page-break-inside:avoid}.ex-name{font-size:12px;font-weight:700;margin-bottom:4px}';
-  html+='table{width:100%;border-collapse:collapse;margin-bottom:6px}th{font-size:8px;text-transform:uppercase;color:#888;text-align:left;padding:2px 4px;border-bottom:1px solid #ddd}';
-  html+='td{font-size:10px;padding:3px 4px;border-bottom:1px solid #eee}';
-  html+='@media print{body{padding:10mm}}';
-  html+='</style></head><body>';
-  html+='<h1>'+(item.name||'Entrenamiento')+'</h1>';
-  html+='<div class="meta">'+(item.date?formatDate(item.date):'')+'&emsp;'+(item.completed?'COMPLETADO':'PENDIENTE')+'</div>';
-  var secs=[
-    {type:'warmup',label:'Calentamiento',list:exs.filter(function(e){return e.sectionType==='warmup';})},
-    {type:'main',label:'Fuerza',list:exs.filter(function(e){return !e.sectionType||e.sectionType==='main';})},
-    {type:'stretch',label:'Estiramientos',list:exs.filter(function(e){return e.sectionType==='stretch';})}
+  doc.setFontSize(18);doc.setFont('helvetica','bold');doc.text(item.name||'Entrenamiento',M,y);y+=8;
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(120);
+  doc.text((item.date?formatDate(item.date):'')+'   '+(item.completed?'COMPLETADO':'PENDIENTE'),M,y);y+=10;
+  doc.setTextColor(0);
+  var sections=[
+    {type:'warmup',label:'CALENTAMIENTO',exs:exs.filter(function(e){return e.sectionType==='warmup';})},
+    {type:'main',label:'FUERZA',exs:exs.filter(function(e){return !e.sectionType||e.sectionType==='main';})},
+    {type:'stretch',label:'ESTIRAMIENTOS',exs:exs.filter(function(e){return e.sectionType==='stretch';})}
   ];
-  secs.forEach(function(sec){
-    if(!sec.list.length)return;
-    html+='<h2>'+sec.label+'</h2>';
-    var isStr=sec.type==='stretch';
-    sec.list.forEach(function(ex,ei){
-      html+='<div class="ex"><div class="ex-name">'+(ei+1)+'. '+(ex.name||'Ejercicio')+'</div><table><tr>';
-      var cols=isStr?['#','Reps','Seg/rep','Desc(s)']:['#','Reps','Seg','Kg','RIR','RPE','Desc(s)'];
-      cols.forEach(function(c){html+='<th>'+c+'</th>';});
-      html+='</tr>';
+  sections.forEach(function(sec){
+    if(!sec.exs.length)return;
+    if(y>270){doc.addPage();y=15;}
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(100);doc.text(sec.label,M,y);y+=6;
+    doc.setTextColor(0);
+    sec.exs.forEach(function(ex,ei){
+      if(y>275){doc.addPage();y=15;}
+      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text((ei+1)+'. '+(ex.name||'Ejercicio'),M+2,y);y+=5;
+      var isStr=sec.type==='stretch';
+      var hdr=isStr?['#','Reps','Seg','Desc']:['#','Reps','Seg','Kg','RIR','RPE','Desc'];
+      var cw2=CW/hdr.length;
+      doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(130);
+      hdr.forEach(function(h,hi){doc.text(h,M+hi*cw2+2,y);});y+=4;
+      doc.setFont('helvetica','normal');doc.setTextColor(0);doc.setFontSize(9);
       (ex.series||[]).forEach(function(s,si){
-        html+='<tr>';
-        if(isStr){
-          html+='<td>'+(si+1)+'</td><td>'+(s.reps||'—')+'</td><td>'+(s.time?s.time+'s':'—')+'</td><td>'+(s.rest?s.rest+'s':'—')+'</td>';
-        }else{
-          html+='<td>'+(si+1)+'</td><td>'+(s.reps||'—')+'</td><td>'+(s.time?s.time+'s':'—')+'</td><td>'+(s.weight||'—')+'</td><td>'+(s.rir||'—')+'</td><td>'+(s.rpe||'—')+'</td><td>'+(s.rest?s.rest+'s':'—')+'</td>';
-        }
-        html+='</tr>';
+        if(y>280){doc.addPage();y=15;}
+        var vals=isStr?[String(si+1),s.reps||'—',s.time?s.time+'s':'—',s.rest?s.rest+'s':'—']:[String(si+1),s.reps||'—',s.time?s.time+'s':'—',s.weight||'—',s.rir||'—',s.rpe||'—',s.rest?s.rest+'s':'—'];
+        vals.forEach(function(v,vi){doc.text(String(v),M+vi*cw2+2,y);});y+=4;
       });
-      html+='</table></div>';
+      y+=3;
     });
+    y+=4;
   });
-  html+='<script>window.onload=function(){window.print();}<\/script></body></html>';
-  var w=window.open('','_blank');
-  if(w){w.document.write(html);w.document.close();}
-  else{var b=new Blob([html],{type:'text/html'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=(item.name||'entrenamiento').replace(/[^a-zA-Z0-9]/g,'_')+'.html';a.click();URL.revokeObjectURL(u);}
+  doc.save((item.name||'entrenamiento').replace(/[^a-zA-Z0-9]/g,'_')+'.pdf');
 }
 
 function showVN(item,key){
